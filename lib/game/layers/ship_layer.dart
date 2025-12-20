@@ -1,0 +1,362 @@
+import 'package:flutter/material.dart';
+import '../game_state.dart';
+
+/// 船层 - 船只，支持战斗模式
+class ShipLayer extends StatefulWidget {
+  final GameState gameState;
+
+  const ShipLayer({
+    super.key,
+    required this.gameState,
+  });
+
+  @override
+  State<ShipLayer> createState() => _ShipLayerState();
+}
+
+class _ShipLayerState extends State<ShipLayer>
+    with TickerProviderStateMixin {
+  late AnimationController _breathingController;
+  late Animation<double> _breathingAnimation;
+  
+  // 敌方船只滑入动画
+  AnimationController? _enemySlideController;
+  Animation<Offset>? _enemySlideAnimation;
+  
+  // 沉船动画
+  AnimationController? _sinkingController;
+  Animation<double>? _sinkingAnimation;
+
+  // 玩家归位动画
+  AnimationController? _playerReturnController;
+  Animation<double>? _playerReturnAnimation;
+
+  @override
+  void initState() {
+    super.initState();
+    
+    // 玩家船只呼吸动画
+    _breathingController = AnimationController(
+      duration: const Duration(seconds: 2),
+      vsync: this,
+    )..repeat(reverse: true);
+    
+    _breathingAnimation = Tween<double>(
+      begin: -5.0,
+      end: 5.0,
+    ).animate(CurvedAnimation(
+      parent: _breathingController,
+      curve: Curves.easeInOut,
+    ));
+
+    // 监听战斗状态变化
+    widget.gameState.addListener(_onGameStateChanged);
+  }
+
+  @override
+  void dispose() {
+    widget.gameState.removeListener(_onGameStateChanged);
+    _breathingController.dispose();
+    _enemySlideController?.dispose();
+    _sinkingController?.dispose();
+    _playerReturnController?.dispose();
+    super.dispose();
+  }
+
+  void _onGameStateChanged() {
+    if (!mounted) return;
+
+    // 处理敌方船只滑入动画
+    if (widget.gameState.isInCombat && _enemySlideController == null) {
+      _startEnemySlideAnimation();
+    } else if (!widget.gameState.isInCombat && _enemySlideController != null) {
+      _enemySlideController?.dispose();
+      _enemySlideController = null;
+      _enemySlideAnimation = null;
+    }
+
+    // 处理沉船动画
+    if (widget.gameState.isSinking && _sinkingController == null) {
+      _startSinkingAnimation();
+    } else if (!widget.gameState.isSinking && _sinkingController != null) {
+      // 沉船动画结束后清理
+      _sinkingController?.dispose();
+      _sinkingController = null;
+      _sinkingAnimation = null;
+    }
+
+    // 处理玩家归位动画
+    if (widget.gameState.isReturningFromCombat && _playerReturnController == null) {
+      _startPlayerReturnAnimation();
+    } else if (!widget.gameState.isReturningFromCombat && _playerReturnController != null) {
+      _playerReturnController?.dispose();
+      _playerReturnController = null;
+      _playerReturnAnimation = null;
+    }
+  }
+
+  void _startEnemySlideAnimation() {
+    _enemySlideController = AnimationController(
+      duration: const Duration(milliseconds: 1500),
+      vsync: this,
+    );
+
+    _enemySlideAnimation = Tween<Offset>(
+      begin: const Offset(1.0, 0.0), // 从右侧屏幕外
+      end: Offset.zero, // 正常位置
+    ).animate(CurvedAnimation(
+      parent: _enemySlideController!,
+      curve: Curves.easeInOut,
+    ));
+
+    _enemySlideController!.forward();
+  }
+
+  void _startSinkingAnimation() {
+    _sinkingController = AnimationController(
+      duration: const Duration(seconds: 2),
+      vsync: this,
+    );
+
+    _sinkingAnimation = Tween<double>(
+      begin: 0.0,
+      end: 800.0, // 向下移动800像素（足够移出屏幕）
+    ).animate(CurvedAnimation(
+      parent: _sinkingController!,
+      curve: Curves.easeIn,
+    ));
+
+    _sinkingController!.forward();
+  }
+
+  void _startPlayerReturnAnimation() {
+    _playerReturnController = AnimationController(
+      duration: const Duration(milliseconds: 1500),
+      vsync: this,
+    );
+
+    _playerReturnAnimation = Tween<double>(
+      begin: -150.0,
+      end: 0.0,
+    ).animate(CurvedAnimation(
+      parent: _playerReturnController!,
+      curve: Curves.easeInOut,
+    ));
+
+    _playerReturnController!.forward();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    // 使用 AnimatedBuilder 监听 GameState 的变化，确保实时更新
+    return AnimatedBuilder(
+      animation: widget.gameState,
+      builder: (context, child) {
+        final screenSize = MediaQuery.of(context).size;
+        
+        return Stack(
+          children: [
+            // 玩家船只
+            _buildPlayerShip(screenSize),
+            
+            // 敌方船只（战斗时显示）
+            if (widget.gameState.isInCombat && widget.gameState.enemyShip != null)
+              _buildEnemyShip(screenSize),
+          ],
+        );
+      },
+    );
+  }
+
+  /// 构建玩家船只
+  Widget _buildPlayerShip(Size screenSize) {
+    // 如果正在归位且动画已初始化，使用动画值
+    if (widget.gameState.isReturningFromCombat && _playerReturnAnimation != null) {
+      return AnimatedBuilder(
+        animation: _playerReturnAnimation!,
+        builder: (context, child) {
+          return _buildPlayerShipAtPosition(screenSize, _playerReturnAnimation!.value);
+        },
+      );
+    }
+    
+    // 否则使用状态中的偏移值
+    return _buildPlayerShipAtPosition(screenSize, widget.gameState.playerShipXOffset);
+  }
+
+  /// 在指定位置构建玩家船只
+  Widget _buildPlayerShipAtPosition(Size screenSize, double xOffset) {
+    double yOffset = 100.0 + _breathingAnimation.value; // 基础向下100像素 + 呼吸动画
+    
+    // 如果正在沉船，添加沉船动画
+    if (widget.gameState.isSinking && widget.gameState.isPlayerSinking) {
+      yOffset += _sinkingAnimation?.value ?? 0.0;
+    }
+
+    return Positioned(
+      left: screenSize.width / 2 + xOffset - 100, // 居中 - 100（船只宽度的一半）
+      top: screenSize.height / 2 + yOffset - 100, // 居中 - 100（船只高度的一半）
+      child: AnimatedBuilder(
+        animation: _breathingAnimation,
+        builder: (context, child) {
+          return _buildShipImage(
+            'assets/images/fearless-pirate-captain-ship-in-pixel-art.png',
+          );
+        },
+      ),
+    );
+  }
+
+  /// 构建敌方船只
+  Widget _buildEnemyShip(Size screenSize) {
+    // 计算敌方船只位置
+    // 向右移动150像素，与玩家船只对称（玩家向左150，敌方向右150）
+    double xOffset = 150.0;
+    double yOffset = 100.0; // 与玩家船只相同的Y位置
+    
+    // 如果敌方正在沉船，添加沉船动画
+    if (widget.gameState.isSinking && !widget.gameState.isPlayerSinking) {
+      yOffset += _sinkingAnimation?.value ?? 0.0;
+    }
+
+    // 使用滑入动画
+    if (_enemySlideAnimation != null) {
+      return Positioned(
+        left: screenSize.width / 2 + xOffset - 100,
+        top: screenSize.height / 2 + yOffset - 100,
+        child: SlideTransition(
+          position: _enemySlideAnimation!,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // 敌方船只信息（显示在图片上方）
+              _buildEnemyShipInfo(),
+              const SizedBox(height: 4),
+              // 敌方船只图片
+              _buildShipImage(
+                'assets/images/pixel-pirate-ship.png',
+              ),
+            ],
+          ),
+        ),
+      );
+    } else {
+      // 如果没有动画，直接显示
+      return Positioned(
+        left: screenSize.width / 2 + xOffset - 100,
+        top: screenSize.height / 2 + yOffset - 100,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // 敌方船只信息（显示在图片上方）
+            _buildEnemyShipInfo(),
+            const SizedBox(height: 4),
+            // 敌方船只图片
+            _buildShipImage(
+              'assets/images/pixel-pirate-ship.png',
+            ),
+          ],
+        ),
+      );
+    }
+  }
+
+  /// 构建敌方船只信息（简单2排字）
+  Widget _buildEnemyShipInfo() {
+    final enemyShip = widget.gameState.enemyShip;
+    if (enemyShip == null) return const SizedBox.shrink();
+    
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      decoration: BoxDecoration(
+        color: Colors.black.withValues(alpha: 0.7),
+        borderRadius: BorderRadius.circular(4),
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          // 第一行：血量
+          Text(
+            '${enemyShip.durability}/${enemyShip.maxDurability}',
+            style: const TextStyle(
+              color: Colors.white,
+              fontSize: 14,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          // 第二行：攻击频率和修复频率
+          Text(
+            '${enemyShip.fireRatePerSecond.toStringAsFixed(1)}炮/秒  ${enemyShip.repairRatePerSecond.toStringAsFixed(1)}修/秒',
+            style: const TextStyle(
+              color: Colors.white70,
+              fontSize: 12,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// 构建船只图片
+  Widget _buildShipImage(String imagePath) {
+    return Image.asset(
+      imagePath,
+      fit: BoxFit.contain,
+      width: 200,
+      height: 200,
+      gaplessPlayback: true,
+      filterQuality: FilterQuality.medium,
+      errorBuilder: (context, error, stackTrace) {
+        debugPrint('Failed to load ship image: $error');
+        return Container(
+          width: 120,
+          height: 80,
+          decoration: BoxDecoration(
+            color: const Color(0xFF8B4513),
+            borderRadius: BorderRadius.circular(8),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.3),
+                blurRadius: 10,
+                offset: const Offset(0, 5),
+              ),
+            ],
+          ),
+          child: Stack(
+            children: [
+              // 船体
+              Positioned(
+                bottom: 0,
+                left: 0,
+                right: 0,
+                child: Container(
+                  height: 40,
+                  decoration: const BoxDecoration(
+                    color: Color(0xFF654321),
+                    borderRadius: BorderRadius.only(
+                      bottomLeft: Radius.circular(8),
+                      bottomRight: Radius.circular(8),
+                    ),
+                  ),
+                ),
+              ),
+              // 船帆
+              Positioned(
+                top: 10,
+                left: 50,
+                child: Container(
+                  width: 20,
+                  height: 50,
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFFFF8DC),
+                    border: Border.all(color: Colors.brown, width: 2),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+}
