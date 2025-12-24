@@ -158,6 +158,7 @@ class UILayer extends StatelessWidget {
   /// 构建选择目的地按钮
   Widget _buildDestinationButton() {
     return FloatingActionButton.extended(
+      heroTag: 'destination_button',
       onPressed: onPortSelectPressed,
       backgroundColor: Colors.green,
       icon: const Icon(Icons.map, color: Colors.white),

@@ -36,7 +36,7 @@ class GameScene extends StatelessWidget {
     return Stack(
       children: [
         // Layer 0: 背景层
-        const BackgroundLayer(),
+        BackgroundLayer(gameState: gameState),
         
         // Layer 0.5: 天体层（太阳/月亮，独立于岛屿动画）
         CelestialLayer(gameState: gameState),

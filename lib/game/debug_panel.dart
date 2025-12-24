@@ -269,6 +269,7 @@ class _DebugPanelState extends State<DebugPanel>
             ),
             // 切换按钮
             FloatingActionButton(
+              heroTag: 'debug_panel_button',
               mini: true,
               onPressed: _togglePanel,
               backgroundColor: Colors.orange,

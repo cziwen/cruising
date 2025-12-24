@@ -60,13 +60,7 @@ class GameScreen extends StatefulWidget {
     // 注意：根目录下的某些PNG文件（oceanbackground.png, coconut_tree_island.png等）是无效的占位符文件
     // 这些文件会在实际使用时通过errorBuilder处理，所以不在这里预加载
     final imagesToPreload = [
-      // 跳过已知无效的文件：
-      // 'assets/images/oceanbackground.png', // 无效文件（130字节，不是真正的PNG）
-      // 'assets/images/coconut_tree_island.png', // 无效文件（130字节，不是真正的PNG）
-      // 'assets/images/pixel-pirate-ship.png', // 无效文件（130字节，不是真正的PNG）
-      // 'assets/images/pixel-sun-icon.png', // 无效文件（131字节，不是真正的PNG）
-      // 'assets/images/moon-in-pixel-art.png', // 无效文件（129字节，不是真正的PNG）
-      // 'assets/images/fearless-pirate-captain-ship-in-pixel-art.png', // 无效文件（131字节，不是真正的PNG）
+
       
       // 只预加载有效的图片文件（background目录下的文件大小正常）
       'assets/images/background/village_0.png',
@@ -295,7 +289,7 @@ class _GameScreenState extends State<GameScreen> {
     final port1 = Port(
       id: 'port_1',
       name: '起始港',
-      backgroundImage: 'assets/images/background/village_0.png',
+      backgroundImage: 'assets/images/background/village_stone_0.png',
       description: '一个宁静的小港口，适合新手开始贸易之旅',
       distances: {
         'port_2': 192, // 1天 = 24小时 = 24 * 8 = 192节

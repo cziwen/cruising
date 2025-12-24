@@ -133,21 +133,11 @@ class _NearBackgroundLayerState extends State<NearBackgroundLayer>
 
   /// 只构建岛屿图像（不包含背景）
   Widget _buildIslandOnly(Port port) {
-    return Stack(
-      children: [
-        // 岛屿图片 - 与船在同一水平高度
-        Align(
-          alignment: Alignment.center,
-          child: Transform.translate(
-            offset: const Offset(0, 40), // 向下移动40像素，使岛屿底部与船中心对齐
-            child: _buildIslandImage(port),
-          ),
-        ),
-      ],
-    );
+    return _buildIslandImage(port);
   }
 
   /// 构建岛屿图片，带错误处理
+  /// 图片直接按全屏显示，不进行缩放调整
   Widget _buildIslandImage(Port port) {
     final imagePath = port.backgroundImage;
     
@@ -156,69 +146,66 @@ class _NearBackgroundLayerState extends State<NearBackgroundLayer>
       return _buildIslandPlaceholder();
     }
     
-    return Image.asset(
-      imagePath,
-      fit: BoxFit.contain,
-      alignment: Alignment.bottomCenter,
-      width: 400, // 设置固定宽度，避免过宽
-      height: 300,
-      gaplessPlayback: true, // 避免切换时的闪烁
-      filterQuality: FilterQuality.medium, // 优化性能
-      errorBuilder: (context, error, stackTrace) {
-        // 只打印一次错误，并缓存失败的路径
-        if (!_failedImagePaths.contains(imagePath)) {
-          _failedImagePaths.add(imagePath);
-          debugPrint('Failed to load island image: $imagePath');
-          debugPrint('Error: $error');
-          if (kDebugMode) {
-            debugPrint('Stack trace: $stackTrace');
+    return SizedBox.expand(
+      child: Image.asset(
+        imagePath,
+        fit: BoxFit.cover, // 覆盖整个屏幕，保持16:9比例
+        alignment: Alignment.center,
+        gaplessPlayback: true, // 避免切换时的闪烁
+        filterQuality: FilterQuality.medium, // 优化性能
+        errorBuilder: (context, error, stackTrace) {
+          // 只打印一次错误，并缓存失败的路径
+          if (!_failedImagePaths.contains(imagePath)) {
+            _failedImagePaths.add(imagePath);
+            debugPrint('Failed to load island image: $imagePath');
+            debugPrint('Error: $error');
+            if (kDebugMode) {
+              debugPrint('Stack trace: $stackTrace');
+            }
           }
-        }
-        return _buildIslandPlaceholder();
-      },
+          return _buildIslandPlaceholder();
+        },
+      ),
     );
   }
   
-  /// 构建岛屿占位符
+  /// 构建岛屿占位符（全屏显示）
   Widget _buildIslandPlaceholder() {
-    return Container(
-          height: 200,
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topCenter,
-              end: Alignment.bottomCenter,
-              colors: [
-                const Color(0xFF8B7355).withValues(alpha: 0.0),
-                const Color(0xFF8B7355).withValues(alpha: 0.5),
-                const Color(0xFF654321),
-              ],
-            ),
-            borderRadius: const BorderRadius.only(
-              topLeft: Radius.circular(20),
-              topRight: Radius.circular(20),
-            ),
+    return SizedBox.expand(
+      child: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [
+              const Color(0xFF8B7355).withValues(alpha: 0.0),
+              const Color(0xFF8B7355).withValues(alpha: 0.5),
+              const Color(0xFF654321),
+            ],
           ),
-          child: Center(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(
-                  Icons.landscape,
-                  size: 60,
-                  color: Colors.brown.shade700,
+        ),
+        child: Center(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(
+                Icons.landscape,
+                size: 60,
+                color: Colors.brown.shade700,
+              ),
+              const SizedBox(height: 8),
+              Text(
+                '岛屿',
+                style: TextStyle(
+                  color: Colors.brown.shade900,
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
                 ),
-                const SizedBox(height: 8),
-                Text(
-                  '岛屿',
-                  style: TextStyle(
-                    color: Colors.brown.shade900,
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ],
-            ),
+              ),
+            ],
           ),
-        );
+        ),
+      ),
+    );
   }
 }
