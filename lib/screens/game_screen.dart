@@ -54,7 +54,7 @@ class _GameScreenState extends State<GameScreen> {
     Size(1920, 1080),
     Size(2560, 1440),
   ];
-  Size _currentResolution = const Size(1280, 720);
+  final Size _currentResolution = const Size(1280, 720);
   bool _isFullScreen = false;
 
   @override

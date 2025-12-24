@@ -26,7 +26,7 @@ class _MainMenuScreenState extends State<MainMenuScreen> {
   ];
   
   // 当前选择的分辨率
-  Size _currentResolution = const Size(1280, 720);
+  final Size _currentResolution = const Size(1280, 720);
   
   // 全屏状态
   bool _isFullScreen = false;
