@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import '../game_state.dart';
 
 /// 船层 - 船只，支持战斗模式
@@ -30,6 +31,9 @@ class _ShipLayerState extends State<ShipLayer>
   // 玩家归位动画
   AnimationController? _playerReturnController;
   Animation<double>? _playerReturnAnimation;
+  
+  // 缓存加载失败的图像路径，避免重复尝试
+  static final Set<String> _failedImagePaths = {};
 
   @override
   void initState() {
@@ -299,6 +303,11 @@ class _ShipLayerState extends State<ShipLayer>
 
   /// 构建船只图片
   Widget _buildShipImage(String imagePath) {
+    // 如果这个路径之前加载失败过，直接返回备用显示
+    if (_failedImagePaths.contains(imagePath)) {
+      return _buildShipPlaceholder();
+    }
+    
     return Image.asset(
       imagePath,
       fit: BoxFit.contain,
@@ -307,8 +316,23 @@ class _ShipLayerState extends State<ShipLayer>
       gaplessPlayback: true,
       filterQuality: FilterQuality.medium,
       errorBuilder: (context, error, stackTrace) {
-        debugPrint('Failed to load ship image: $error');
-        return Container(
+        // 只打印一次错误，并缓存失败的路径
+        if (!_failedImagePaths.contains(imagePath)) {
+          _failedImagePaths.add(imagePath);
+          debugPrint('Failed to load ship image: $imagePath');
+          debugPrint('Error: $error');
+          if (kDebugMode) {
+            debugPrint('Stack trace: $stackTrace');
+          }
+        }
+        return _buildShipPlaceholder();
+      },
+    );
+  }
+  
+  /// 构建船只占位符
+  Widget _buildShipPlaceholder() {
+    return Container(
           width: 120,
           height: 80,
           decoration: BoxDecoration(
@@ -356,7 +380,5 @@ class _ShipLayerState extends State<ShipLayer>
             ],
           ),
         );
-      },
-    );
   }
 }

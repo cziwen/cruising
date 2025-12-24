@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import '../../models/port.dart';
 
 /// 近背景层 - 近距离背景（港口、岛屿等可切换元素）
@@ -27,6 +28,9 @@ class _NearBackgroundLayerState extends State<NearBackgroundLayer>
   late AnimationController _controller;
   late Animation<Offset> _currentAnimation;
   late Animation<Offset> _nextAnimation;
+  
+  // 缓存加载失败的图像路径，避免重复尝试
+  static final Set<String> _failedImagePaths = {};
 
   @override
   void initState() {
@@ -136,7 +140,7 @@ class _NearBackgroundLayerState extends State<NearBackgroundLayer>
           alignment: Alignment.center,
           child: Transform.translate(
             offset: const Offset(0, 40), // 向下移动40像素，使岛屿底部与船中心对齐
-            child: _buildIslandImage(),
+            child: _buildIslandImage(port),
           ),
         ),
       ],
@@ -144,9 +148,16 @@ class _NearBackgroundLayerState extends State<NearBackgroundLayer>
   }
 
   /// 构建岛屿图片，带错误处理
-  Widget _buildIslandImage() {
+  Widget _buildIslandImage(Port port) {
+    final imagePath = port.backgroundImage;
+    
+    // 如果这个路径之前加载失败过，直接返回备用显示
+    if (_failedImagePaths.contains(imagePath)) {
+      return _buildIslandPlaceholder();
+    }
+    
     return Image.asset(
-      'assets/images/coconut_tree_island.png',
+      imagePath,
       fit: BoxFit.contain,
       alignment: Alignment.bottomCenter,
       width: 400, // 设置固定宽度，避免过宽
@@ -154,10 +165,23 @@ class _NearBackgroundLayerState extends State<NearBackgroundLayer>
       gaplessPlayback: true, // 避免切换时的闪烁
       filterQuality: FilterQuality.medium, // 优化性能
       errorBuilder: (context, error, stackTrace) {
-        // 图片加载失败时的备用显示
-        debugPrint('Failed to load island image: $error');
-        debugPrint('Stack trace: $stackTrace');
-        return Container(
+        // 只打印一次错误，并缓存失败的路径
+        if (!_failedImagePaths.contains(imagePath)) {
+          _failedImagePaths.add(imagePath);
+          debugPrint('Failed to load island image: $imagePath');
+          debugPrint('Error: $error');
+          if (kDebugMode) {
+            debugPrint('Stack trace: $stackTrace');
+          }
+        }
+        return _buildIslandPlaceholder();
+      },
+    );
+  }
+  
+  /// 构建岛屿占位符
+  Widget _buildIslandPlaceholder() {
+    return Container(
           height: 200,
           decoration: BoxDecoration(
             gradient: LinearGradient(
@@ -196,7 +220,5 @@ class _NearBackgroundLayerState extends State<NearBackgroundLayer>
             ),
           ),
         );
-      },
-    );
   }
 }

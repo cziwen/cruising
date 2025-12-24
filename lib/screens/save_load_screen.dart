@@ -145,11 +145,31 @@ class _SaveLoadScreenState extends State<SaveLoadScreen> {
         children: [
           // Background
           Positioned.fill(
-            child: Image.asset(
-              'assets/images/oceanbackground.png',
-              fit: BoxFit.cover,
-              color: Colors.black.withOpacity(0.5),
-              colorBlendMode: BlendMode.darken,
+            child: ColorFiltered(
+              colorFilter: ColorFilter.mode(
+                Colors.black.withOpacity(0.5),
+                BlendMode.darken,
+              ),
+              child: Image.asset(
+                'assets/images/background/oceanbg_0.png', // 使用有效的备用图片
+                fit: BoxFit.cover,
+                errorBuilder: (context, error, stackTrace) {
+                  // 如果备用图片也失败，使用渐变背景
+                  return Container(
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.topCenter,
+                        end: Alignment.bottomCenter,
+                        colors: [
+                          const Color(0xFF87CEEB),
+                          const Color(0xFF4682B4),
+                          const Color(0xFF1E90FF),
+                        ],
+                      ),
+                    ),
+                  );
+                },
+              ),
             ),
           ),
           

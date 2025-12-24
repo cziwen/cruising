@@ -59,8 +59,24 @@ class _MainMenuScreenState extends State<MainMenuScreen> {
           // 背景层
           Positioned.fill(
             child: Image.asset(
-              'assets/images/oceanbackground.png',
+              'assets/images/background/oceanbg_0.png', // 使用有效的备用图片
               fit: BoxFit.cover,
+              errorBuilder: (context, error, stackTrace) {
+                // 如果备用图片也失败，使用渐变背景
+                return Container(
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                      colors: [
+                        const Color(0xFF87CEEB),
+                        const Color(0xFF4682B4),
+                        const Color(0xFF1E90FF),
+                      ],
+                    ),
+                  ),
+                );
+              },
             ),
           ),
           

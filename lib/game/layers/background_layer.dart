@@ -22,7 +22,7 @@ class BackgroundLayer extends StatelessWidget {
         ),
       ),
       child: Image.asset(
-        'assets/images/oceanbackground.png',
+        'assets/images/background/oceanbg_0.png', // 使用有效的备用图片
         fit: BoxFit.cover,
         width: double.infinity,
         height: double.infinity,

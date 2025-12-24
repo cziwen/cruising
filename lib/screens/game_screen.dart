@@ -2,6 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter/foundation.dart';
 import 'package:window_manager/window_manager.dart';
+import 'dart:convert';
+// Conditional imports for logging
+import '../utils/file_logger.dart' if (dart.library.html) '../utils/web_logger.dart' as logger;
+import 'dart:io' if (dart.library.html) 'dart:html' as io;
 import 'main_menu_screen.dart';
 import 'loading_screen.dart';
 import 'save_load_screen.dart';
@@ -22,19 +26,153 @@ class GameScreen extends StatefulWidget {
   /// 预加载游戏资源（图片等）
   /// 返回一个 Future，可以传递给 LoadingScreen.waitFor 来等待加载完成
   static Future<void> preload(BuildContext context) async {
+    // #region agent log
+    final logPath = r'c:\Users\ziwen\cruising\.cursor\debug.log';
+    final sessionId = 'debug-session';
+    final runId = 'run1';
+    final serverEndpoint = 'http://127.0.0.1:7242/ingest/047329b0-6100-4d22-b604-608ce454ff91';
+    Future<void> writeLog(Map<String, dynamic> logData) async {
+      // Use conditional import - same function name on both platforms
+      await logger.writeLog(serverEndpoint, logPath, logData);
+    }
+    debugPrint('[DEBUG] Preload starting - Platform: ${kIsWeb ? "Web" : defaultTargetPlatform}');
+    try {
+      if (!kIsWeb) {
+        final logFile = io.File(logPath);
+        if (await logFile.exists()) {
+          await logFile.writeAsString('', mode: io.FileMode.write);
+          debugPrint('[DEBUG] Cleared log file');
+        } else {
+          await logFile.create(recursive: true);
+          debugPrint('[DEBUG] Created log file');
+        }
+      } else {
+        debugPrint('[DEBUG] Web platform - using HTTP logging to $serverEndpoint');
+      }
+      await writeLog({"id":"log_${DateTime.now().millisecondsSinceEpoch}_entry","timestamp":DateTime.now().millisecondsSinceEpoch,"location":"game_screen.dart:47","message":"preload function entry","data":{"platform":kIsWeb?"Web":defaultTargetPlatform.toString(),"totalImages":9},"sessionId":sessionId,"runId":runId,"hypothesisId":"A,B,C,D,E"});
+      debugPrint('[DEBUG] Initial log entry written');
+    } catch (e) {
+      debugPrint('[DEBUG] Failed to initialize logging: $e');
+    }
+    // #endregion agent log
+
     // 预加载游戏中使用的图片资源
+    // 注意：根目录下的某些PNG文件（oceanbackground.png, coconut_tree_island.png等）是无效的占位符文件
+    // 这些文件会在实际使用时通过errorBuilder处理，所以不在这里预加载
     final imagesToPreload = [
-      'assets/images/oceanbackground.png',
-      'assets/images/coconut_tree_island.png',
-      'assets/images/pixel-pirate-ship.png',
-      'assets/images/pixel-sun-icon.png',
-      'assets/images/moon-in-pixel-art.png',
+      // 跳过已知无效的文件：
+      // 'assets/images/oceanbackground.png', // 无效文件（130字节，不是真正的PNG）
+      // 'assets/images/coconut_tree_island.png', // 无效文件（130字节，不是真正的PNG）
+      // 'assets/images/pixel-pirate-ship.png', // 无效文件（130字节，不是真正的PNG）
+      // 'assets/images/pixel-sun-icon.png', // 无效文件（131字节，不是真正的PNG）
+      // 'assets/images/moon-in-pixel-art.png', // 无效文件（129字节，不是真正的PNG）
+      // 'assets/images/fearless-pirate-captain-ship-in-pixel-art.png', // 无效文件（131字节，不是真正的PNG）
+      
+      // 只预加载有效的图片文件（background目录下的文件大小正常）
+      'assets/images/background/village_0.png',
+      'assets/images/background/business_port.png',
+      'assets/images/background/exotic_village.png',
     ];
 
-    // 并行预加载所有图片
-    await Future.wait(
-      imagesToPreload.map((path) => precacheImage(AssetImage(path), context)),
+    // #region agent log
+    try {
+      for (var i = 0; i < imagesToPreload.length; i++) {
+        await writeLog({"id":"log_${DateTime.now().millisecondsSinceEpoch}_pre_$i","timestamp":DateTime.now().millisecondsSinceEpoch,"location":"game_screen.dart:52","message":"before precacheImage","data":{"imagePath":imagesToPreload[i],"index":i,"total":imagesToPreload.length},"sessionId":sessionId,"runId":runId,"hypothesisId":"C"});
+      }
+    } catch (_) {}
+    // #endregion agent log
+
+    // 预加载所有图片，带错误处理
+    // 在web平台上，precacheImage可能成功但实际使用时仍会失败（asset manifest问题）
+    // 使用 wait 的 continueOnError 模式，确保即使某些图片失败也不影响整体流程
+    final startTime = DateTime.now();
+    final results = await Future.wait(
+      imagesToPreload.map((path) async {
+        final imageStartTime = DateTime.now();
+        // #region agent log
+        try {
+          await writeLog({"id":"log_${DateTime.now().millisecondsSinceEpoch}_start_${path.hashCode}","timestamp":DateTime.now().millisecondsSinceEpoch,"location":"game_screen.dart:84","message":"precacheImage start","data":{"imagePath":path,"platform":kIsWeb?"Web":defaultTargetPlatform.toString()},"sessionId":sessionId,"runId":runId,"hypothesisId":"B,C"});
+        } catch (_) {}
+        // #endregion agent log
+
+        try {
+          // 尝试预加载图片
+          // 注意：在web平台上，precacheImage可能只是验证路径，不实际加载数据
+          await precacheImage(AssetImage(path), context);
+          
+          final duration = DateTime.now().difference(imageStartTime).inMilliseconds;
+          
+          // 在web平台上，即使precacheImage成功，实际使用时仍可能失败
+          // 这是因为web构建的asset manifest可能没有包含这些文件
+          if (kIsWeb) {
+            debugPrint('✓ Preloaded (web): $path (may still fail at runtime if not in manifest)');
+          } else {
+            debugPrint('✓ Preloaded: $path');
+          }
+          
+          // #region agent log
+          try {
+            await writeLog({"id":"log_${DateTime.now().millisecondsSinceEpoch}_success_${path.hashCode}","timestamp":DateTime.now().millisecondsSinceEpoch,"location":"game_screen.dart:95","message":"precacheImage success","data":{"imagePath":path,"durationMs":duration,"platform":kIsWeb?"Web":defaultTargetPlatform.toString()},"sessionId":sessionId,"runId":runId,"hypothesisId":"A,B,D"});
+          } catch (_) {}
+          // #endregion agent log
+
+          return true;
+        } catch (e, stackTrace) {
+          final duration = DateTime.now().difference(imageStartTime).inMilliseconds;
+          final errorType = e.runtimeType.toString();
+          final errorMsg = e.toString();
+          
+          // 检查错误类型
+          final isAssetNotFound = errorMsg.contains('Unable to load asset') || 
+                                  errorMsg.contains('Asset not found');
+          final isInvalidImageData = errorMsg.contains('Invalid image data') || 
+                                     errorMsg.contains('CodecException');
+          
+          if (isAssetNotFound) {
+            if (kIsWeb) {
+              debugPrint('⚠ Web asset not found: $path');
+              debugPrint('  [HYPOTHESIS B CONFIRMED] Asset may not be in web build manifest');
+              debugPrint('  Solution: Run "flutter clean" and "flutter pub get", then rebuild');
+            } else {
+              debugPrint('⚠ Asset not found: $path');
+            }
+          } else if (isInvalidImageData) {
+            debugPrint('⚠ Skipped invalid/corrupted image: $path');
+            debugPrint('  [HYPOTHESIS A CONFIRMED] File is corrupted or invalid format');
+          } else {
+            debugPrint('✗ Failed to preload: $path');
+            debugPrint('  Error Type: $errorType');
+            debugPrint('  Error Message: $errorMsg');
+          }
+          debugPrint('  Duration: ${duration}ms');
+          
+          // #region agent log
+          try {
+            await writeLog({"id":"log_${DateTime.now().millisecondsSinceEpoch}_error_${path.hashCode}","timestamp":DateTime.now().millisecondsSinceEpoch,"location":"game_screen.dart:107","message":"precacheImage error","data":{"imagePath":path,"errorType":errorType,"errorMessage":errorMsg,"durationMs":duration,"isAssetNotFound":isAssetNotFound,"isInvalidImageData":isInvalidImageData,"platform":kIsWeb?"Web":defaultTargetPlatform.toString(),"stackTrace":stackTrace.toString().substring(0,stackTrace.toString().length>500?500:stackTrace.toString().length)},"sessionId":sessionId,"runId":runId,"hypothesisId":"A,B,C,D,E"});
+          } catch (logErr) {
+            debugPrint('  [LOG ERROR] Failed to write log: $logErr');
+          }
+          // #endregion agent log
+
+          return false;
+        }
+      }),
+      eagerError: false, // 不因单个错误而立即失败
     );
+    
+    final totalDuration = DateTime.now().difference(startTime).inMilliseconds;
+    final successCount = results.where((r) => r).length;
+    final failCount = results.length - successCount;
+    debugPrint('Preload complete: $successCount/${results.length} images loaded');
+    if (failCount > 0) {
+      debugPrint('Warning: $failCount images failed to load');
+    }
+
+    // #region agent log
+    try {
+      await writeLog({"id":"log_${DateTime.now().millisecondsSinceEpoch}_exit","timestamp":DateTime.now().millisecondsSinceEpoch,"location":"game_screen.dart:107","message":"preload function exit","data":{"successCount":successCount,"failCount":failCount,"totalImages":imagesToPreload.length,"totalDurationMs":totalDuration,"results":results},"sessionId":sessionId,"runId":runId,"hypothesisId":"A,B,C,D,E"});
+    } catch (_) {}
+    // #endregion agent log
   }
 
   @override
@@ -157,7 +295,7 @@ class _GameScreenState extends State<GameScreen> {
     final port1 = Port(
       id: 'port_1',
       name: '起始港',
-      backgroundImage: 'assets/ports/port_1.png',
+      backgroundImage: 'assets/images/background/village_0.png',
       description: '一个宁静的小港口，适合新手开始贸易之旅',
       distances: {
         'port_2': 192, // 1天 = 24小时 = 24 * 8 = 192节
@@ -169,7 +307,7 @@ class _GameScreenState extends State<GameScreen> {
     final port2 = Port(
       id: 'port_2',
       name: '贸易港',
-      backgroundImage: 'assets/ports/port_2.png',
+      backgroundImage: 'assets/images/background/business_port.png',
       description: '繁华的贸易中心，商品种类丰富',
       distances: {
         'port_1': 192, // 1天 = 192节
@@ -181,7 +319,7 @@ class _GameScreenState extends State<GameScreen> {
     final port3 = Port(
       id: 'port_3',
       name: '香料港',
-      backgroundImage: 'assets/ports/port_3.png',
+      backgroundImage: 'assets/images/background/exotic_village.png',
       description: '以香料贸易闻名的港口',
       distances: {
         'port_1': 384, // 2天 = 384节
