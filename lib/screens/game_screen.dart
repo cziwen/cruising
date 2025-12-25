@@ -2,13 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter/foundation.dart';
 import 'package:window_manager/window_manager.dart';
-import 'dart:convert';
 // Conditional imports for logging
 import '../utils/file_logger.dart' if (dart.library.html) '../utils/web_logger.dart' as logger;
 import 'dart:io' if (dart.library.html) 'dart:html' as io;
-import 'main_menu_screen.dart';
-import 'loading_screen.dart';
-import 'save_load_screen.dart';
 import '../game/game_state.dart';
 import '../game/game_scene.dart';
 import '../game/tavern_dialog.dart';
@@ -62,10 +58,10 @@ class GameScreen extends StatefulWidget {
     final imagesToPreload = [
 
       
-      // 只预加载有效的图片文件（background目录下的文件大小正常）
-      'assets/images/background/village_0.png',
-      'assets/images/background/business_port.png',
-      'assets/images/background/exotic_village.png',
+      // 只预加载有效的图片文件（buildings目录下的建筑物图片）
+      'assets/images/buildings/village_0.png',
+      'assets/images/buildings/business_port.png',
+      'assets/images/buildings/exotic_village.png',
     ];
 
     // #region agent log
@@ -289,7 +285,7 @@ class _GameScreenState extends State<GameScreen> {
     final port1 = Port(
       id: 'port_1',
       name: '起始港',
-      backgroundImage: 'assets/images/background/village_stone_0.png',
+      backgroundImage: 'assets/images/buildings/village_stone_0.png',
       description: '一个宁静的小港口，适合新手开始贸易之旅',
       distances: {
         'port_2': 192, // 1天 = 24小时 = 24 * 8 = 192节
@@ -301,7 +297,7 @@ class _GameScreenState extends State<GameScreen> {
     final port2 = Port(
       id: 'port_2',
       name: '贸易港',
-      backgroundImage: 'assets/images/background/business_port.png',
+      backgroundImage: 'assets/images/buildings/business_port.png',
       description: '繁华的贸易中心，商品种类丰富',
       distances: {
         'port_1': 192, // 1天 = 192节
@@ -313,7 +309,7 @@ class _GameScreenState extends State<GameScreen> {
     final port3 = Port(
       id: 'port_3',
       name: '香料港',
-      backgroundImage: 'assets/images/background/exotic_village.png',
+      backgroundImage: 'assets/images/buildings/exotic_village.png',
       description: '以香料贸易闻名的港口',
       distances: {
         'port_1': 384, // 2天 = 384节

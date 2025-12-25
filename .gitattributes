@@ -42,3 +42,4 @@
 # 其他大文件
 *.psd filter=lfs diff=lfs merge=lfs -text
 *.ai filter=lfs diff=lfs merge=lfs -text
+
