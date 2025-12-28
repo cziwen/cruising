@@ -2,16 +2,19 @@
 class PortGoodsConfig {
   final double alpha; // 价格敏感度（0.01 ~ 0.99）
   final int s0; // 正常库存基准
+  final double basePrice; // 基础价格（P₀）
 
   PortGoodsConfig({
     required this.alpha,
     required this.s0,
+    required this.basePrice,
   });
 
   Map<String, dynamic> toJson() {
     return {
       'alpha': alpha,
       's0': s0,
+      'basePrice': basePrice,
     };
   }
 
@@ -19,6 +22,7 @@ class PortGoodsConfig {
     return PortGoodsConfig(
       alpha: (json['alpha'] as num).toDouble(),
       s0: json['s0'] as int,
+      basePrice: (json['basePrice'] as num).toDouble(),
     );
   }
 }
@@ -178,15 +182,17 @@ class Port {
       name: json['name'] as String,
       backgroundImage: json['backgroundImage'] as String,
       description: json['description'] as String,
-      unlocked: json['unlocked'] as bool,
-      distances: Map<String, int>.from(json['distances'] as Map),
-      goodsStock: Map<String, int>.from(json['goodsStock'] as Map),
-      priceBaseStock: Map<String, int>.from(json['priceBaseStock'] as Map),
-      goodsConfig: (json['goodsConfig'] as Map).map(
-        (key, value) => MapEntry(key as String, PortGoodsConfig.fromJson(value as Map<String, dynamic>)),
-      ),
-      merchantMoney: json['merchantMoney'] as int,
-      initialMerchantMoney: json['initialMerchantMoney'] as int,
+      unlocked: json['unlocked'] as bool? ?? true,
+      distances: json['distances'] != null ? Map<String, int>.from(json['distances'] as Map) : null,
+      goodsStock: json['goodsStock'] != null ? Map<String, int>.from(json['goodsStock'] as Map) : null,
+      priceBaseStock: json['priceBaseStock'] != null ? Map<String, int>.from(json['priceBaseStock'] as Map) : null,
+      goodsConfig: json['goodsConfig'] != null 
+        ? (json['goodsConfig'] as Map).map(
+            (key, value) => MapEntry(key as String, PortGoodsConfig.fromJson(value as Map<String, dynamic>)),
+          )
+        : null,
+      merchantMoney: json['merchantMoney'] as int? ?? 1000,
+      initialMerchantMoney: json['initialMerchantMoney'] as int? ?? 1000,
     );
   }
 }

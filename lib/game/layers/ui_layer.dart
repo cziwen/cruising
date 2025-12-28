@@ -177,7 +177,7 @@ class UILayer extends StatelessWidget {
     showDialog(
       context: context,
       builder: (context) => CrewManagementDialog(
-        crewManager: gameState.crewManager,
+        gameState: gameState,
       ),
     );
   }

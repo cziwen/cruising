@@ -3,6 +3,7 @@ import 'game_state.dart';
 import 'layers/background_layer.dart';
 import 'layers/near_background_layer.dart';
 import 'layers/ship_layer.dart';
+import 'layers/foreground_wave_layer.dart';
 import 'layers/ui_layer.dart';
 import 'layers/time_display.dart';
 import 'layers/celestial_layer.dart';
@@ -43,13 +44,14 @@ class GameScene extends StatelessWidget {
         
         // Layer 1: 近背景层（岛屿）
         NearBackgroundLayer(
-          currentPort: gameState.currentPort,
-          isTransitioning: gameState.isTransitioning,
-          isAtSea: gameState.isAtSea,
+          gameState: gameState,
         ),
         
         // Layer 2: 船层
         ShipLayer(gameState: gameState),
+        
+        // Layer 2.3: 前景波浪层（位于船之后）
+        ForegroundWaveLayer(gameState: gameState),
         
         // Layer 2.5: 屏幕效果层（黑屏等）
         ScreenEffectLayer(gameState: gameState),

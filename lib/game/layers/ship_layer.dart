@@ -223,26 +223,30 @@ class _ShipLayerState extends State<ShipLayer>
       yOffset += _sinkingAnimation?.value ?? 0.0;
     }
 
-    // 使用滑入动画
+    // 使用滑入动画，但确保在同一个图层
     if (_enemySlideAnimation != null) {
-      return Positioned(
-        left: screenSize.width / 2 + xOffset - 100,
-        top: screenSize.height / 2 + yOffset - 100,
-        child: SlideTransition(
-          position: _enemySlideAnimation!,
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              // 敌方船只信息（显示在图片上方）
-              _buildEnemyShipInfo(),
-              const SizedBox(height: 4),
-              // 敌方船只图片
-              _buildShipImage(
-                'assets/images/pixel-pirate-ship.png',
-              ),
-            ],
-          ),
-        ),
+      return AnimatedBuilder(
+        animation: _enemySlideAnimation!,
+        builder: (context, child) {
+          // 计算滑入动画的X偏移
+          final slideX = _enemySlideAnimation!.value.dx * screenSize.width;
+          return Positioned(
+            left: screenSize.width / 2 + xOffset - 100 + slideX,
+            top: screenSize.height / 2 + yOffset - 100,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // 敌方船只信息（显示在图片上方）
+                _buildEnemyShipInfo(),
+                const SizedBox(height: 4),
+                // 敌方船只图片
+                _buildShipImage(
+                  'assets/images/pixel-pirate-ship.png',
+                ),
+              ],
+            ),
+          );
+        },
       );
     } else {
       // 如果没有动画，直接显示

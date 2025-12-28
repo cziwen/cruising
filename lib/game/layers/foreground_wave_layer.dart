@@ -2,73 +2,53 @@ import 'package:flutter/material.dart';
 import 'dart:math' as math;
 import '../game_state.dart';
 
-/// 背景层 - 远距离背景（海洋背景）
+/// 前景波浪层 - 位于船和岛屿之后的前景波浪
 /// 在航行时（isAtSea == true）会向左滚动，模拟船只向前航行的感觉
-class BackgroundLayer extends StatefulWidget {
+class ForegroundWaveLayer extends StatefulWidget {
   final GameState gameState;
 
-  const BackgroundLayer({
+  const ForegroundWaveLayer({
     super.key,
     required this.gameState,
   });
 
   @override
-  State<BackgroundLayer> createState() => _BackgroundLayerState();
+  State<ForegroundWaveLayer> createState() => _ForegroundWaveLayerState();
 }
 
-/// 背景层配置
-class _BackgroundLayerConfig {
+/// 前景波浪层配置
+class _ForegroundWaveLayerConfig {
   final String assetPath;
   final double speedMultiplier; // 相对于基础速度的倍数
   final double yOffset; // 垂直位置偏移（像素）
 
-  _BackgroundLayerConfig({
+  _ForegroundWaveLayerConfig({
     required this.assetPath,
     required this.speedMultiplier,
-    this.yOffset = 0.0,
+    required this.yOffset,
   });
 }
 
-class _BackgroundLayerState extends State<BackgroundLayer> {
-  // 渲染顺序：从底到顶（Stack 中先添加的在底层）
-  // 用户要求的顺序（从最顶到最底）：cloud1, cloud2, cloud3, wave1, wave2, wave3, underwater, background
-  // 所以在 Stack 中从底到顶应该是：background, underwater, wave3, wave2, wave1, cloud3, cloud2, cloud1
-  static final List<_BackgroundLayerConfig> _layers = [
-    // 最底层：background (渐变背景，在 Container decoration 中)
-    // 第1层：underwater (从底数第2层)
-    _BackgroundLayerConfig(
+class _ForegroundWaveLayerState extends State<ForegroundWaveLayer> {
+  // 前景波浪层配置（越靠前越快，但速度已降低）
+  static final List<_ForegroundWaveLayerConfig> _layers = [
+    // underwater (前景层)
+    _ForegroundWaveLayerConfig(
       assetPath: 'assets/images/background/oceanbg_0_underwater.png',
-      speedMultiplier: 0.5, // 慢（背景层）
+      speedMultiplier: 1.5, // 降低速度
+      yOffset: 150.0, // 下移150px
     ),
-    // 第2层：wave3
-    _BackgroundLayerConfig(
-      assetPath: 'assets/images/background/oceanbg_0_wave3.png',
-      speedMultiplier: 0.3, // 最慢（背景层）
-    ),
-    // 第3层：wave2
-    _BackgroundLayerConfig(
+    // wave2_duplicate (前景波浪，向下150px)
+    _ForegroundWaveLayerConfig(
       assetPath: 'assets/images/background/oceanbg_0_wave2.png',
-      speedMultiplier: 0.7, // 慢（背景层）
+      speedMultiplier: 1.2, // 降低速度
+      yOffset: 150.0, // 向下150像素
     ),
-    // 第4层：wave1
-    _BackgroundLayerConfig(
+    // wave1_duplicate (前景波浪，向下150px)
+    _ForegroundWaveLayerConfig(
       assetPath: 'assets/images/background/oceanbg_0_wave1.png',
-      speedMultiplier: 0.8, // 慢（背景层）
-    ),
-    // 第5层：cloud3
-    _BackgroundLayerConfig(
-      assetPath: 'assets/images/background/oceanbg_0_cloud3.png',
-      speedMultiplier: 0.3, // 最慢（背景层）
-    ),
-    // 第6层：cloud2
-    _BackgroundLayerConfig(
-      assetPath: 'assets/images/background/oceanbg_0_cloud2.png',
-      speedMultiplier: 0.5, // 慢（背景层）
-    ),
-    // 第7层：cloud1 (最顶层)
-    _BackgroundLayerConfig(
-      assetPath: 'assets/images/background/oceanbg_0_cloud1.png',
-      speedMultiplier: 0.7, // 慢（背景层）
+      speedMultiplier: 1.5, // 降低速度
+      yOffset: 150.0, // 向下150像素
     ),
   ];
 
@@ -114,37 +94,19 @@ class _BackgroundLayerState extends State<BackgroundLayer> {
           child: ListenableBuilder(
             listenable: widget.gameState,
             builder: (context, child) {
-              return Container(
-                width: double.infinity,
-                height: double.infinity,
-                decoration: BoxDecoration(
-                  // 备用渐变背景（如果图片加载失败）
-                  gradient: LinearGradient(
-                    begin: Alignment.topCenter,
-                    end: Alignment.bottomCenter,
-                    colors: [
-                      const Color(0xFF87CEEB), // 天空蓝
-                      const Color(0xFF4682B4), // 钢蓝色
-                      const Color(0xFF1E90FF), // 道奇蓝
-                    ],
-                  ),
-                ),
-                child: ClipRect(
-                  child: Stack(
-                    children: [
-                      // 渲染所有背景层（从底到顶）
-                      // 顺序：underwater, wave3, wave2, wave1, cloud3, cloud2, cloud1
-                      for (int i = 0; i < _layers.length; i++)
-                        _buildLayer(
-                          i,
-                          _layers[i],
-                          displayWidth,
-                          screenHeight,
-                          widget.gameState,
-                        ),
-                    ],
-                  ),
-                ),
+              return Stack(
+                children: [
+                  // 渲染前景波浪层（从底到顶）
+                  // 顺序：underwater, wave2_duplicate, wave1_duplicate
+                  for (int i = 0; i < _layers.length; i++)
+                    _buildLayer(
+                      i,
+                      _layers[i],
+                      displayWidth,
+                      screenHeight,
+                      widget.gameState,
+                    ),
+                ],
               );
             },
           ),
@@ -153,10 +115,10 @@ class _BackgroundLayerState extends State<BackgroundLayer> {
     );
   }
 
-  /// 构建单个背景层（包含三张图片实现无缝循环）
+  /// 构建单个前景波浪层（包含三张图片实现无缝循环）
   Widget _buildLayer(
     int layerIndex,
-    _BackgroundLayerConfig config,
+    _ForegroundWaveLayerConfig config,
     double displayWidth,
     double screenHeight,
     GameState gameState,
@@ -174,16 +136,16 @@ class _BackgroundLayerState extends State<BackgroundLayer> {
     }
 
     // 计算晃动偏移（视差规则：近大远小）
-    // 左右晃动频率 2.0 rad/s，基础幅度 2 像素
-    final swayX = math.sin(gameState.swayTime * 2.0) * (2.0 * config.speedMultiplier);
-    // 上下浮动频率 1.2 rad/s，基础幅度 1.5 像素（同步减少，保持视差比例）
-    final swayY = math.sin(gameState.swayTime * 1.2) * (1.5 * config.speedMultiplier);
+    // 左右晃动频率 2.0 rad/s，幅度 4 像素
+    final swayX = math.sin(gameState.swayTime * 2.0) * (4.0 * config.speedMultiplier);
+    // 上下浮动频率 1.2 rad/s，幅度 3 像素（减少浮动幅度，使其更自然）
+    final swayY = math.sin(gameState.swayTime * 1.2) * (3.0 * config.speedMultiplier);
 
     return Stack(
       children: [
         // 使用三张相同的图片实现无缝循环
         // 图片1：左侧
-        _buildBackgroundImage(
+        _buildWaveImage(
           config.assetPath,
           displayWidth,
           screenHeight,
@@ -191,7 +153,7 @@ class _BackgroundLayerState extends State<BackgroundLayer> {
           config.yOffset + swayY,
         ),
         // 图片2：中间
-        _buildBackgroundImage(
+        _buildWaveImage(
           config.assetPath,
           displayWidth,
           screenHeight,
@@ -199,7 +161,7 @@ class _BackgroundLayerState extends State<BackgroundLayer> {
           config.yOffset + swayY,
         ),
         // 图片3：右侧
-        _buildBackgroundImage(
+        _buildWaveImage(
           config.assetPath,
           displayWidth,
           screenHeight,
@@ -210,8 +172,8 @@ class _BackgroundLayerState extends State<BackgroundLayer> {
     );
   }
 
-  /// 构建单个背景图片
-  Widget _buildBackgroundImage(
+  /// 构建单个前景波浪图片
+  Widget _buildWaveImage(
     String assetPath,
     double displayWidth,
     double screenHeight,
@@ -230,10 +192,11 @@ class _BackgroundLayerState extends State<BackgroundLayer> {
         height: screenHeight,
         errorBuilder: (context, error, stackTrace) {
           // 图片加载失败时返回空容器（不影响其他层）
-          debugPrint('Failed to load background layer: $assetPath - $error');
+          debugPrint('Failed to load foreground wave layer: $assetPath - $error');
           return const SizedBox.shrink();
         },
       ),
     );
   }
 }
+

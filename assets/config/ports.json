@@ -1,0 +1,59 @@
+[
+  {
+    "id": "port_1",
+    "name": "起始港",
+    "backgroundImage": "assets/images/buildings/village_stone_0.png",
+    "description": "一个宁静的小港口，适合新手开始贸易之旅",
+    "unlocked": true,
+    "distances": {
+      "port_2": 960,
+      "port_3": 1920
+    },
+    "goodsConfig": {
+      "food": { "alpha": 0.05, "s0": 500, "basePrice": 10.0 },
+      "wood": { "alpha": 0.04, "s0": 500, "basePrice": 15.0 },
+      "spice": { "alpha": 0.08, "s0": 300, "basePrice": 30.0 },
+      "metal": { "alpha": 0.05, "s0": 500, "basePrice": 25.0 }
+    },
+    "merchantMoney": 1000,
+    "initialMerchantMoney": 1000
+  },
+  {
+    "id": "port_2",
+    "name": "贸易港",
+    "backgroundImage": "assets/images/buildings/business_port.png",
+    "description": "繁华的贸易中心，商品种类丰富",
+    "unlocked": true,
+    "distances": {
+      "port_1": 960,
+      "port_3": 1080
+    },
+    "goodsConfig": {
+      "food": { "alpha": 0.06, "s0": 600, "basePrice": 11.0 },
+      "wood": { "alpha": 0.05, "s0": 400, "basePrice": 14.0 },
+      "spice": { "alpha": 0.12, "s0": 250, "basePrice": 35.0 },
+      "metal": { "alpha": 0.06, "s0": 450, "basePrice": 28.0 }
+    },
+    "merchantMoney": 2000,
+    "initialMerchantMoney": 2000
+  },
+  {
+    "id": "port_3",
+    "name": "香料港",
+    "backgroundImage": "assets/images/buildings/exotic_village.png",
+    "description": "以香料贸易闻名的港口",
+    "unlocked": true,
+    "distances": {
+      "port_1": 1920,
+      "port_2": 1080
+    },
+    "goodsConfig": {
+      "food": { "alpha": 0.04, "s0": 550, "basePrice": 9.0 },
+      "wood": { "alpha": 0.03, "s0": 600, "basePrice": 16.0 },
+      "spice": { "alpha": 0.15, "s0": 20, "basePrice": 25.0 },
+      "metal": { "alpha": 0.04, "s0": 500, "basePrice": 22.0 }
+    },
+    "merchantMoney": 1500,
+    "initialMerchantMoney": 1500
+  }
+]

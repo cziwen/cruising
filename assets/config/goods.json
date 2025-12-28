@@ -1,0 +1,37 @@
+[
+  {
+    "id": "gold",
+    "name": "金币",
+    "category": "货币",
+    "weight": 0.0,
+    "imagePath": "assets/images/pixel-sun-icon.png"
+  },
+  {
+    "id": "food",
+    "name": "食物",
+    "category": "基础",
+    "weight": 1.0,
+    "imagePath": null
+  },
+  {
+    "id": "wood",
+    "name": "木材",
+    "category": "材料",
+    "weight": 2.0,
+    "imagePath": null
+  },
+  {
+    "id": "spice",
+    "name": "香料",
+    "category": "奢侈品",
+    "weight": 0.5,
+    "imagePath": null
+  },
+  {
+    "id": "metal",
+    "name": "金属",
+    "category": "材料",
+    "weight": 5.0,
+    "imagePath": null
+  }
+]

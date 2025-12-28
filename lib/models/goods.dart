@@ -2,17 +2,37 @@
 class Goods {
   final String id;
   final String name;
-  final double basePrice;
   final String category;
   final double weight; // 重量（kg）
+  final String? imagePath; // 物品图标路径
 
   Goods({
     required this.id,
     required this.name,
-    required this.basePrice,
     required this.category,
     required this.weight,
+    this.imagePath,
   });
+
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'name': name,
+      'category': category,
+      'weight': weight,
+      'imagePath': imagePath,
+    };
+  }
+
+  factory Goods.fromJson(Map<String, dynamic> json) {
+    return Goods(
+      id: json['id'] as String,
+      name: json['name'] as String,
+      category: json['category'] as String,
+      weight: (json['weight'] as num).toDouble(),
+      imagePath: json['imagePath'] as String?,
+    );
+  }
 }
 
 /// 港口商品价格

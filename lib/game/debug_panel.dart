@@ -46,6 +46,46 @@ class _DebugPanelState extends State<DebugPanel>
     });
   }
 
+  Widget _buildSlider({
+    required String label,
+    required double value,
+    required double min,
+    required double max,
+    required ValueChanged<double> onChanged,
+    required String displayValue,
+  }) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(label, style: const TextStyle(color: Colors.white, fontSize: 10)),
+            Text(
+              displayValue,
+              style: const TextStyle(color: Colors.orange, fontSize: 10, fontWeight: FontWeight.bold),
+            ),
+          ],
+        ),
+        SliderTheme(
+          data: SliderTheme.of(context).copyWith(
+            trackHeight: 2,
+            thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 6),
+            overlayShape: const RoundSliderOverlayShape(overlayRadius: 12),
+          ),
+          child: Slider(
+            value: value,
+            min: min,
+            max: max,
+            onChanged: onChanged,
+            activeColor: Colors.orange,
+            inactiveColor: Colors.grey.withValues(alpha: 0.3),
+          ),
+        ),
+      ],
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final screenSize = MediaQuery.of(context).size;
@@ -69,7 +109,7 @@ class _DebugPanelState extends State<DebugPanel>
               margin: const EdgeInsets.only(bottom: 8),
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: Colors.black.withOpacity(0.8),
+                color: Colors.black.withValues(alpha: 0.8),
                 borderRadius: BorderRadius.circular(8),
                 border: Border.all(color: Colors.orange, width: 2),
               ),
@@ -159,6 +199,40 @@ class _DebugPanelState extends State<DebugPanel>
                           inactiveColor: Colors.grey,
                         ),
                       ],
+                    ),
+                    const SizedBox(height: 8),
+                    // 船只属性调节
+                    const Text(
+                      '船只属性调节',
+                      style: TextStyle(color: Colors.white70, fontSize: 10, fontWeight: FontWeight.bold),
+                    ),
+                    const SizedBox(height: 4),
+                    // 修复加成
+                    _buildSlider(
+                      label: '修复速度',
+                      value: widget.gameState!.debugRepairBonus,
+                      min: 0,
+                      max: 50,
+                      onChanged: (val) => widget.gameState!.setDebugRepairBonus(val),
+                      displayValue: '${widget.gameState!.autoRepairPerSecond.toStringAsFixed(1)}/s',
+                    ),
+                    // 攻击力（调节开火频率）
+                    _buildSlider(
+                      label: '攻击力',
+                      value: widget.gameState!.debugFireRateBonus,
+                      min: 0,
+                      max: 20,
+                      onChanged: (val) => widget.gameState!.setDebugFireRateBonus(val),
+                      displayValue: '${widget.gameState!.fireRatePerSecond.toStringAsFixed(1)}炮/s',
+                    ),
+                    // 航速调节
+                    _buildSlider(
+                      label: '船速',
+                      value: widget.gameState!.debugSpeedBonus,
+                      min: 0,
+                      max: 50,
+                      onChanged: (val) => widget.gameState!.setDebugSpeedBonus(val),
+                      displayValue: '${widget.gameState!.currentSpeed.toStringAsFixed(1)}节',
                     ),
                     const SizedBox(height: 8),
                     // 立即触发战斗按钮

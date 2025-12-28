@@ -38,6 +38,7 @@ class GameState extends ChangeNotifier {
     durability: 200, // 默认满耐久
     maxDurability: 200,
     maxCrewMemberCount: 5,
+    damagePerShot: 10,
   );
   
   // 用于获取商品信息的函数（由TradeSystem设置）
@@ -94,6 +95,12 @@ class GameState extends ChangeNotifier {
   // 昼夜系统
   final DayNightSystem _dayNightSystem = DayNightSystem();
 
+  // 动画相关系统 (集中管理)
+  double _swayTime = 0.0;
+  double _totalSailingOffset = 0.0;
+  static const double _baseSailingSpeed = 8.0; // 基础航速（节）
+  static const double _baseScrollSpeed = 50.0; // 基础滚动速度（像素/秒）
+
   // 港口价格更新跟踪
   int _lastPriceUpdateDay = 1; // 上次价格更新的日期
   static const int _priceUpdateInterval = 7; // 价格更新间隔（天）
@@ -119,6 +126,11 @@ class GameState extends ChangeNotifier {
   bool _isReturningFromCombat = false; // 是否正在从战斗位置归位
   bool _isFadeOut = false; // 是否正在渐变黑屏
   Port? _previousPortBeforeCombat; // 战斗前的港口（用于失败重生）
+
+  // 调试加成
+  double _debugRepairBonus = 0.0;
+  double _debugFireRateBonus = 0.0;
+  double _debugSpeedBonus = 0.0;
 
   Port? get currentPort => _currentPort;
   Ship get ship => _ship;
@@ -177,33 +189,34 @@ class GameState extends ChangeNotifier {
   ShipCrewManager get crewManager => _crewManager;
   DayNightSystem get dayNightSystem => _dayNightSystem;
 
+  // 动画相关 getter
+  double get swayTime => _swayTime;
+  double get totalSailingOffset => _totalSailingOffset;
+
   // 缓存当前航速（当船员、天气变化时失效）
-  int? _cachedCurrentSpeed;
+  double? _cachedCurrentSpeed;
   WeatherCondition? _cachedSpeedWeather;
-  int? _cachedSpeedCrewCount;
 
   /// 获取当前航速（节）
   /// 基础速度 + 船员加成 + 天气影响
-  int get currentSpeed {
-    // 检查缓存是否有效（检查天气和船员数量是否变化）
-    final crewCount = _crewManager.crewMembers.length;
+  double get currentSpeed {
+    // 检查缓存是否有效（检查天气是否变化）
+    // 船员变化现在通过显式清除 _cachedCurrentSpeed 来处理
     if (_cachedCurrentSpeed != null &&
-        _cachedSpeedWeather == _weather &&
-        _cachedSpeedCrewCount == crewCount) {
+        _cachedSpeedWeather == _weather) {
       return _cachedCurrentSpeed!;
     }
 
-    int baseSpeed = 8; // 基础速度8节
+    double baseSpeed = 8.0; // 基础速度8节
     int weatherModifier = _weather.speedModifier; // 天气修正
 
     // 使用船员系统的航速加成（直接返回节数，double类型）
     final crewBonus = _crewManager.calculateSailingBonus();
 
     // 移除上限限制，只保留最小值为1节
-    final finalSpeed = (baseSpeed + crewBonus + weatherModifier).round();
-    _cachedCurrentSpeed = finalSpeed < 1 ? 1 : finalSpeed;
+    final finalSpeed = baseSpeed + crewBonus + weatherModifier + _debugSpeedBonus;
+    _cachedCurrentSpeed = finalSpeed < 1.0 ? 1.0 : finalSpeed;
     _cachedSpeedWeather = _weather;
-    _cachedSpeedCrewCount = crewCount;
     return _cachedCurrentSpeed!;
   }
 
@@ -215,14 +228,15 @@ class GameState extends ChangeNotifier {
   double get sailingBonusPercent => sailingBonusKnots / 8.0 * 100; // 相对于基础速度8节的百分比
 
   /// 获取自动修理效率（每秒恢复的耐久）
-  double get autoRepairPerSecond => _crewManager.calculateAutoRepair();
+  double get autoRepairPerSecond => _crewManager.calculateAutoRepair() + _debugRepairBonus;
 
   /// 获取自动修理效率（每小时恢复的耐久）- 已废弃，保留用于兼容
   @Deprecated('使用 autoRepairPerSecond')
   double get autoRepairPerHour => autoRepairPerSecond * 3600;
 
   /// 获取开炮速度（每秒炮数）
-  double get fireRatePerSecond => _crewManager.calculateFireRateBonus();
+  /// 船员加成 + 调试加成
+  double get fireRatePerSecond => _crewManager.calculateFireRateBonus() + _debugFireRateBonus;
 
   /// 获取开炮速度加成百分比 - 已废弃，保留用于兼容
   @Deprecated('使用 fireRatePerSecond')
@@ -270,7 +284,18 @@ class GameState extends ChangeNotifier {
   /// 使用 dt 增量更新昼夜系统（每帧调用）
   /// [dtRealSeconds] 实际经过的秒数（从上一帧到当前帧）
   void updateDayNightSystemWithDeltaTime(double dtRealSeconds) {
-    // 使用 dt 增量更新游戏时间
+    // 1. 更新动画集中管理系统
+    // swayTime 始终增加，用于模拟海浪左右晃动
+    _swayTime += dtRealSeconds;
+    
+    // totalSailingOffset 仅在航行且不在战斗时增加，用于驱动背景滚动
+    if (_isAtSea && !_isInCombat) {
+      // 基础滚动速度与当前航速正相关
+      final speedMultiplier = currentSpeed / _baseSailingSpeed;
+      _totalSailingOffset += (_baseScrollSpeed * speedMultiplier) * dtRealSeconds;
+    }
+
+    // 2. 使用 dt 增量更新游戏时间
     final crossedMidnight = _dayNightSystem.updateWithDeltaTime(dtRealSeconds);
 
     // 检查是否跨越00:00（工资结算和价格更新）
@@ -460,6 +485,13 @@ class GameState extends ChangeNotifier {
     return removed;
   }
 
+  /// 分配船员角色
+  void assignCrewRole(CrewMember member, CrewRole role) {
+    _crewManager.assignCrewRole(member, role);
+    _cachedCurrentSpeed = null; // 清除缓存
+    notifyListeners();
+  }
+
   /// 设置跳过航行动画（调试用）
   void setSkipTravelAnimation(bool skip) {
     _skipTravelAnimation = skip;
@@ -487,6 +519,26 @@ class GameState extends ChangeNotifier {
   
   /// 获取时间流逝是否暂停
   bool get isTimePaused => _dayNightSystem.isPaused;
+
+  // 调试加成相关 getter/setter
+  double get debugRepairBonus => _debugRepairBonus;
+  void setDebugRepairBonus(double value) {
+    _debugRepairBonus = value;
+    notifyListeners();
+  }
+
+  double get debugSpeedBonus => _debugSpeedBonus;
+  void setDebugSpeedBonus(double value) {
+    _debugSpeedBonus = value;
+    _cachedCurrentSpeed = null; // 清除速度缓存
+    notifyListeners();
+  }
+
+  double get debugFireRateBonus => _debugFireRateBonus;
+  void setDebugFireRateBonus(double value) {
+    _debugFireRateBonus = value;
+    notifyListeners();
+  }
 
   // 战斗相关getter
   bool get isInCombat => _isInCombat;
@@ -679,10 +731,6 @@ class GameState extends ChangeNotifier {
     _isTransitioning = true;
     notifyListeners();
 
-    // 等待背景向左平移动画完成
-    // 动画时间需要与 NearBackgroundLayer 的 duration 匹配
-    await Future.delayed(const Duration(milliseconds: 1500));
-
     // 设置新港口，但保持过渡状态
     _currentPort = port;
     _destinationPort = null;
@@ -692,9 +740,6 @@ class GameState extends ChangeNotifier {
     _dayNightSystem.pause();
 
     notifyListeners();
-
-    // 再等待一小段时间，确保动画完全结束，岛屿完全入港
-    await Future.delayed(const Duration(milliseconds: 200));
 
     // 现在才结束过渡状态，允许显示按钮
     _isTransitioning = false;
@@ -966,7 +1011,7 @@ class GameState extends ChangeNotifier {
       
       // 当累积时间达到触发间隔时，执行攻击
       while (_playerAttackTimer >= attackInterval) {
-        _enemyShip!.takeDamage(_enemyShip!.damagePerShot);
+        _enemyShip!.takeDamage(_ship.damagePerShot);
         _playerAttackTimer -= attackInterval;
         notifyListeners();
       }
@@ -1303,6 +1348,7 @@ class GameState extends ChangeNotifier {
     _ship.durability = shipJson['durability'] as int;
     _ship.maxDurability = shipJson['maxDurability'] as int;
     _ship.maxCrewMemberCount = shipJson['maxCrewMemberCount'] as int;
+    _ship.damagePerShot = (shipJson['damagePerShot'] as int?) ?? 10;
     // id, name, appearance 是 final，假设它们不变或需要特殊处理
     // 如果这些也变了，可能需要重新考虑 _ship 的设计
 
@@ -1368,7 +1414,6 @@ class GameState extends ChangeNotifier {
     // 清除缓存
     _cachedCurrentSpeed = null;
     _cachedSpeedWeather = null;
-    _cachedSpeedCrewCount = null;
 
     notifyListeners();
   }

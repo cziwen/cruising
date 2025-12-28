@@ -10,6 +10,7 @@ class Ship {
   int durability;
   int maxDurability;
   int maxCrewMemberCount;
+  int damagePerShot; // 单次攻击伤害
   String appearance;
 
   Ship({
@@ -21,6 +22,7 @@ class Ship {
     this.durability = 100,
     required this.maxDurability,
     this.maxCrewMemberCount = 5,
+    this.damagePerShot = 10,
     this.appearance = 'default',
   });
 
@@ -91,6 +93,7 @@ class Ship {
     int? durability,
     int? maxDurability,
     int? maxCrewMemberCount,
+    int? damagePerShot,
     String? appearance,
   }) {
     return Ship(
@@ -102,6 +105,7 @@ class Ship {
       durability: durability ?? this.durability,
       maxDurability: maxDurability ?? this.maxDurability,
       maxCrewMemberCount: maxCrewMemberCount ?? this.maxCrewMemberCount,
+      damagePerShot: damagePerShot ?? this.damagePerShot,
       appearance: appearance ?? this.appearance,
     );
   }
@@ -116,6 +120,7 @@ class Ship {
       'durability': durability,
       'maxDurability': maxDurability,
       'maxCrewMemberCount': maxCrewMemberCount,
+      'damagePerShot': damagePerShot,
       'appearance': appearance,
     };
   }
@@ -130,6 +135,7 @@ class Ship {
       durability: json['durability'] as int,
       maxDurability: json['maxDurability'] as int,
       maxCrewMemberCount: json['maxCrewMemberCount'] as int,
+      damagePerShot: (json['damagePerShot'] as int?) ?? 10,
       appearance: json['appearance'] as String,
     );
   }

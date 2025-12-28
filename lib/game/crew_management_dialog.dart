@@ -1,15 +1,15 @@
 import 'package:flutter/material.dart';
 import '../models/crew_member.dart';
-import '../systems/crew_system.dart';
+import 'game_state.dart';
 import 'scale_wrapper.dart';
 
 /// 船员管理对话框
 class CrewManagementDialog extends StatefulWidget {
-  final ShipCrewManager crewManager;
+  final GameState gameState;
 
   const CrewManagementDialog({
     super.key,
-    required this.crewManager,
+    required this.gameState,
   });
 
   @override
@@ -17,13 +17,13 @@ class CrewManagementDialog extends StatefulWidget {
 }
 
 class _CrewManagementDialogState extends State<CrewManagementDialog> {
-  late ShipCrewManager _crewManager;
+  late GameState _gameState;
   final ScrollController _scrollController = ScrollController();
 
   @override
   void initState() {
     super.initState();
-    _crewManager = widget.crewManager;
+    _gameState = widget.gameState;
   }
 
   @override
@@ -34,10 +34,11 @@ class _CrewManagementDialogState extends State<CrewManagementDialog> {
 
   @override
   Widget build(BuildContext context) {
+    final crewManager = _gameState.crewManager;
     // 技能值直接对应效果值
-    final sailingBonusKnots = _crewManager.calculateSailingBonus(); // 直接返回节数
-    final autoRepair = _crewManager.calculateAutoRepair(); // 直接返回每秒修复的耐久数
-    final fireRateBonus = _crewManager.calculateFireRateBonus(); // 直接返回每秒炮数
+    final sailingBonusKnots = crewManager.calculateSailingBonus(); // 直接返回节数
+    final autoRepair = crewManager.calculateAutoRepair(); // 直接返回每秒修复的耐久数
+    final fireRateBonus = crewManager.calculateFireRateBonus(); // 直接返回每秒炮数
 
     return ScaleWrapper(
       child: Dialog(
@@ -101,17 +102,17 @@ class _CrewManagementDialogState extends State<CrewManagementDialog> {
                       children: [
                         _buildRoleStat(
                           CrewRole.sailor,
-                          _crewManager.getSailorCount(),
+                          crewManager.getSailorCount(),
                           Colors.cyan,
                         ),
                         _buildRoleStat(
                           CrewRole.shipwright,
-                          _crewManager.getShipwrightCount(),
+                          crewManager.getShipwrightCount(),
                           Colors.orange,
                         ),
                         _buildRoleStat(
                           CrewRole.gunner,
-                          _crewManager.getGunnerCount(),
+                          crewManager.getGunnerCount(),
                           Colors.red,
                         ),
                       ],
@@ -128,7 +129,7 @@ class _CrewManagementDialogState extends State<CrewManagementDialog> {
                         children: [
                           _buildBonusRow(
                             '航速加成',
-                            '+$sailingBonusKnots节',
+                            '+${sailingBonusKnots.toStringAsFixed(1)}节',
                             Colors.cyan,
                           ),
                           const SizedBox(height: 6),
@@ -155,7 +156,7 @@ class _CrewManagementDialogState extends State<CrewManagementDialog> {
               // 船员列表
               Flexible(
                 // Flexible 配合 mainAxisSize.min 可以让 Column 随内容高度变化，但不会超过最大约束
-                child: _crewManager.crewMembers.isEmpty
+                child: crewManager.crewMembers.isEmpty
                     ? const Padding(
                         padding: EdgeInsets.all(32),
                         child: Text(
@@ -191,9 +192,9 @@ class _CrewManagementDialogState extends State<CrewManagementDialog> {
                               top: 8,
                               bottom: 8,
                             ),
-                            itemCount: _crewManager.crewMembers.length,
+                            itemCount: crewManager.crewMembers.length,
                             itemBuilder: (context, index) {
-                              return _buildCrewCard(_crewManager.crewMembers[index]);
+                              return _buildCrewCard(crewManager.crewMembers[index]);
                             },
                           ),
                         ),
@@ -399,7 +400,7 @@ class _CrewManagementDialogState extends State<CrewManagementDialog> {
         onChanged: (CrewRole? newRole) {
           if (newRole != null) {
             setState(() {
-              _crewManager.assignCrewRole(member, newRole);
+              _gameState.assignCrewRole(member, newRole);
             });
           }
         },

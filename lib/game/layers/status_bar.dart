@@ -149,7 +149,7 @@ class StatusBar extends StatelessWidget {
           flex: 1,
           child: _buildStatItem(
             icon: Icons.sailing,
-            label: '${gameState.currentSpeed}节',
+            label: '${gameState.currentSpeed.toStringAsFixed(1)}节',
             iconSize: iconSize,
             fontSize: fontSize,
             valueColor: Colors.cyan,

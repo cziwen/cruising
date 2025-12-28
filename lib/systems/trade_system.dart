@@ -4,6 +4,7 @@ import '../models/goods.dart';
 import '../models/port.dart';
 import '../game/game_state.dart';
 import '../game/scale_wrapper.dart';
+import '../utils/game_config_loader.dart';
 
 /// 待交易物品
 class PendingTradeItem {
@@ -117,46 +118,10 @@ class PendingTrade {
 /// 贸易系统 - 简化的买卖界面
 class TradeSystem {
   final GameState gameState;
+  final GameConfigLoader _configLoader = GameConfigLoader();
   
-  // 商品列表（示例数据）
-  // 注意：金币永远是第一个
-  final List<Goods> _goodsList = [
-    Goods(
-      id: 'gold',
-      name: '金币',
-      basePrice: 1.0,
-      category: '货币',
-      weight: 0.0, // 金币不占用载货空间
-    ),
-    Goods(
-      id: 'food',
-      name: '食物',
-      basePrice: 10.0,
-      category: '基础',
-      weight: 1.0, // 1.0 kg
-    ),
-    Goods(
-      id: 'wood',
-      name: '木材',
-      basePrice: 15.0,
-      category: '材料',
-      weight: 2.0, // 2.0 kg
-    ),
-    Goods(
-      id: 'spice',
-      name: '香料',
-      basePrice: 30.0,
-      category: '奢侈品',
-      weight: 0.5, // 0.5 kg（轻但珍贵）
-    ),
-    Goods(
-      id: 'metal',
-      name: '金属',
-      basePrice: 25.0,
-      category: '材料',
-      weight: 5.0, // 5.0 kg（重）
-    ),
-  ];
+  // 商品列表由加载器提供
+  List<Goods> get _goodsList => _configLoader.goodsList;
 
   TradeSystem(this.gameState);
 
@@ -213,8 +178,6 @@ class TradeSystem {
       );
     }
 
-    final goods = _getGoods(goodsId);
-    
     // 获取港口信息
     final port = gameState.ports.firstWhere(
       (p) => p.id == portId,
@@ -235,7 +198,7 @@ class TradeSystem {
     final actualStock = ((priceBaseS > 0 ? priceBaseS : S0) - pendingStockAdjustment).clamp(0, double.infinity).toInt();
     
     // 获取商品参数
-    final P0 = goods.basePrice; // 基础价格
+    final P0 = config.basePrice; // 基础价格从港口配置获取
     final alpha = config.alpha; // 价格敏感度（从港口配置获取）
     
     // 计算商人的出售价（玩家购买价）：P_sell = P₀ · e^(-α((S - S₀)/100))
@@ -285,8 +248,7 @@ class TradeSystem {
     int currentStock = ((priceBaseS > 0 ? priceBaseS : S0) - pendingStockAdjustment).clamp(0, double.infinity).toInt();
 
     // 获取商品参数
-    final goods = _getGoods(goodsId);
-    final P0 = goods.basePrice; // 基础价格
+    final P0 = config.basePrice; // 基础价格从港口配置获取
     final alpha = config.alpha; // 价格敏感度
 
     // 计算增量总价：每个商品的价格基于前一个商品购买后的库存
@@ -1370,6 +1332,25 @@ class GoodsSlot extends StatelessWidget {
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
+                        if (goods!.imagePath != null)
+                          Image.asset(
+                            goods!.imagePath!,
+                            width: size * 0.4,
+                            height: size * 0.4,
+                            fit: BoxFit.contain,
+                            errorBuilder: (context, error, stackTrace) => Icon(
+                              Icons.category,
+                              size: size * 0.4,
+                              color: Colors.blue.shade300,
+                            ),
+                          )
+                        else
+                          Icon(
+                            goods!.id == 'gold' ? Icons.monetization_on : Icons.category,
+                            size: size * 0.4,
+                            color: Colors.blue.shade300,
+                          ),
+                        const SizedBox(height: 4),
                         Text(
                           goods!.name,
                           style: TextStyle(
@@ -1377,10 +1358,10 @@ class GoodsSlot extends StatelessWidget {
                             fontWeight: FontWeight.bold,
                           ),
                           textAlign: TextAlign.center,
-                          maxLines: 2,
+                          maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                         ),
-                        const SizedBox(height: 4),
+                        const SizedBox(height: 2),
                         Text(
                           '$quantity',
                           style: TextStyle(
