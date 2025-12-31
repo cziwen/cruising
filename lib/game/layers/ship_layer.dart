@@ -31,6 +31,10 @@ class _ShipLayerState extends State<ShipLayer>
   // 玩家归位动画
   AnimationController? _playerReturnController;
   Animation<double>? _playerReturnAnimation;
+
+  // 玩家进入战斗动画
+  AnimationController? _playerEnterController;
+  Animation<double>? _playerEnterAnimation;
   
   // 缓存加载失败的图像路径，避免重复尝试
   static final Set<String> _failedImagePaths = {};
@@ -64,6 +68,7 @@ class _ShipLayerState extends State<ShipLayer>
     _enemySlideController?.dispose();
     _sinkingController?.dispose();
     _playerReturnController?.dispose();
+    _playerEnterController?.dispose();
     super.dispose();
   }
 
@@ -77,6 +82,15 @@ class _ShipLayerState extends State<ShipLayer>
       _enemySlideController?.dispose();
       _enemySlideController = null;
       _enemySlideAnimation = null;
+    }
+
+    // 处理玩家进入战斗动画
+    if (widget.gameState.isEnteringCombat && _playerEnterController == null) {
+      _startPlayerEnterAnimation();
+    } else if (!widget.gameState.isEnteringCombat && _playerEnterController != null) {
+      _playerEnterController?.dispose();
+      _playerEnterController = null;
+      _playerEnterAnimation = null;
     }
 
     // 处理沉船动画
@@ -114,6 +128,23 @@ class _ShipLayerState extends State<ShipLayer>
     ));
 
     _enemySlideController!.forward();
+  }
+
+  void _startPlayerEnterAnimation() {
+    _playerEnterController = AnimationController(
+      duration: const Duration(milliseconds: 1500),
+      vsync: this,
+    );
+
+    _playerEnterAnimation = Tween<double>(
+      begin: 0.0,
+      end: -150.0,
+    ).animate(CurvedAnimation(
+      parent: _playerEnterController!,
+      curve: Curves.easeInOut,
+    ));
+
+    _playerEnterController!.forward();
   }
 
   void _startSinkingAnimation() {
@@ -174,6 +205,16 @@ class _ShipLayerState extends State<ShipLayer>
 
   /// 构建玩家船只
   Widget _buildPlayerShip(Size screenSize) {
+    // 如果正在进入战斗且动画已初始化，使用动画值
+    if (widget.gameState.isEnteringCombat && _playerEnterAnimation != null) {
+      return AnimatedBuilder(
+        animation: _playerEnterAnimation!,
+        builder: (context, child) {
+          return _buildPlayerShipAtPosition(screenSize, _playerEnterAnimation!.value);
+        },
+      );
+    }
+
     // 如果正在归位且动画已初始化，使用动画值
     if (widget.gameState.isReturningFromCombat && _playerReturnAnimation != null) {
       return AnimatedBuilder(
@@ -190,23 +231,19 @@ class _ShipLayerState extends State<ShipLayer>
 
   /// 在指定位置构建玩家船只
   Widget _buildPlayerShipAtPosition(Size screenSize, double xOffset) {
-    double yOffset = 100.0 + _breathingAnimation.value; // 基础向下100像素 + 呼吸动画
-    
-    // 如果正在沉船，添加沉船动画
+    // 动画位移
+    double animateY = _breathingAnimation.value * widget.gameState.waveAmplitudeMultiplier;
     if (widget.gameState.isSinking && widget.gameState.isPlayerSinking) {
-      yOffset += _sinkingAnimation?.value ?? 0.0;
+      animateY += _sinkingAnimation?.value ?? 0.0;
     }
 
-    return Positioned(
-      left: screenSize.width / 2 + xOffset - 100, // 居中 - 100（船只宽度的一半）
-      top: screenSize.height / 2 + yOffset - 100, // 居中 - 100（船只高度的一半）
-      child: AnimatedBuilder(
-        animation: _breathingAnimation,
-        builder: (context, child) {
-          return _buildShipImage(
-            'assets/images/fearless-pirate-captain-ship-in-pixel-art.png',
-          );
-        },
+    return Positioned.fill(
+      child: Transform.translate(
+        offset: Offset(xOffset, animateY),
+        child: _buildShipImage(
+          widget.gameState.ship.appearance,
+          fit: BoxFit.fill,
+        ),
       ),
     );
   }
@@ -216,57 +253,35 @@ class _ShipLayerState extends State<ShipLayer>
     // 计算敌方船只位置
     // 向右移动150像素，与玩家船只对称（玩家向左150，敌方向右150）
     double xOffset = 150.0;
-    double yOffset = 100.0; // 与玩家船只相同的Y位置
+    double yOffset = 0.0;
     
     // 如果敌方正在沉船，添加沉船动画
     if (widget.gameState.isSinking && !widget.gameState.isPlayerSinking) {
       yOffset += _sinkingAnimation?.value ?? 0.0;
     }
 
-    // 使用滑入动画，但确保在同一个图层
-    if (_enemySlideAnimation != null) {
-      return AnimatedBuilder(
-        animation: _enemySlideAnimation!,
-        builder: (context, child) {
-          // 计算滑入动画的X偏移
-          final slideX = _enemySlideAnimation!.value.dx * screenSize.width;
-          return Positioned(
-            left: screenSize.width / 2 + xOffset - 100 + slideX,
-            top: screenSize.height / 2 + yOffset - 100,
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                // 敌方船只信息（显示在图片上方）
-                _buildEnemyShipInfo(),
-                const SizedBox(height: 4),
-                // 敌方船只图片
-                _buildShipImage(
-                  'assets/images/pixel-pirate-ship.png',
-                ),
-              ],
+    final slideX = (_enemySlideAnimation != null) ? (_enemySlideAnimation!.value.dx * screenSize.width) : 0.0;
+
+    return Stack(
+      children: [
+        // 敌方船只图片 - 全屏
+        Positioned.fill(
+          child: Transform.translate(
+            offset: Offset(xOffset + slideX, yOffset),
+            child: _buildShipImage(
+              widget.gameState.enemyShip?.appearance ?? 'assets/images/ships/concept_art/single_sail_0.png',
+              fit: BoxFit.fill,
             ),
-          );
-        },
-      );
-    } else {
-      // 如果没有动画，直接显示
-      return Positioned(
-        left: screenSize.width / 2 + xOffset - 100,
-        top: screenSize.height / 2 + yOffset - 100,
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            // 敌方船只信息（显示在图片上方）
-            _buildEnemyShipInfo(),
-            const SizedBox(height: 4),
-            // 敌方船只图片
-            _buildShipImage(
-              'assets/images/pixel-pirate-ship.png',
-            ),
-          ],
+          ),
         ),
-      );
-    }
+        // 敌方船只信息（显示在图片上方）
+        Positioned(
+          left: screenSize.width / 2 + xOffset - 100 + slideX,
+          top: screenSize.height / 2 - 100, // 与原位置相近
+          child: _buildEnemyShipInfo(),
+        ),
+      ],
+    );
   }
 
   /// 构建敌方船只信息（简单2排字）
@@ -306,7 +321,7 @@ class _ShipLayerState extends State<ShipLayer>
   }
 
   /// 构建船只图片
-  Widget _buildShipImage(String imagePath) {
+  Widget _buildShipImage(String imagePath, {BoxFit fit = BoxFit.contain}) {
     // 如果这个路径之前加载失败过，直接返回备用显示
     if (_failedImagePaths.contains(imagePath)) {
       return _buildShipPlaceholder();
@@ -314,9 +329,9 @@ class _ShipLayerState extends State<ShipLayer>
     
     return Image.asset(
       imagePath,
-      fit: BoxFit.contain,
-      width: 200,
-      height: 200,
+      fit: fit,
+      width: double.infinity,
+      height: double.infinity,
       gaplessPlayback: true,
       filterQuality: FilterQuality.medium,
       errorBuilder: (context, error, stackTrace) {

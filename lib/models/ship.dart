@@ -4,9 +4,7 @@ import 'goods.dart';
 class Ship {
   final String id;
   final String name;
-  int level;
-  int cargoCapacity; // 当前载货容量（kg）
-  int maxCargoCapacity; // 最大载货容量（kg）
+  int cargoCapacity; // 最大载货容量（kg）
   int durability;
   int maxDurability;
   int maxCrewMemberCount;
@@ -16,9 +14,7 @@ class Ship {
   Ship({
     required this.id,
     required this.name,
-    this.level = 1,
-    this.cargoCapacity = 10,
-    required this.maxCargoCapacity,
+    required this.cargoCapacity,
     this.durability = 100,
     required this.maxDurability,
     this.maxCrewMemberCount = 5,
@@ -69,8 +65,7 @@ class Ship {
 
   /// 升级最大载货量
   void upgradeMaxCargo(int amount) {
-    maxCargoCapacity += amount;
-    cargoCapacity += amount; // 同时增加当前容量
+    cargoCapacity += amount;
   }
 
   /// 升级最大耐久度
@@ -87,9 +82,7 @@ class Ship {
   Ship copyWith({
     String? id,
     String? name,
-    int? level,
     int? cargoCapacity,
-    int? maxCargoCapacity,
     int? durability,
     int? maxDurability,
     int? maxCrewMemberCount,
@@ -99,9 +92,7 @@ class Ship {
     return Ship(
       id: id ?? this.id,
       name: name ?? this.name,
-      level: level ?? this.level,
       cargoCapacity: cargoCapacity ?? this.cargoCapacity,
-      maxCargoCapacity: maxCargoCapacity ?? this.maxCargoCapacity,
       durability: durability ?? this.durability,
       maxDurability: maxDurability ?? this.maxDurability,
       maxCrewMemberCount: maxCrewMemberCount ?? this.maxCrewMemberCount,
@@ -114,9 +105,7 @@ class Ship {
     return {
       'id': id,
       'name': name,
-      'level': level,
       'cargoCapacity': cargoCapacity,
-      'maxCargoCapacity': maxCargoCapacity,
       'durability': durability,
       'maxDurability': maxDurability,
       'maxCrewMemberCount': maxCrewMemberCount,
@@ -129,9 +118,7 @@ class Ship {
     return Ship(
       id: json['id'] as String,
       name: json['name'] as String,
-      level: json['level'] as int,
       cargoCapacity: json['cargoCapacity'] as int,
-      maxCargoCapacity: json['maxCargoCapacity'] as int,
       durability: json['durability'] as int,
       maxDurability: json['maxDurability'] as int,
       maxCrewMemberCount: json['maxCrewMemberCount'] as int,

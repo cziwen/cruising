@@ -1,3 +1,4 @@
+import 'dart:math';
 import '../game/game_state.dart';
 import '../models/ship.dart';
 
@@ -11,7 +12,7 @@ enum UpgradeType {
 /// 船只系统 - 管理船只升级和属性计算
 class ShipSystem {
   // 升级数值配置
-  static const int cargoUpgradeAmount = 30;
+  static const int cargoUpgradeAmount = 100;
   static const int hullUpgradeAmount = 50;
   static const int crewUpgradeAmount = 1;
 
@@ -20,34 +21,53 @@ class ShipSystem {
   static const int baseHullCost = 400;
   static const int baseCrewCost = 800;
 
-  // 成本递增系数 (每级增加的成本)
-  static const int cargoCostIncrement = 100;
-  static const int hullCostIncrement = 100;
-  static const int crewCostIncrement = 500;
+  // 成本增长率 (每次升级增加 50%)
+  static const double costMultiplier = 1.5;
 
   // 初始属性 (用于计算升级等级)
   static const int initialMaxCargo = 100;
   static const int initialMaxDurability = 200;
   static const int initialMaxCrew = 5;
 
+  /// 获取船只整体等级 (三个属性等级的最小值)
+  int getShipLevel(Ship ship) {
+    final cargoLevel = getUpgradeLevel(ship, UpgradeType.cargo);
+    final hullLevel = getUpgradeLevel(ship, UpgradeType.hull);
+    final crewLevel = getUpgradeLevel(ship, UpgradeType.crew);
+    return [cargoLevel, hullLevel, crewLevel].reduce((a, b) => a < b ? a : b);
+  }
+
+  /// 获取当前升级等级
+  int getUpgradeLevel(Ship ship, UpgradeType type) {
+    switch (type) {
+      case UpgradeType.cargo:
+        return ((ship.cargoCapacity - initialMaxCargo) / cargoUpgradeAmount).round();
+      case UpgradeType.hull:
+        return ((ship.maxDurability - initialMaxDurability) / hullUpgradeAmount).round();
+      case UpgradeType.crew:
+        return (ship.maxCrewMemberCount - initialMaxCrew);
+    }
+  }
+
   /// 获取升级成本
   int getUpgradeCost(Ship ship, UpgradeType type) {
-    int level = 0;
+    int level = getUpgradeLevel(ship, type);
+    int baseCost;
     
     switch (type) {
       case UpgradeType.cargo:
-        // 计算当前是第几级升级: (当前最大载货量 - 初始值) / 单次提升量
-        level = ((ship.maxCargoCapacity - initialMaxCargo) / cargoUpgradeAmount).floor();
-        return baseCargoCost + (level * cargoCostIncrement);
-        
+        baseCost = baseCargoCost;
+        break;
       case UpgradeType.hull:
-        level = ((ship.maxDurability - initialMaxDurability) / hullUpgradeAmount).floor();
-        return baseHullCost + (level * hullCostIncrement);
-        
+        baseCost = baseHullCost;
+        break;
       case UpgradeType.crew:
-        level = (ship.maxCrewMemberCount - initialMaxCrew);
-        return baseCrewCost + (level * crewCostIncrement);
+        baseCost = baseCrewCost;
+        break;
     }
+    
+    // 成本 = 基础成本 * (1.2 ^ 当前等级)
+    return (baseCost * pow(costMultiplier, level)).floor();
   }
 
   /// 获取升级效果描述
@@ -86,10 +106,73 @@ class ShipSystem {
     }
   }
 
+  /// 检查是否可以进行该项升级
+  bool canPerformUpgrade(Ship ship, UpgradeType type) {
+    final currentLevel = getUpgradeLevel(ship, type);
+    
+    // 假设最高等级为 6 (对应 Player_ship_6.png)
+    if (currentLevel >= 6) return false;
+
+    final cargoLevel = getUpgradeLevel(ship, UpgradeType.cargo);
+    final hullLevel = getUpgradeLevel(ship, UpgradeType.hull);
+    final crewLevel = getUpgradeLevel(ship, UpgradeType.crew);
+
+    int minOtherLevel;
+    switch (type) {
+      case UpgradeType.cargo:
+        minOtherLevel = (hullLevel < crewLevel) ? hullLevel : crewLevel;
+        break;
+      case UpgradeType.hull:
+        minOtherLevel = (cargoLevel < crewLevel) ? cargoLevel : crewLevel;
+        break;
+      case UpgradeType.crew:
+        minOtherLevel = (cargoLevel < hullLevel) ? cargoLevel : hullLevel;
+        break;
+    }
+
+    // 只有当前等级不高于其他项的最低等级时，才允许升级 (保证同步)
+    return currentLevel <= minOtherLevel;
+  }
+
+  /// 获取最大等级限制 (当前硬编码为 6，对应 Player_ship_6.png)
+  int getMaxLevel() => 6;
+
+  /// 获取升级类型等级限制描述
+  String getLevelConstraintMessage(Ship ship, UpgradeType type) {
+    final currentLevel = getUpgradeLevel(ship, type);
+    if (currentLevel >= getMaxLevel()) return '已达最高等级';
+    return '需要其他部位达到等级 $currentLevel';
+  }
+
   /// 执行升级
   /// 返回 null 表示成功，否则返回错误信息
   String? performUpgrade(GameState gameState, UpgradeType type) {
-    final cost = getUpgradeCost(gameState.ship, type);
+    final ship = gameState.ship;
+    final currentLevel = getUpgradeLevel(ship, type);
+
+    // 检查等级限制：其他升级选项必须达到与当前选项相同的等级
+    final cargoLevel = getUpgradeLevel(ship, UpgradeType.cargo);
+    final hullLevel = getUpgradeLevel(ship, UpgradeType.hull);
+    final crewLevel = getUpgradeLevel(ship, UpgradeType.crew);
+
+    int minOtherLevel;
+    switch (type) {
+      case UpgradeType.cargo:
+        minOtherLevel = (hullLevel < crewLevel) ? hullLevel : crewLevel;
+        break;
+      case UpgradeType.hull:
+        minOtherLevel = (cargoLevel < crewLevel) ? cargoLevel : crewLevel;
+        break;
+      case UpgradeType.crew:
+        minOtherLevel = (cargoLevel < hullLevel) ? cargoLevel : hullLevel;
+        break;
+    }
+
+    if (currentLevel > minOtherLevel) {
+      return '需要先升级其他部位（其他部位需达到等级 $currentLevel）';
+    }
+
+    final cost = getUpgradeCost(ship, type);
     
     // 检查金币
     if (gameState.gold < cost) {
@@ -104,15 +187,24 @@ class ShipSystem {
     // 应用升级
     switch (type) {
       case UpgradeType.cargo:
-        gameState.ship.upgradeMaxCargo(cargoUpgradeAmount);
+        ship.upgradeMaxCargo(cargoUpgradeAmount);
         break;
       case UpgradeType.hull:
-        gameState.ship.upgradeMaxDurability(hullUpgradeAmount);
+        ship.upgradeMaxDurability(hullUpgradeAmount);
         break;
       case UpgradeType.crew:
-        gameState.ship.upgradeMaxCrew(crewUpgradeAmount);
+        ship.upgradeMaxCrew(crewUpgradeAmount);
         break;
     }
+    
+    // 更新船只外观：只有当所有升级都达到下一级时才更换图片
+    final newCargoLevel = getUpgradeLevel(ship, UpgradeType.cargo);
+    final newHullLevel = getUpgradeLevel(ship, UpgradeType.hull);
+    final newCrewLevel = getUpgradeLevel(ship, UpgradeType.crew);
+    
+    final minLevel = [newCargoLevel, newHullLevel, newCrewLevel].reduce((a, b) => a < b ? a : b);
+    final appearanceLevel = minLevel.clamp(0, getMaxLevel());
+    ship.appearance = 'assets/images/ships/Player_ship_$appearanceLevel.png';
     
     // 通知更新
     gameState.notifyUpdate();

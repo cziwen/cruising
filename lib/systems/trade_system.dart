@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import '../models/goods.dart';
 import '../models/port.dart';
 import '../game/game_state.dart';
-import '../game/scale_wrapper.dart';
 import '../utils/game_config_loader.dart';
 
 /// 待交易物品
@@ -514,16 +513,15 @@ class _TradeDialogState extends State<_TradeDialog> {
     final favor = _pendingTrade.calculateTradeFavor();
     final isAcceptable = _pendingTrade.isTradeAcceptable();
 
-    return ScaleWrapper(
-      child: Dialog(
-        backgroundColor: Colors.white,
-        child: Container(
-          width: 900,
-          height: 700,
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
+    return Dialog(
+      backgroundColor: Colors.white,
+      child: Container(
+        width: 900,
+        height: 700,
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
             // 标题栏
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -703,31 +701,31 @@ class _TradeDialogState extends State<_TradeDialog> {
                                   children: [
                                     // 只显示1个格子
                                     if (_pendingTrade.itemsToReceive.isNotEmpty)
-                                Builder(
-                                  builder: (context) {
-                                    final item = _pendingTrade.itemsToReceive[0];
-                                    Goods? goods;
-                                    try {
-                                      goods = widget.tradeSystem.getGoodsList()
-                                          .firstWhere((g) => g.id == item.goodsId);
-                                    } catch (e) {
-                                      // 如果找不到商品（可能是金币），使用null
-                                      goods = null;
-                                    }
-                                    return GoodsSlot(
-                                      goods: goods,
-                                      quantity: item.quantity,
-                                      isLarge: false,
-                                      onRemove: () {
-                                        setState(() {
-                                          _pendingTrade.itemsToReceive.removeAt(0);
-                                        });
-                                      },
-                                    );
-                                  },
-                                )
-                              else
-                                const GoodsSlot(isLarge: false),
+                                      Builder(
+                                        builder: (context) {
+                                          final item = _pendingTrade.itemsToReceive[0];
+                                          Goods? goods;
+                                          try {
+                                            goods = widget.tradeSystem.getGoodsList()
+                                                .firstWhere((g) => g.id == item.goodsId);
+                                          } catch (e) {
+                                            // 如果找不到商品（可能是金币），使用null
+                                            goods = null;
+                                          }
+                                          return GoodsSlot(
+                                            goods: goods,
+                                            quantity: item.quantity,
+                                            isLarge: false,
+                                            onRemove: () {
+                                              setState(() {
+                                                _pendingTrade.itemsToReceive.removeAt(0);
+                                              });
+                                            },
+                                          );
+                                        },
+                                      )
+                                    else
+                                      const GoodsSlot(isLarge: false),
                                   ],
                                 ),
                               ),
@@ -949,7 +947,6 @@ class _TradeDialogState extends State<_TradeDialog> {
           ],
         ),
       ),
-    ),
     );
   }
 
@@ -1488,4 +1485,3 @@ class TradeBalanceBar extends StatelessWidget {
     );
   }
 }
-

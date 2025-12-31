@@ -75,7 +75,7 @@ class _LoadingScreenState extends State<LoadingScreen> {
           // 背景层
           Positioned.fill(
             child: Image.asset(
-              'assets/images/background/oceanbg_0.png', // 使用有效的备用图片
+              'assets/images/painting/Cover_0.png', // 使用有效的封面图片作为加载背景
               fit: BoxFit.cover,
               errorBuilder: (context, error, stackTrace) {
                 // 如果备用图片也失败，使用渐变背景

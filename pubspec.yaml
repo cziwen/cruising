@@ -26,3 +26,6 @@ flutter:
     - assets/images/
     - assets/images/background/
     - assets/images/buildings/
+    - assets/images/painting/
+    - assets/images/ships/
+    - assets/images/avatar/

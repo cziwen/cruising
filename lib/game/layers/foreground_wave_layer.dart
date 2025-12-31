@@ -139,7 +139,7 @@ class _ForegroundWaveLayerState extends State<ForegroundWaveLayer> {
     // 左右晃动频率 2.0 rad/s，幅度 4 像素
     final swayX = math.sin(gameState.swayTime * 2.0) * (4.0 * config.speedMultiplier);
     // 上下浮动频率 1.2 rad/s，幅度 3 像素（减少浮动幅度，使其更自然）
-    final swayY = math.sin(gameState.swayTime * 1.2) * (3.0 * config.speedMultiplier);
+    final swayY = math.sin(gameState.swayTime * 1.2) * (3.0 * config.speedMultiplier * gameState.waveAmplitudeMultiplier);
 
     return Stack(
       children: [

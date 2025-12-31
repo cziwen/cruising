@@ -1,8 +1,6 @@
-import 'dart:math';
 import 'package:flutter/material.dart';
 import '../models/crew_member.dart';
 import 'game_state.dart';
-import 'scale_wrapper.dart';
 
 /// 港口酒馆对话框 - 用于招募船员
 class TavernDialog extends StatefulWidget {
@@ -18,118 +16,23 @@ class TavernDialog extends StatefulWidget {
 }
 
 class _TavernDialogState extends State<TavernDialog> {
-  late List<CrewMember> _availableCrew;
   CrewMember? _selectedCrew;
-  final Random _random = Random();
-
-  // 预定义的中文姓名池
-  static const List<String> _namePool = [
-    '杰克', '汤姆', '强尼', '老汤姆', '火枪手', '水手长', '老水手',
-    '铁匠', '炮手', '舵手', '大副', '二副', '水手', '船工',
-    '老船长', '新兵', '老兵', '海盗', '商人', '冒险家',
-    '史密斯', '约翰', '威廉', '詹姆斯', '查尔斯', '罗伯特',
-    '李明', '王强', '张伟', '刘洋', '陈军', '杨帆',
-  ];
-
-  // 角色描述池（用于风格化）
-  static const List<String> _descriptionPool = [
-    '一位经验丰富的老水手，曾在多个海域航行。',
-    '年轻但充满活力的新兵，渴望在海上证明自己。',
-    '技艺精湛的船工，擅长修理各种船只。',
-    '神枪手，能在远距离精准命中目标。',
-    '曾经的海盗，现在寻求合法的工作。',
-    '来自远方的冒险家，拥有独特的技能。',
-    '沉默寡言的工匠，但手艺精湛。',
-    '热情开朗的水手，总能给船员带来欢乐。',
-  ];
 
   @override
   void initState() {
     super.initState();
-    _generateAvailableCrew();
-  }
-
-  /// 生成可招募的船员列表
-  void _generateAvailableCrew() {
-    final count = 3 + _random.nextInt(3); // 3-5个船员
-    _availableCrew = [];
-    final existingNames = widget.gameState.crewManager.crewMembers
-        .map((m) => m.name)
-        .toSet();
-
-    for (int i = 0; i < count; i++) {
-      String name;
-      int attempts = 0;
-      // 确保姓名不重复
-      do {
-        name = _namePool[_random.nextInt(_namePool.length)];
-        attempts++;
-        if (attempts > 100) {
-          // 如果尝试太多次，添加序号
-          name = '${name}_${_random.nextInt(1000)}';
-          break;
-        }
-      } while (existingNames.contains(name) || 
-               _availableCrew.any((c) => c.name == name));
-
-      // 使用曲线公式生成技能值：y = C ⋅ (x / C)^a
-      // C = 10 (cap), x = [0, 10] 随机数
-      // 水手 a=10, 船工 a=2, 炮手 a=6
-      final sailorSkill = _generateSkillWithCurve(10.0);   // 水手 a=10
-      final shipwrightSkill = _generateSkillWithCurve(2.0); // 船工 a=2
-      final gunnerSkill = _generateSkillWithCurve(6.0);     // 炮手 a=6
-      
-      // 计算工资：总技能值 × 2.0 + 基础工资（1-10随机）
-      final totalSkill = sailorSkill + shipwrightSkill + gunnerSkill;
-      final salary = (totalSkill * 2.0).round() + 1 + _random.nextInt(10);
-
-      _availableCrew.add(CrewMember(
-        name: name,
-        sailorSkill: sailorSkill,
-        shipwrightSkill: shipwrightSkill,
-        gunnerSkill: gunnerSkill,
-        salary: salary,
-        assignedRole: CrewRole.unassigned,
-      ));
+    // 初始选中第一个可招募船员（如果有）
+    if (widget.gameState.availableTavernCrew.isNotEmpty) {
+      _selectedCrew = widget.gameState.availableTavernCrew.first;
     }
-    // 不默认选中任何船员，让用户自己选择
-  }
-
-  /// 使用曲线公式生成技能值
-  /// 公式：y = C ⋅ (x / C)^a
-  /// C = 10 (cap), x = [0, 10] 随机数, a = 曲度参数
-  /// 返回保留2位小数的double值
-  double _generateSkillWithCurve(double a) {
-    const double C = 10.0; // cap值
-    final double x = _random.nextDouble() * C; // [0, 10] 随机数
-    
-    // 计算 y = C ⋅ (x / C)^a
-    final double ratio = x / C; // [0, 1]
-    final double y = C * pow(ratio, a);
-    
-    // 保留2位小数
-    return double.parse(y.toStringAsFixed(2));
   }
 
   /// 获取角色描述
   String _getCrewDescription(CrewMember member) {
-    // 根据技能值选择描述（技能值上限现在是10）
-    final maxSkill = [
-      member.sailorSkill,
-      member.shipwrightSkill,
-      member.gunnerSkill,
-    ].reduce((a, b) => a > b ? a : b);
-    
-    if (maxSkill == member.sailorSkill && member.sailorSkill > 5.0) {
-      return '一位经验丰富的老水手，曾在多个海域航行。';
-    } else if (maxSkill == member.shipwrightSkill && member.shipwrightSkill > 5.0) {
-      return '技艺精湛的船工，擅长修理各种船只。';
-    } else if (maxSkill == member.gunnerSkill && member.gunnerSkill > 5.0) {
-      return '神枪手，能在远距离精准命中目标。';
+    if (member.description != null) {
+      return member.description!;
     }
-    
-    // 随机选择一个描述
-    return _descriptionPool[_random.nextInt(_descriptionPool.length)];
+    return '一位渴望出海的冒险者。';
   }
 
   /// 招募船员
@@ -187,16 +90,15 @@ class _TavernDialogState extends State<TavernDialog> {
               // 扣除招募费用
               widget.gameState.spendGold(recruitmentCost);
               
-              // 添加船员
-              widget.gameState.addCrewMember(member);
+              // 招募船员
+              widget.gameState.recruitTavernCrew(member);
               
-              // 从可招募列表中移除
+              // 更新本地选中状态
               setState(() {
-                _availableCrew.remove(member);
-                if (_availableCrew.isEmpty) {
+                if (widget.gameState.availableTavernCrew.isEmpty) {
                   _selectedCrew = null;
                 } else {
-                  _selectedCrew = _availableCrew.first;
+                  _selectedCrew = widget.gameState.availableTavernCrew.first;
                 }
               });
               
@@ -217,10 +119,10 @@ class _TavernDialogState extends State<TavernDialog> {
 
   @override
   Widget build(BuildContext context) {
-    return ScaleWrapper(
-      child: Dialog(
-        backgroundColor: Colors.transparent,
-        child: Container(
+    final availableCrew = widget.gameState.availableTavernCrew;
+    return Dialog(
+      backgroundColor: Colors.transparent,
+      child: Container(
           width: 1000, // 设计尺寸
           height: 800, // 设计尺寸
           decoration: BoxDecoration(
@@ -280,7 +182,7 @@ class _TavernDialogState extends State<TavernDialog> {
                             ),
                           ),
                         ),
-                        child: _availableCrew.isEmpty
+                        child: availableCrew.isEmpty
                             ? const Center(
                                 child: Text(
                                   '暂无可招募船员',
@@ -292,9 +194,9 @@ class _TavernDialogState extends State<TavernDialog> {
                               )
                             : ListView.builder(
                                 padding: const EdgeInsets.all(8),
-                                itemCount: _availableCrew.length,
+                                itemCount: availableCrew.length,
                                 itemBuilder: (context, index) {
-                                  final crew = _availableCrew[index];
+                                  final crew = availableCrew[index];
                                   final isSelected = crew == _selectedCrew;
                                   return _buildCrewListItem(crew, isSelected);
                                 },
@@ -323,8 +225,7 @@ class _TavernDialogState extends State<TavernDialog> {
             ],
           ),
         ),
-      ),
-    );
+      );
   }
 
   /// 构建船员列表项
@@ -401,15 +302,28 @@ class _TavernDialogState extends State<TavernDialog> {
 
   /// 构建小头像
   Widget _buildSmallAvatar(CrewMember member) {
-    final displayChar = member.name.isNotEmpty
-        ? member.name[0].toUpperCase()
-        : '?';
-    
+    if (member.avatarPath != null) {
+      return ClipRRect(
+        borderRadius: BorderRadius.circular(6),
+        child: Image.asset(
+          member.avatarPath!,
+          width: 50,
+          height: 50,
+          fit: BoxFit.cover,
+          errorBuilder: (context, error, stackTrace) => _buildPlaceholderAvatar(50, 20, member.name),
+        ),
+      );
+    }
+    return _buildPlaceholderAvatar(50, 20, member.name);
+  }
+
+  Widget _buildPlaceholderAvatar(double size, double fontSize, String name) {
+    final displayChar = name.isNotEmpty ? name[0].toUpperCase() : '?';
     return ClipRRect(
       borderRadius: BorderRadius.circular(6),
       child: Container(
-        width: 50,
-        height: 50,
+        width: size,
+        height: size,
         decoration: BoxDecoration(
           color: Colors.purple.withValues(alpha: 0.3),
           border: Border.all(
@@ -420,8 +334,8 @@ class _TavernDialogState extends State<TavernDialog> {
         child: Center(
           child: Text(
             displayChar,
-            style: const TextStyle(
-              fontSize: 20,
+            style: TextStyle(
+              fontSize: fontSize,
               fontWeight: FontWeight.bold,
               color: Colors.white,
             ),
@@ -578,10 +492,23 @@ class _TavernDialogState extends State<TavernDialog> {
 
   /// 构建大头像
   Widget _buildLargeAvatar(CrewMember member) {
-    final displayChar = member.name.isNotEmpty
-        ? member.name[0].toUpperCase()
-        : '?';
-    
+    if (member.avatarPath != null) {
+      return ClipRRect(
+        borderRadius: BorderRadius.circular(12),
+        child: Image.asset(
+          member.avatarPath!,
+          width: 120,
+          height: 120,
+          fit: BoxFit.cover,
+          errorBuilder: (context, error, stackTrace) => _buildPlaceholderLargeAvatar(member.name),
+        ),
+      );
+    }
+    return _buildPlaceholderLargeAvatar(member.name);
+  }
+
+  Widget _buildPlaceholderLargeAvatar(String name) {
+    final displayChar = name.isNotEmpty ? name[0].toUpperCase() : '?';
     return ClipRRect(
       borderRadius: BorderRadius.circular(12),
       child: Container(

@@ -59,10 +59,10 @@ class _MainMenuScreenState extends State<MainMenuScreen> {
           // 背景层
           Positioned.fill(
             child: Image.asset(
-              'assets/images/background/oceanbg_0.png', // 使用有效的备用图片
+              'assets/images/painting/Cover_0.png', // 使用指定的封面图片
               fit: BoxFit.cover,
               errorBuilder: (context, error, stackTrace) {
-                // 如果备用图片也失败，使用渐变背景
+                // 如果图片加载失败，使用渐变背景
                 return Container(
                   decoration: BoxDecoration(
                     gradient: LinearGradient(

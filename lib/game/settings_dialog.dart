@@ -1,7 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:window_manager/window_manager.dart';
-import 'scale_wrapper.dart';
 import 'game_state.dart';
 import '../screens/save_load_screen.dart';
 import '../screens/loading_screen.dart';
@@ -62,10 +61,9 @@ class _SettingsDialogState extends State<SettingsDialog> {
   Widget build(BuildContext context) {
     final bool isInGame = widget.gameState != null;
 
-    return ScaleWrapper(
-      child: Dialog(
-        backgroundColor: Colors.transparent, // 背景透明，由 Container 控制
-        child: Container(
+    return Dialog(
+      backgroundColor: Colors.transparent, // 背景透明，由 Container 控制
+      child: Container(
           width: 500, // 设计尺寸
           decoration: BoxDecoration(
             color: Colors.white,
@@ -197,30 +195,28 @@ class _SettingsDialogState extends State<SettingsDialog> {
                             // 显示确认对话框
                             showDialog(
                               context: context,
-                              builder: (context) => ScaleWrapper(
-                                child: AlertDialog(
-                                  title: const Text('返回主菜单'),
-                                  content: const Text('未保存的进度将会丢失，确定要返回主菜单吗？'),
-                                  actions: [
-                                    TextButton(
-                                      onPressed: () => Navigator.of(context).pop(),
-                                      child: const Text('取消'),
-                                    ),
-                                    TextButton(
-                                      onPressed: () {
-                                        Navigator.of(context).pop(); // 关闭确认对话框
-                                        Navigator.of(context).pushReplacement(
-                                          MaterialPageRoute(
-                                            builder: (context) => const LoadingScreen(
-                                              nextScreen: MainMenuScreen(),
-                                            ),
+                              builder: (context) => AlertDialog(
+                                title: const Text('返回主菜单'),
+                                content: const Text('未保存的进度将会丢失，确定要返回主菜单吗？'),
+                                actions: [
+                                  TextButton(
+                                    onPressed: () => Navigator.of(context).pop(),
+                                    child: const Text('取消'),
+                                  ),
+                                  TextButton(
+                                    onPressed: () {
+                                      Navigator.of(context).pop(); // 关闭确认对话框
+                                      Navigator.of(context).pushReplacement(
+                                        MaterialPageRoute(
+                                          builder: (context) => const LoadingScreen(
+                                            nextScreen: MainMenuScreen(),
                                           ),
-                                        );
-                                      },
-                                      child: const Text('确定'),
-                                    ),
-                                  ],
-                                ),
+                                        ),
+                                      );
+                                    },
+                                    child: const Text('确定'),
+                                  ),
+                                ],
                               ),
                             );
                           },
@@ -248,8 +244,7 @@ class _SettingsDialogState extends State<SettingsDialog> {
             ],
           ),
         ),
-      ),
-    );
+      );
   }
 }
 

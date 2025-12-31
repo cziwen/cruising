@@ -7,6 +7,7 @@ class EnemyShip {
   final double fireRatePerSecond; // 攻击频率（每秒炮数）
   final double repairRatePerSecond; // 修复频率（每秒恢复的耐久）
   final int damagePerShot; // 每次攻击造成的伤害
+  final String appearance; // 船只外观图片路径
 
   EnemyShip({
     required this.id,
@@ -16,6 +17,7 @@ class EnemyShip {
     this.fireRatePerSecond = 1.0, // 默认1炮/秒
     this.repairRatePerSecond = 2.0, // 默认2点/秒
     this.damagePerShot = 10, // 默认每次10点伤害
+    this.appearance = 'assets/images/ships/concept_art/single_sail_0.png',
   });
 
   /// 检查是否被击沉
@@ -52,6 +54,7 @@ class EnemyShip {
     double? fireRatePerSecond,
     double? repairRatePerSecond,
     int? damagePerShot,
+    String? appearance,
   }) {
     return EnemyShip(
       id: id ?? this.id,
@@ -61,6 +64,7 @@ class EnemyShip {
       fireRatePerSecond: fireRatePerSecond ?? this.fireRatePerSecond,
       repairRatePerSecond: repairRatePerSecond ?? this.repairRatePerSecond,
       damagePerShot: damagePerShot ?? this.damagePerShot,
+      appearance: appearance ?? this.appearance,
     );
   }
 }

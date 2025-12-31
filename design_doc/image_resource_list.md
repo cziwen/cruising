@@ -29,10 +29,9 @@
 详见：[image_resources_backgrounds.md](image_resources_backgrounds.md)
 
 ### 2. 船只 (Ships)
-- IMG_SHIP_PLAYER - 玩家船只（正常状态）
-- IMG_SHIP_PLAYER_DMG - 玩家船只（受损状态）
-- IMG_SHIP_ENEMY - 敌方船只
-- IMG_SHIP_SINKING - 沉船状态
+- IMG_SHIP_PLAYER_0..6 - 玩家船只（0-6级进化）
+- IMG_SHIP_ENEMY_0 - 敌方船只
+- IMG_SHIP_SINKING - 沉船动画状态
 
 详见：[image_resources_ships.md](image_resources_ships.md)
 

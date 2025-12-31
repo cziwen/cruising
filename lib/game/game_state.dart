@@ -11,6 +11,7 @@ import '../systems/crew_system.dart';
 import '../systems/day_night_system.dart';
 import '../systems/trade_system.dart';
 import '../systems/save_system.dart';
+import '../utils/game_config_loader.dart';
 
 /// 天气状况枚举
 enum WeatherCondition {
@@ -34,11 +35,11 @@ class GameState extends ChangeNotifier {
     id: 'ship_1',
     name: '初航号',
     cargoCapacity: 100, // 初始载货容量100kg
-    maxCargoCapacity: 100,
     durability: 200, // 默认满耐久
     maxDurability: 200,
     maxCrewMemberCount: 5,
     damagePerShot: 10,
+    appearance: 'assets/images/ships/Player_ship_0.png',
   );
   
   // 用于获取商品信息的函数（由TradeSystem设置）
@@ -87,6 +88,11 @@ class GameState extends ChangeNotifier {
 
   // 船员系统
   final ShipCrewManager _crewManager = ShipCrewManager();
+  
+  // 酒馆可招募船员
+  List<CrewMember> _availableTavernCrew = [];
+  int _lastTavernRefreshDay = -1;
+  
   // maxCrewCount managed by _ship
 
   // 天气系统
@@ -98,6 +104,7 @@ class GameState extends ChangeNotifier {
   // 动画相关系统 (集中管理)
   double _swayTime = 0.0;
   double _totalSailingOffset = 0.0;
+  double _waveAmplitudeMultiplier = 0.4; // 初始为港口时的弱幅度
   static const double _baseSailingSpeed = 8.0; // 基础航速（节）
   static const double _baseScrollSpeed = 50.0; // 基础滚动速度（像素/秒）
 
@@ -113,6 +120,7 @@ class GameState extends ChangeNotifier {
 
   // 战斗系统
   bool _isInCombat = false;
+  bool _isEnteringCombat = false; // 是否正在进入战斗动画中
   EnemyShip? _enemyShip;
   // 每个属性独立的累积时间（秒，游戏时间）
   double _playerAttackTimer = 0.0; // 玩家攻击累积时间
@@ -187,11 +195,13 @@ class GameState extends ChangeNotifier {
   }
   WeatherCondition get weather => _weather;
   ShipCrewManager get crewManager => _crewManager;
+  List<CrewMember> get availableTavernCrew => _availableTavernCrew;
   DayNightSystem get dayNightSystem => _dayNightSystem;
 
   // 动画相关 getter
   double get swayTime => _swayTime;
   double get totalSailingOffset => _totalSailingOffset;
+  double get waveAmplitudeMultiplier => _waveAmplitudeMultiplier;
 
   // 缓存当前航速（当船员、天气变化时失效）
   double? _cachedCurrentSpeed;
@@ -260,13 +270,17 @@ class GameState extends ChangeNotifier {
 
     // 初始化昼夜系统
     _dayNightSystem.reset();
-    // 默认从6:00开始（日出时间）
-    _dayNightSystem.setGameMinutes(6 * 60); // 6小时 = 360分钟
+    // 默认从12:00开始（正午）
+    _dayNightSystem.setGameMinutes(12 * 60); // 12小时 = 720分钟
 
     _isFadeOut = false;
 
     // 初始化价格更新跟踪
     _lastPriceUpdateDay = _dayNightSystem.currentDay;
+    
+    // 初始化酒馆船员
+    _lastTavernRefreshDay = -1;
+    refreshTavernCrew();
 
     // 如果停靠在港口，暂停时间
     if (_currentPort != null) {
@@ -295,15 +309,34 @@ class GameState extends ChangeNotifier {
       _totalSailingOffset += (_baseScrollSpeed * speedMultiplier) * dtRealSeconds;
     }
 
+    // 更新海浪起伏幅度倍率（平滑过渡）
+    // 在海上时目标为 1.0，在港口时目标为 0.4
+    final targetMultiplier = _isAtSea ? 1.0 : 0.4;
+    if ((_waveAmplitudeMultiplier - targetMultiplier).abs() > 0.001) {
+      // 每秒过渡约 0.5 的幅度
+      final step = 0.5 * dtRealSeconds;
+      if (_waveAmplitudeMultiplier < targetMultiplier) {
+        _waveAmplitudeMultiplier = (_waveAmplitudeMultiplier + step).clamp(0.4, 1.0);
+      } else {
+        _waveAmplitudeMultiplier = (_waveAmplitudeMultiplier - step).clamp(0.4, 1.0);
+      }
+    } else {
+      _waveAmplitudeMultiplier = targetMultiplier;
+    }
+
     // 2. 使用 dt 增量更新游戏时间
     final crossedMidnight = _dayNightSystem.updateWithDeltaTime(dtRealSeconds);
 
-    // 检查是否跨越00:00（工资结算和价格更新）
+    // 检查是否跨越00:00（工资结算、价格更新和酒馆刷新）
     if (crossedMidnight) {
       _processSalaryPayment();
       
       // 检查是否需要更新港口价格（每7天更新一次）
       final currentDay = _dayNightSystem.currentDay;
+      
+      // 刷新酒馆船员
+      refreshTavernCrew();
+      
       final daysSinceLastUpdate = currentDay - _lastPriceUpdateDay;
       // 处理跨年情况
       final actualDaysSinceUpdate = daysSinceLastUpdate >= 0 
@@ -468,9 +501,87 @@ class GameState extends ChangeNotifier {
 
   /// 添加船员
   void addCrewMember(CrewMember member) {
-    if (_crewManager.crewMembers.length < _ship.maxCrewMemberCount) {
-      _crewManager.addCrewMember(member);
-      _cachedCurrentSpeed = null; // 清除缓存
+    _crewManager.addCrewMember(member);
+    _cachedCurrentSpeed = null; // 清除缓存
+    notifyListeners();
+  }
+
+  /// 刷新酒馆可招募船员
+  void refreshTavernCrew() {
+    final currentDay = _dayNightSystem.currentDay;
+    if (_lastTavernRefreshDay == currentDay) return;
+    
+    _lastTavernRefreshDay = currentDay;
+    final config = GameConfigLoader().crewConfig;
+    if (config.isEmpty) return;
+
+    final random = Random();
+    final count = 3 + random.nextInt(3); // 3-5个船员
+    _availableTavernCrew = [];
+
+    final firstNames = List<String>.from(config['firstNames']);
+    final lastNames = List<String>.from(config['lastNames']);
+    final personalities = List<String>.from(config['personalities']);
+    final specialties = List<String>.from(config['specialties']);
+    final likedItems = List<String>.from(config['likedItems']);
+    final descriptionFormats = List<String>.from(config['descriptionFormats']);
+    final avatars = List<String>.from(config['avatars']);
+
+    for (int i = 0; i < count; i++) {
+      final firstName = firstNames[random.nextInt(firstNames.length)];
+      final lastName = lastNames[random.nextInt(lastNames.length)];
+      final name = '$firstName$lastName';
+      
+      final personality = personalities[random.nextInt(personalities.length)];
+      final specialty = specialties[random.nextInt(specialties.length)];
+      final likedItem = likedItems[random.nextInt(likedItems.length)];
+      
+      String description = descriptionFormats[random.nextInt(descriptionFormats.length)];
+      description = description.replaceAll('[personality]', personality);
+      description = description.replaceAll('[specialty]', specialty);
+      description = description.replaceAll('[likedItem]', likedItem);
+
+      final avatarPath = avatars[random.nextInt(avatars.length)];
+
+      final sailorSkill = _generateSkillWithCurve(10.0);   // 水手 a=10
+      final shipwrightSkill = _generateSkillWithCurve(2.0); // 船工 a=2
+      final gunnerSkill = _generateSkillWithCurve(6.0);     // 炮手 a=6
+      
+      final totalSkill = sailorSkill + shipwrightSkill + gunnerSkill;
+      final salary = (totalSkill * 2.0).round() + 1 + random.nextInt(10);
+
+      _availableTavernCrew.add(CrewMember(
+        name: name,
+        sailorSkill: sailorSkill,
+        shipwrightSkill: shipwrightSkill,
+        gunnerSkill: gunnerSkill,
+        salary: salary,
+        avatarPath: avatarPath,
+        personality: personality,
+        specialty: specialty,
+        likedItem: likedItem,
+        description: description,
+        assignedRole: CrewRole.unassigned,
+      ));
+    }
+    notifyListeners();
+  }
+
+  /// 使用曲线公式生成技能值
+  double _generateSkillWithCurve(double a) {
+    final random = Random();
+    const double C = 10.0;
+    final double x = random.nextDouble() * C;
+    final double ratio = x / C;
+    final double y = C * pow(ratio, a);
+    return double.parse(y.toStringAsFixed(2));
+  }
+
+  /// 招募酒馆船员
+  void recruitTavernCrew(CrewMember member) {
+    if (_availableTavernCrew.contains(member)) {
+      addCrewMember(member);
+      _availableTavernCrew.remove(member);
       notifyListeners();
     }
   }
@@ -542,6 +653,7 @@ class GameState extends ChangeNotifier {
 
   // 战斗相关getter
   bool get isInCombat => _isInCombat;
+  bool get isEnteringCombat => _isEnteringCombat;
   EnemyShip? get enemyShip => _enemyShip;
   double get playerShipXOffset => _playerShipXOffset;
   double get enemyShipXOffset => _enemyShipXOffset;
@@ -961,10 +1073,16 @@ class GameState extends ChangeNotifier {
   }
 
   /// 玩家船只移动到战斗位置（向左移动）
-  void _animatePlayerShipToCombatPosition() {
-    // 使用动画控制器或直接设置
-    // 这里使用简单的线性插值，实际可以使用AnimationController
-    _playerShipXOffset = -150.0; // 向左移动150像素
+  Future<void> _animatePlayerShipToCombatPosition() async {
+    _isEnteringCombat = true;
+    _playerShipXOffset = 0.0; // 确保初始位置在中央
+    notifyListeners();
+
+    // 等待动画完成（1.5秒）
+    await Future.delayed(const Duration(milliseconds: 1500));
+    
+    _playerShipXOffset = -150.0; // 动画结束后，设置最终偏移
+    _isEnteringCombat = false;
     notifyListeners();
   }
 
@@ -1325,6 +1443,8 @@ class GameState extends ChangeNotifier {
       'weather': _weather.name,
       'dayNightSystem': _dayNightSystem.toJson(),
       'lastPriceUpdateDay': _lastPriceUpdateDay,
+      'availableTavernCrew': _availableTavernCrew.map((m) => m.toJson()).toList(),
+      'lastTavernRefreshDay': _lastTavernRefreshDay,
     };
   }
 
@@ -1338,30 +1458,41 @@ class GameState extends ChangeNotifier {
     _accumulatedDistance = (json['accumulatedDistance'] as num).toDouble();
     _accumulatedGameHours = (json['accumulatedGameHours'] as num).toDouble();
     _lastPriceUpdateDay = json['lastPriceUpdateDay'] as int;
+    _lastTavernRefreshDay = (json['lastTavernRefreshDay'] as int?) ?? -1;
 
-    // 2. 恢复船只状态
+    // 2. 恢复酒馆船员
+    _availableTavernCrew.clear();
+    final tavernCrewList = json['availableTavernCrew'] as List?;
+    if (tavernCrewList != null) {
+      for (final crewJson in tavernCrewList) {
+        _availableTavernCrew.add(CrewMember.fromJson(crewJson as Map<String, dynamic>));
+      }
+    }
+
+    // 3. 恢复船员系统
+    _crewManager.clear();
+    final crewList = json['crewMembers'] as List;
+    for (final crewJson in crewList) {
+      _crewManager.addCrewMember(CrewMember.fromJson(crewJson as Map<String, dynamic>));
+    }
+
+    // 4. 恢复船只状态
     final shipJson = json['ship'] as Map<String, dynamic>;
     // 由于 _ship 是 final，我们需要手动更新它的属性
-    _ship.level = shipJson['level'] as int;
     _ship.cargoCapacity = shipJson['cargoCapacity'] as int;
-    _ship.maxCargoCapacity = shipJson['maxCargoCapacity'] as int;
     _ship.durability = shipJson['durability'] as int;
     _ship.maxDurability = shipJson['maxDurability'] as int;
     _ship.maxCrewMemberCount = shipJson['maxCrewMemberCount'] as int;
     _ship.damagePerShot = (shipJson['damagePerShot'] as int?) ?? 10;
-    // id, name, appearance 是 final，假设它们不变或需要特殊处理
-    // 如果这些也变了，可能需要重新考虑 _ship 的设计
 
-    // 3. 恢复库存
+    // 5. 恢复库存
     _inventory.clear();
     final inventoryList = json['inventory'] as List;
     for (final itemJson in inventoryList) {
       _inventory.add(ShipInventoryItem.fromJson(itemJson as Map<String, dynamic>));
     }
 
-    // 4. 恢复港口列表
-    // 注意：我们需要保留 initialize 中设置的引用结构吗？
-    // 这里假设所有港口都在 json 中
+    // 6. 恢复港口列表
     _ports.clear();
     final portsList = json['ports'] as List;
     for (final portJson in portsList) {
@@ -1393,14 +1524,7 @@ class GameState extends ChangeNotifier {
       _destinationPort = null;
     }
 
-    // 5. 恢复船员
-    _crewManager.clear();
-    final crewList = json['crewMembers'] as List;
-    for (final crewJson in crewList) {
-      _crewManager.addCrewMember(CrewMember.fromJson(crewJson as Map<String, dynamic>));
-    }
-
-    // 6. 恢复天气
+    // 7. 恢复天气
     final weatherName = json['weather'] as String;
     try {
       _weather = WeatherCondition.values.firstWhere((e) => e.name == weatherName);
@@ -1408,7 +1532,7 @@ class GameState extends ChangeNotifier {
       _weather = WeatherCondition.calm;
     }
 
-    // 7. 恢复昼夜系统
+    // 8. 恢复昼夜系统
     _dayNightSystem.loadFromJson(json['dayNightSystem'] as Map<String, dynamic>);
     
     // 清除缓存

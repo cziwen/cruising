@@ -15,7 +15,7 @@ enum Season {
 /// 昼夜系统管理器
 class DayNightSystem {
   // 游戏时间（分钟，从0开始，一天1440分钟）
-  int _gameMinutes = 360; // 默认从6:00开始（日出）
+  int _gameMinutes = 720; // 默认从12:00开始（正午）
   
   // 允许外部设置（用于初始化）
   set gameMinutes(int value) => _gameMinutes = value;
@@ -54,6 +54,7 @@ class DayNightSystem {
   /// 设置游戏时间（用于初始化）
   void setGameMinutes(int value) {
     _gameMinutes = value;
+    _accumulatedGameMinutes = value.toDouble();
   }
   
   /// 获取当前时间（小时:00）
@@ -191,8 +192,8 @@ class DayNightSystem {
   
   /// 重置时间
   void reset() {
-    _gameMinutes = 0;
-    _accumulatedGameMinutes = 0.0;
+    _gameMinutes = 720; // 重置为12:00
+    _accumulatedGameMinutes = 720.0;
     _isPaused = false;
     _currentDay = 1; // 重置为第1天（春季第1天）
     _timeMultiplier = 1.0; // 重置时间倍数为1.0

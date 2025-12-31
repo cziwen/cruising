@@ -28,6 +28,10 @@ class CrewMember {
   final double gunnerSkill;      // 炮手技能 0-10（保留2位小数）
   final int salary;           // 工资（每天）
   final String? avatarPath;   // 头像路径（可选，如果为null则使用占位符）
+  final String? personality;   // 性格
+  final String? specialty;     // 特长
+  final String? likedItem;     // 喜欢的物品
+  final String? description;   // 完整描述
   CrewRole assignedRole;       // 分配的职业
   int morale;                  // 士气 0-100
 
@@ -38,6 +42,10 @@ class CrewMember {
     required this.gunnerSkill,
     required this.salary,
     this.avatarPath,
+    this.personality,
+    this.specialty,
+    this.likedItem,
+    this.description,
     this.assignedRole = CrewRole.unassigned,
     this.morale = 100,  // 默认士气为100
   });
@@ -64,6 +72,10 @@ class CrewMember {
     double? gunnerSkill,
     int? salary,
     String? avatarPath,
+    String? personality,
+    String? specialty,
+    String? likedItem,
+    String? description,
     CrewRole? assignedRole,
     int? morale,
   }) {
@@ -74,6 +86,10 @@ class CrewMember {
       gunnerSkill: gunnerSkill ?? this.gunnerSkill,
       salary: salary ?? this.salary,
       avatarPath: avatarPath ?? this.avatarPath,
+      personality: personality ?? this.personality,
+      specialty: specialty ?? this.specialty,
+      likedItem: likedItem ?? this.likedItem,
+      description: description ?? this.description,
       assignedRole: assignedRole ?? this.assignedRole,
       morale: morale ?? this.morale,
     );
@@ -87,6 +103,10 @@ class CrewMember {
       'gunnerSkill': gunnerSkill,
       'salary': salary,
       'avatarPath': avatarPath,
+      'personality': personality,
+      'specialty': specialty,
+      'likedItem': likedItem,
+      'description': description,
       'assignedRole': assignedRole.toJson(),
       'morale': morale,
     };
@@ -100,6 +120,10 @@ class CrewMember {
       gunnerSkill: (json['gunnerSkill'] as num).toDouble(),
       salary: json['salary'] as int,
       avatarPath: json['avatarPath'] as String?,
+      personality: json['personality'] as String?,
+      specialty: json['specialty'] as String?,
+      likedItem: json['likedItem'] as String?,
+      description: json['description'] as String?,
       assignedRole: CrewRole.fromJson(json['assignedRole'] as String),
       morale: json['morale'] as int,
     );

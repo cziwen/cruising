@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'game_state.dart';
 import '../models/ship.dart';
 import '../systems/ship_system.dart';
-import 'scale_wrapper.dart';
 
 /// 船厂对话框 - 用于升级船只
 class ShipyardDialog extends StatefulWidget {
@@ -77,10 +76,9 @@ class _ShipyardDialogState extends State<ShipyardDialog>
   Widget build(BuildContext context) {
     final ship = widget.gameState.ship;
 
-    return ScaleWrapper(
-      child: Dialog(
-        backgroundColor: Colors.transparent,
-        child: Container(
+    return Dialog(
+      backgroundColor: Colors.transparent,
+      child: Container(
           width: 1200, // 设计尺寸
           height: 800, // 设计尺寸
           decoration: BoxDecoration(
@@ -157,8 +155,7 @@ class _ShipyardDialogState extends State<ShipyardDialog>
             ],
           ),
         ),
-      ),
-    );
+      );
   }
 
   Widget _buildHeader(BuildContext context) {
@@ -245,8 +242,15 @@ class _ShipyardDialogState extends State<ShipyardDialog>
           ),
           const SizedBox(height: 16),
           _buildAttributeRow(
+            '船只等级',
+            'Lv. ${_shipSystem.getShipLevel(ship)}',
+            Icons.trending_up,
+            Colors.purple,
+          ),
+          const SizedBox(height: 16),
+          _buildAttributeRow(
             '载货量',
-            '${ship.cargoCapacity} / ${ship.maxCargoCapacity} kg',
+            '${widget.gameState.usedCargoWeight.toStringAsFixed(1)} / ${ship.cargoCapacity} kg',
             Icons.inventory_2,
             Colors.orange,
           ),
@@ -304,34 +308,24 @@ class _ShipyardDialogState extends State<ShipyardDialog>
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          AnimatedBuilder(
-            animation: _breathingAnimation,
-            builder: (context, child) {
-              return Transform.translate(
-                offset: Offset(0, _breathingAnimation.value),
-                child: child,
-              );
-            },
-            child: Image.asset(
-              'assets/images/fearless-pirate-captain-ship-in-pixel-art.png',
-              height: 200,
-              fit: BoxFit.contain,
-            ),
-          ),
-          const SizedBox(height: 20),
-          Text(
-            'Lv.${ship.level}',
-            style: const TextStyle(
-              color: Colors.amber,
-              fontSize: 24,
-              fontWeight: FontWeight.bold,
-              shadows: [
-                Shadow(
-                  blurRadius: 10,
-                  color: Colors.black,
-                  offset: Offset(0, 2),
+          Expanded(
+            child: ClipRect(
+              child: Transform.scale(
+                scale: 2.0,
+                child: AnimatedBuilder(
+                  animation: _breathingAnimation,
+                  builder: (context, child) {
+                    return Transform.translate(
+                      offset: Offset(0, _breathingAnimation.value),
+                      child: child,
+                    );
+                  },
+                  child: Image.asset(
+                    ship.appearance,
+                    fit: BoxFit.contain,
+                  ),
                 ),
-              ],
+              ),
             ),
           ),
         ],
@@ -344,12 +338,14 @@ class _ShipyardDialogState extends State<ShipyardDialog>
     final description = _shipSystem.getUpgradeDescription(type);
     final cost = _shipSystem.getUpgradeCost(ship, type);
     final amount = _shipSystem.getUpgradeAmount(type);
+    final isAllowedByLevel = _shipSystem.canPerformUpgrade(ship, type);
     final canAfford = widget.gameState.gold >= cost;
+    final canUpgrade = isAllowedByLevel && canAfford;
     
     String valueChange = '';
     switch (type) {
       case UpgradeType.cargo:
-        valueChange = '${ship.maxCargoCapacity} → ${ship.maxCargoCapacity + amount} kg';
+        valueChange = '${ship.cargoCapacity} → ${ship.cargoCapacity + amount} kg';
         break;
       case UpgradeType.hull:
         valueChange = '${ship.maxDurability} → ${ship.maxDurability + amount}';
@@ -359,67 +355,98 @@ class _ShipyardDialogState extends State<ShipyardDialog>
         break;
     }
 
+    final level = _shipSystem.getUpgradeLevel(ship, type);
+
     return Container(
-      padding: const EdgeInsets.all(12),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
       decoration: BoxDecoration(
         color: Colors.white.withValues(alpha: 0.05),
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
-          color: canAfford ? Colors.white.withValues(alpha: 0.2) : Colors.red.withValues(alpha: 0.2),
+          color: canUpgrade ? Colors.white.withValues(alpha: 0.2) : Colors.red.withValues(alpha: 0.2),
         ),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            name,
-            style: const TextStyle(
-              color: Colors.white,
-              fontWeight: FontWeight.bold,
-              fontSize: 16,
-            ),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                name,
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 15,
+                ),
+              ),
+              Text(
+                'Lv.$level',
+                style: TextStyle(
+                  color: Colors.blue[300],
+                  fontWeight: FontWeight.bold,
+                  fontSize: 13,
+                ),
+              ),
+            ],
           ),
-          const SizedBox(height: 4),
+          const SizedBox(height: 2),
           Text(
             description,
             style: const TextStyle(
               color: Colors.white54,
-              fontSize: 12,
+              fontSize: 11,
             ),
           ),
           const Spacer(),
+          if (!isAllowedByLevel && level < _shipSystem.getMaxLevel())
+            Padding(
+              padding: const EdgeInsets.only(bottom: 2),
+              child: Text(
+                _shipSystem.getLevelConstraintMessage(ship, type),
+                style: const TextStyle(
+                  color: Colors.redAccent,
+                  fontSize: 10,
+                ),
+              ),
+            ),
           Text(
-            valueChange,
-            style: const TextStyle(
-              color: Colors.greenAccent,
+            level >= _shipSystem.getMaxLevel() ? '已达最高等级' : valueChange,
+            style: TextStyle(
+              color: level >= _shipSystem.getMaxLevel() ? Colors.orangeAccent : Colors.greenAccent,
               fontWeight: FontWeight.bold,
-              fontSize: 14,
+              fontSize: 13,
             ),
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: 4),
           SizedBox(
             width: double.infinity,
             child: ElevatedButton(
-              onPressed: canAfford ? () => _handleUpgrade(type) : null,
+              onPressed: canUpgrade ? () => _handleUpgrade(type) : null,
               style: ElevatedButton.styleFrom(
-                backgroundColor: canAfford ? Colors.blue[800] : Colors.grey[800],
+                backgroundColor: canUpgrade ? Colors.blue[800] : Colors.grey[800],
+                disabledBackgroundColor: Colors.grey[800]?.withValues(alpha: 0.5),
                 foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(vertical: 8),
+                padding: const EdgeInsets.symmetric(vertical: 4),
               ),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const Text('💰', style: TextStyle(fontSize: 14)),
-                  const SizedBox(width: 4),
-                  Text(
-                    '$cost',
-                    style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      color: canAfford ? Colors.amber : Colors.white38,
+                  if (level < _shipSystem.getMaxLevel()) ...[
+                    const Text('💰', style: TextStyle(fontSize: 12)),
+                    const SizedBox(width: 2),
+                    Text(
+                      '$cost',
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 13,
+                        color: canAfford ? Colors.amber : Colors.white38,
+                      ),
                     ),
-                  ),
-                  const SizedBox(width: 4),
-                  const Text('[升级]'),
+                    const SizedBox(width: 4),
+                    const Text('[升级]', style: TextStyle(fontSize: 13)),
+                  ] else
+                    const Text('已满级', style: TextStyle(fontSize: 13)),
                 ],
               ),
             ),

@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import '../models/crew_member.dart';
 import 'game_state.dart';
-import 'scale_wrapper.dart';
 
 /// 船员管理对话框
 class CrewManagementDialog extends StatefulWidget {
@@ -40,10 +39,9 @@ class _CrewManagementDialogState extends State<CrewManagementDialog> {
     final autoRepair = crewManager.calculateAutoRepair(); // 直接返回每秒修复的耐久数
     final fireRateBonus = crewManager.calculateFireRateBonus(); // 直接返回每秒炮数
 
-    return ScaleWrapper(
-      child: Dialog(
-        backgroundColor: Colors.transparent,
-        child: Container(
+    return Dialog(
+      backgroundColor: Colors.transparent,
+      child: Container(
           width: 800, // 设计尺寸
           // 移除固定高度，使用约束来限制最大高度
           constraints: const BoxConstraints(
@@ -203,8 +201,7 @@ class _CrewManagementDialogState extends State<CrewManagementDialog> {
             ],
           ),
         ),
-      ),
-    );
+      );
   }
 
   /// 构建职业统计项

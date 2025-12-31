@@ -1,0 +1,34 @@
+{
+  "firstNames": ["杰克", "汤姆", "强尼", "爱德华", "威廉", "詹姆斯", "查尔斯", "罗伯特", "李", "张", "刘", "王", "陈", "杨", "赵", "黄"],
+  "lastNames": ["·斯派罗", "·索耶", "·摩根", "·蒂奇", "·德雷克", "·基德", "·弗林特", "·雷利", "·贝克", "·史密斯", "·强森"],
+  "personalities": ["勇敢", "谨慎", "乐观", "沉默寡言", "热情", "古怪", "忠诚", "贪婪", "机智", "稳重"],
+  "specialties": ["航行", "修船", "炮击", "厨艺", "医术", "格斗", "观察", "指挥"],
+  "likedItems": ["朗姆酒", "金币", "烟草", "航海图", "幸运金币", "指南针", "咸鱼", "旧怀表"],
+  "descriptionFormats": [
+    "这是一个[personality]的人，他擅长[specialty]，最喜欢[likedItem]。",
+    "[personality]是他的代名词。他精通[specialty]，经常随身带着[likedItem]。",
+    "在港口里，大家都知道他很[personality]。他有着高超的[specialty]技巧，如果你给他[likedItem]，他会很高兴。",
+    "他看起来很[personality]，但谈起[specialty]来却滔滔不绝。他总是梦想要得到[likedItem]。"
+  ],
+  "avatars": [
+    "assets/images/avatar/1_1767148766855.png",
+    "assets/images/avatar/1_1767148770287.png",
+    "assets/images/avatar/1_1767148773566.png",
+    "assets/images/avatar/1_1767148777561.png",
+    "assets/images/avatar/1_1767148785196.png",
+    "assets/images/avatar/1_1767148788896.png",
+    "assets/images/avatar/1_1767148791598.png",
+    "assets/images/avatar/1_1767148795725.png",
+    "assets/images/avatar/1_1767148799338.png",
+    "assets/images/avatar/1_1767148802533.png",
+    "assets/images/avatar/1_1767148807937.png",
+    "assets/images/avatar/1_1767148810579.png",
+    "assets/images/avatar/1_1767148813780.png",
+    "assets/images/avatar/1_1767148817392.png",
+    "assets/images/avatar/1_1767148820299.png",
+    "assets/images/avatar/1_1767148822829.png",
+    "assets/images/avatar/1_1767148827537.png",
+    "assets/images/avatar/1_1767148899954.png"
+  ]
+}
+

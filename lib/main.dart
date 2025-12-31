@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 import 'package:window_manager/window_manager.dart';
 import 'screens/main_menu_screen.dart';
+import 'game/scale_wrapper.dart';
 
 void main() async {
   // 确保 Flutter 绑定初始化
@@ -47,6 +48,12 @@ class MainApp extends StatelessWidget {
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.blue),
         useMaterial3: true,
       ),
+      builder: (context, child) {
+        return ScaleWrapper(
+          backgroundColor: Colors.black,
+          child: child!,
+        );
+      },
       home: const MainMenuScreen(),
     );
   }
