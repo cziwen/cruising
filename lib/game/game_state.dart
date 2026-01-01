@@ -135,6 +135,18 @@ class GameState extends ChangeNotifier {
   bool _isFadeOut = false; // 是否正在渐变黑屏
   Port? _previousPortBeforeCombat; // 战斗前的港口（用于失败重生）
 
+  // 最近离队的船员名单（用于向玩家展示提示）
+  final List<String> _departingCrewNames = [];
+  List<String> get departingCrewNames => List.unmodifiable(_departingCrewNames);
+
+  /// 清除离队船员名单
+  void clearDepartingCrewNames() {
+    if (_departingCrewNames.isNotEmpty) {
+      _departingCrewNames.clear();
+      notifyListeners();
+    }
+  }
+
   // 调试加成
   double _debugRepairBonus = 0.0;
   double _debugFireRateBonus = 0.0;
@@ -362,16 +374,22 @@ class GameState extends ChangeNotifier {
 
   /// 处理工资结算（每天00:00执行）
   void _processSalaryPayment() {
-    final totalSalary = _crewManager.calculateTotalSalary();
-    if (totalSalary > 0 && _gold >= totalSalary) {
-      _gold -= totalSalary;
-      notifyListeners();
-    } else if (totalSalary > 0 && _gold < totalSalary) {
-      // 金币不足，可以选择解雇船员或显示警告
-      // 这里暂时只扣除能支付的部分
-      _gold = 0;
-      notifyListeners();
+    final crewMembers = List<CrewMember>.from(_crewManager.crewMembers);
+    if (crewMembers.isEmpty) return;
+
+    // 随机打乱支付顺序，以公平决定在金币不足时谁被欠薪
+    crewMembers.shuffle();
+
+    for (final member in crewMembers) {
+      if (_gold >= member.salary) {
+        _gold -= member.salary;
+        member.isPaid = true;
+      } else {
+        member.isPaid = false;
+        // 如果想在这里显示警告，可以发送一个事件或打印日志
+      }
     }
+    notifyListeners();
   }
 
   /// 重置商人资金（每7天执行一次）
@@ -594,6 +612,14 @@ class GameState extends ChangeNotifier {
       notifyListeners();
     }
     return removed;
+  }
+
+  /// 解雇船员（手动触发）
+  void dismissCrewMember(CrewMember member) {
+    if (_crewManager.removeCrewMember(member)) {
+      _cachedCurrentSpeed = null;
+      notifyListeners();
+    }
   }
 
   /// 分配船员角色
@@ -842,6 +868,17 @@ class GameState extends ChangeNotifier {
 
     _isTransitioning = true;
     notifyListeners();
+
+    // 在正式进入港口前，检查是否有欠薪船员需要离队
+    final unpaidCrew = _crewManager.crewMembers.where((m) => !m.isPaid).toList();
+    if (unpaidCrew.isNotEmpty) {
+      _departingCrewNames.clear();
+      for (final member in unpaidCrew) {
+        _departingCrewNames.add(member.name);
+        _crewManager.removeCrewMember(member);
+      }
+      _cachedCurrentSpeed = null; // 船员变动，清除速度缓存
+    }
 
     // 设置新港口，但保持过渡状态
     _currentPort = port;

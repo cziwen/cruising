@@ -10,13 +10,13 @@
       "port_3": 1920
     },
     "goodsConfig": {
-      "food": { "alpha": 0.05, "s0": 500, "basePrice": 10.0 },
-      "wood": { "alpha": 0.04, "s0": 500, "basePrice": 15.0 },
-      "spice": { "alpha": 0.08, "s0": 300, "basePrice": 30.0 },
-      "metal": { "alpha": 0.05, "s0": 500, "basePrice": 25.0 }
+      "food": { "alpha": 0.05, "s0": 500, "basePrice": 8.0 },
+      "wood": { "alpha": 0.04, "s0": 500, "basePrice": 12.0 },
+      "spice": { "alpha": 0.08, "s0": 300, "basePrice": 28.0 },
+      "metal": { "alpha": 0.05, "s0": 500, "basePrice": 23.0 }
     },
-    "merchantMoney": 1000,
-    "initialMerchantMoney": 1000
+    "merchantMoney": 10000,
+    "initialMerchantMoney": 10000
   },
   {
     "id": "port_2",
@@ -30,12 +30,12 @@
     },
     "goodsConfig": {
       "food": { "alpha": 0.06, "s0": 600, "basePrice": 11.0 },
-      "wood": { "alpha": 0.05, "s0": 400, "basePrice": 14.0 },
+      "wood": { "alpha": 0.05, "s0": 400, "basePrice": 16.0 },
       "spice": { "alpha": 0.12, "s0": 250, "basePrice": 35.0 },
       "metal": { "alpha": 0.06, "s0": 450, "basePrice": 28.0 }
     },
-    "merchantMoney": 2000,
-    "initialMerchantMoney": 2000
+    "merchantMoney": 20000,
+    "initialMerchantMoney": 20000
   },
   {
     "id": "port_3",
@@ -53,7 +53,7 @@
       "spice": { "alpha": 0.15, "s0": 20, "basePrice": 25.0 },
       "metal": { "alpha": 0.04, "s0": 500, "basePrice": 22.0 }
     },
-    "merchantMoney": 1500,
-    "initialMerchantMoney": 1500
+    "merchantMoney": 15000,
+    "initialMerchantMoney": 15000
   }
 ]

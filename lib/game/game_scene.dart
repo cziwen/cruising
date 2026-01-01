@@ -6,7 +6,6 @@ import 'layers/ship_layer.dart';
 import 'layers/foreground_wave_layer.dart';
 import 'layers/ui_layer.dart';
 import 'layers/time_display.dart';
-import 'layers/celestial_layer.dart';
 import 'layers/screen_effect_layer.dart';
 
 /// 游戏场景 - 单场景游戏视图（4层渲染）
@@ -36,11 +35,8 @@ class GameScene extends StatelessWidget {
   Widget build(BuildContext context) {
     return Stack(
       children: [
-        // Layer 0: 背景层
+        // Layer 0: 背景层（包含 Layer 0.5 天体层）
         BackgroundLayer(gameState: gameState),
-        
-        // Layer 0.5: 天体层（太阳/月亮，独立于岛屿动画）
-        CelestialLayer(gameState: gameState),
         
         // Layer 1: 近背景层（岛屿）
         NearBackgroundLayer(

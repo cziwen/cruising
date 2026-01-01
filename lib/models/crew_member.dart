@@ -34,6 +34,7 @@ class CrewMember {
   final String? description;   // 完整描述
   CrewRole assignedRole;       // 分配的职业
   int morale;                  // 士气 0-100
+  bool isPaid;                 // 最近一次结算是否成功支付工资
 
   CrewMember({
     required this.name,
@@ -48,6 +49,7 @@ class CrewMember {
     this.description,
     this.assignedRole = CrewRole.unassigned,
     this.morale = 100,  // 默认士气为100
+    this.isPaid = true, // 默认已支付
   });
 
   /// 获取指定职业的技能值
@@ -78,6 +80,7 @@ class CrewMember {
     String? description,
     CrewRole? assignedRole,
     int? morale,
+    bool? isPaid,
   }) {
     return CrewMember(
       name: name ?? this.name,
@@ -92,6 +95,7 @@ class CrewMember {
       description: description ?? this.description,
       assignedRole: assignedRole ?? this.assignedRole,
       morale: morale ?? this.morale,
+      isPaid: isPaid ?? this.isPaid,
     );
   }
 
@@ -109,6 +113,7 @@ class CrewMember {
       'description': description,
       'assignedRole': assignedRole.toJson(),
       'morale': morale,
+      'isPaid': isPaid,
     };
   }
 
@@ -126,6 +131,7 @@ class CrewMember {
       description: json['description'] as String?,
       assignedRole: CrewRole.fromJson(json['assignedRole'] as String),
       morale: json['morale'] as int,
+      isPaid: (json['isPaid'] as bool?) ?? true,
     );
   }
 }

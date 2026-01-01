@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'dart:math' as math;
 import '../game_state.dart';
+import 'celestial_layer.dart';
 
 /// 背景层 - 远距离背景（海洋背景）
 /// 在航行时（isAtSea == true）会向左滚动，模拟船只向前航行的感觉
@@ -20,12 +21,12 @@ class BackgroundLayer extends StatefulWidget {
 class _BackgroundLayerConfig {
   final String assetPath;
   final double speedMultiplier; // 相对于基础速度的倍数
-  final double yOffset; // 垂直位置偏移（像素）
+  final double baseDriftSpeed; // 基础漂移速度（像素/秒，船不动时也会移动）
 
   _BackgroundLayerConfig({
     required this.assetPath,
     required this.speedMultiplier,
-    this.yOffset = 0.0,
+    this.baseDriftSpeed = 0.0,
   });
 }
 
@@ -59,16 +60,19 @@ class _BackgroundLayerState extends State<BackgroundLayer> {
     _BackgroundLayerConfig(
       assetPath: 'assets/images/background/oceanbg_0_cloud3.png',
       speedMultiplier: 0.3, // 最慢（背景层）
+      baseDriftSpeed: 5.0, // 基础漂移速度
     ),
     // 第6层：cloud2
     _BackgroundLayerConfig(
       assetPath: 'assets/images/background/oceanbg_0_cloud2.png',
       speedMultiplier: 0.5, // 慢（背景层）
+      baseDriftSpeed: 8.0, // 基础漂移速度
     ),
     // 第7层：cloud1 (最顶层)
     _BackgroundLayerConfig(
       assetPath: 'assets/images/background/oceanbg_0_cloud1.png',
       speedMultiplier: 0.7, // 慢（背景层）
+      baseDriftSpeed: 12.0, // 基础漂移速度
     ),
   ];
 
@@ -133,8 +137,22 @@ class _BackgroundLayerState extends State<BackgroundLayer> {
                   child: Stack(
                     children: [
                       // 渲染所有背景层（从底到顶）
-                      // 顺序：underwater, wave3, wave2, wave1, cloud3, cloud2, cloud1
-                      for (int i = 0; i < _layers.length; i++)
+                      // 顺序：underwater, 天体层, wave3, wave2, wave1, cloud3, cloud2, cloud1
+                      
+                      // 第1层：underwater
+                      _buildLayer(
+                        0,
+                        _layers[0],
+                        displayWidth,
+                        screenHeight,
+                        widget.gameState,
+                      ),
+
+                      // Layer 0.5: 天体层（太阳/月亮，插入在海底背景之上，但在海浪和云朵之下）
+                      CelestialLayer(gameState: widget.gameState),
+
+                      // 其余层：wave3 到 cloud1
+                      for (int i = 1; i < _layers.length; i++)
                         _buildLayer(
                           i,
                           _layers[i],
@@ -164,8 +182,11 @@ class _BackgroundLayerState extends State<BackgroundLayer> {
     // 计算滚动偏移（背景向左移动，所以是负值）
     // 使用集中管理的 totalSailingOffset
     // 应用随机初始偏移，防止所有层一开始都对齐
+    // 叠加常驻漂移速度（baseDriftSpeed * swayTime）
     double initialOffset = _randomInitialOffsets[layerIndex] * displayWidth;
-    double scrollOffset = -(gameState.totalSailingOffset * config.speedMultiplier + initialOffset);
+    double scrollOffset = -(gameState.totalSailingOffset * config.speedMultiplier + 
+                           gameState.swayTime * config.baseDriftSpeed + 
+                           initialOffset);
     
     // 实现无缝循环：确保 scrollOffset 在 [-displayWidth, 0] 范围内
     if (displayWidth > 0) {
@@ -188,7 +209,7 @@ class _BackgroundLayerState extends State<BackgroundLayer> {
           displayWidth,
           screenHeight,
           -displayWidth + scrollOffset + swayX,
-          config.yOffset + swayY,
+          swayY,
         ),
         // 图片2：中间
         _buildBackgroundImage(
@@ -196,7 +217,7 @@ class _BackgroundLayerState extends State<BackgroundLayer> {
           displayWidth,
           screenHeight,
           scrollOffset + swayX,
-          config.yOffset + swayY,
+          swayY,
         ),
         // 图片3：右侧
         _buildBackgroundImage(
@@ -204,7 +225,7 @@ class _BackgroundLayerState extends State<BackgroundLayer> {
           displayWidth,
           screenHeight,
           displayWidth + scrollOffset + swayX,
-          config.yOffset + swayY,
+          swayY,
         ),
       ],
     );

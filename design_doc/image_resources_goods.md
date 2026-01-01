@@ -2,7 +2,7 @@
 
 ## 概述
 
-商品图标用于交易界面（Trade Dialog）中，展示玩家和商人库存中的物品。目前大部分商品使用默认占位图标，金币使用特定图标。
+商品图标用于交易界面（Trade Dialog）中，展示玩家和商人库存中的物品。所有基础商品均已配备专门的像素风格图片资源。
 
 ---
 
@@ -12,13 +12,13 @@
 
 配置定义见 `assets/config/goods.json`。
 
-| 商品 ID | 名称 | 图标路径 | 备注 |
+| 商品 ID | 名称 | 图标路径 | 视觉描述 (像素风格/星露谷感) |
 | :--- | :--- | :--- | :--- |
-| `gold` | 金币 | `assets/images/pixel-sun-icon.png` | 复用太阳图标作为金币标识 |
-| `food` | 食物 | `null` | 使用内置 `Icons.category` 占位 |
-| `wood` | 木材 | `null` | 使用内置 `Icons.category` 占位 |
-| `spice` | 香料 | `null` | 使用内置 `Icons.category` 占位 |
-| `metal` | 金属 | `null` | 使用内置 `Icons.category` 占位 |
+| `gold` | 金币 | `assets/images/goods/gold.png` | 一叠闪亮的金币，边缘有明显的明暗对比，最上方的一枚带有闪光点。 |
+| `food` | 食物 | `assets/images/goods/food.png` | 装着红苹果、面包和绿色蔬菜的质朴木筐，色彩鲜艳且饱满。 |
+| `wood` | 木材 | `assets/images/goods/wood.png` | 三根用粗绳捆绑在一起的原木，断面可见清晰的年轮纹理。 |
+| `spice` | 香料 | `assets/images/goods/spice.png` | 一个扎着口的小麻袋，袋口漏出一些亮丽的粉末，或是一个带塞的小陶罐。 |
+| `metal` | 金属 | `assets/images/goods/metal.png` | 沉重的长方形铁锭/钢锭，带有金属光泽和斜角切面，表面有细微的磨损痕迹。 |
 
 ---
 
@@ -33,8 +33,8 @@
 
 ---
 
-## 未来扩展建议
-建议为每个商品（食物、木材、香料、金属）设计独立的 32x32 像素图标，以增强界面的视觉丰富度。
+## 维护建议
+如需添加新商品，请确保在 `assets/images/goods/` 目录下提供对应的 512x512（或更高分辨率的像素图）资源，并在 `assets/config/goods.json` 中配置对应的 `imagePath`。
 
 ---
 

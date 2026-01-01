@@ -33,7 +33,7 @@
 
 | Asset ID | 路径 | 描述 |
 | :--- | :--- | :--- |
-| IMG_SHIP_ENEMY_0 | `assets/images/ships/concept_art/single_sail_0.png` | 默认敌方单桅海盗船 |
+| IMG_SHIP_ENEMY_0 | `assets/images/ships/single_sail_0.png` | 默认敌方单桅海盗船 |
 
 - **尺寸**: 约 200x200 像素（显示尺寸）
 - **特点**: 单桅帆船，用于区分玩家船只。

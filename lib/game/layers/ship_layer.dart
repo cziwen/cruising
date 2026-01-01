@@ -252,35 +252,41 @@ class _ShipLayerState extends State<ShipLayer>
   Widget _buildEnemyShip(Size screenSize) {
     // 计算敌方船只位置
     // 向右移动150像素，与玩家船只对称（玩家向左150，敌方向右150）
-    double xOffset = 150.0;
-    double yOffset = 0.0;
+    final slideX = (_enemySlideAnimation != null) ? (_enemySlideAnimation!.value.dx * screenSize.width) : 0.0;
+    double xOffset = 150.0 + slideX;
+    
+    // 动画位移 (呼吸动画 + 沉船动画)
+    double animateY = _breathingAnimation.value * widget.gameState.waveAmplitudeMultiplier;
     
     // 如果敌方正在沉船，添加沉船动画
     if (widget.gameState.isSinking && !widget.gameState.isPlayerSinking) {
-      yOffset += _sinkingAnimation?.value ?? 0.0;
+      animateY += _sinkingAnimation?.value ?? 0.0;
     }
 
-    final slideX = (_enemySlideAnimation != null) ? (_enemySlideAnimation!.value.dx * screenSize.width) : 0.0;
-
-    return Stack(
-      children: [
-        // 敌方船只图片 - 全屏
-        Positioned.fill(
-          child: Transform.translate(
-            offset: Offset(xOffset + slideX, yOffset),
-            child: _buildShipImage(
-              widget.gameState.enemyShip?.appearance ?? 'assets/images/ships/concept_art/single_sail_0.png',
-              fit: BoxFit.fill,
+    return Positioned.fill(
+      child: Stack(
+        children: [
+          // 敌方船只图片 - 全屏
+          Positioned.fill(
+            child: Transform.translate(
+              offset: Offset(xOffset, animateY),
+              child: Transform.scale(
+                scaleX: -1,
+                child: _buildShipImage(
+                  widget.gameState.enemyShip?.appearance ?? 'assets/images/ships/single_sail_0.png',
+                  fit: BoxFit.fill,
+                ),
+              ),
             ),
           ),
-        ),
-        // 敌方船只信息（显示在图片上方）
-        Positioned(
-          left: screenSize.width / 2 + xOffset - 100 + slideX,
-          top: screenSize.height / 2 - 100, // 与原位置相近
-          child: _buildEnemyShipInfo(),
-        ),
-      ],
+          // 敌方船只信息（显示在图片上方）
+          Positioned(
+            left: screenSize.width / 2 + xOffset - 100,
+            top: screenSize.height / 2 - 100, // 与原位置相近
+            child: _buildEnemyShipInfo(),
+          ),
+        ],
+      ),
     );
   }
 

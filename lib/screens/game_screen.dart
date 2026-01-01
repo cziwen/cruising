@@ -166,6 +166,21 @@ class _GameScreenState extends State<GameScreen> {
     _gameState.initializePortGoodsStock();
     
     _gameState.addListener(() {
+      if (_gameState.departingCrewNames.isNotEmpty) {
+        final names = _gameState.departingCrewNames.join('、');
+        // 先清理，避免重复触发（listener 可能被多次调用）
+        _gameState.clearDepartingCrewNames();
+        
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('船员 $names 因为得不到报酬，已经在港口悄悄离开了...'),
+            backgroundColor: Colors.redAccent,
+            duration: const Duration(seconds: 5),
+            behavior: SnackBarBehavior.floating,
+            margin: const EdgeInsets.only(bottom: 100, left: 20, right: 20),
+          ),
+        );
+      }
       setState(() {});
     });
   }

@@ -279,13 +279,35 @@ class _CrewManagementDialogState extends State<CrewManagementDialog> {
                   Row(
                     children: [
                       Expanded(
-                        child: Text(
-                          member.name,
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                          ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              member.name,
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            if (!member.isPaid)
+                              Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+                                decoration: BoxDecoration(
+                                  color: Colors.red.withValues(alpha: 0.2),
+                                  borderRadius: BorderRadius.circular(4),
+                                  border: Border.all(color: Colors.red.withValues(alpha: 0.5)),
+                                ),
+                                child: const Text(
+                                  '欠薪中',
+                                  style: TextStyle(
+                                    color: Colors.redAccent,
+                                    fontSize: 10,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ),
+                          ],
                         ),
                       ),
                       Text(
@@ -311,10 +333,52 @@ class _CrewManagementDialogState extends State<CrewManagementDialog> {
               ),
             ),
             const SizedBox(width: 12),
-            // 最右侧：职业分配按钮
-            _buildRoleSelector(member),
+            // 最右侧：职业分配按钮和解雇按钮
+            Column(
+              children: [
+                _buildRoleSelector(member),
+                const SizedBox(height: 8),
+                IconButton(
+                  icon: const Icon(Icons.person_remove, color: Colors.redAccent, size: 20),
+                  tooltip: '解雇船员',
+                  onPressed: () => _showDismissConfirmation(context, member),
+                  constraints: const BoxConstraints(),
+                  padding: const EdgeInsets.all(4),
+                  style: IconButton.styleFrom(
+                    backgroundColor: Colors.red.withValues(alpha: 0.1),
+                  ),
+                ),
+              ],
+            ),
           ],
         ),
+      ),
+    );
+  }
+
+  /// 显示解雇确认对话框
+  void _showDismissConfirmation(BuildContext context, CrewMember member) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: Colors.grey[900],
+        title: const Text('解雇船员', style: TextStyle(color: Colors.white)),
+        content: Text('确定要解雇 ${member.name} 吗？\n解雇后无法撤销。', 
+          style: const TextStyle(color: Colors.white70)),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('取消'),
+          ),
+          TextButton(
+            onPressed: () {
+              _gameState.dismissCrewMember(member);
+              Navigator.of(context).pop();
+              setState(() {}); // 刷新列表
+            },
+            child: const Text('确定解雇', style: TextStyle(color: Colors.redAccent)),
+          ),
+        ],
       ),
     );
   }

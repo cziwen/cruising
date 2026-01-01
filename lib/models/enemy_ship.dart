@@ -17,7 +17,7 @@ class EnemyShip {
     this.fireRatePerSecond = 1.0, // 默认1炮/秒
     this.repairRatePerSecond = 2.0, // 默认2点/秒
     this.damagePerShot = 10, // 默认每次10点伤害
-    this.appearance = 'assets/images/ships/concept_art/single_sail_0.png',
+    this.appearance = 'assets/images/ships/single_sail_0.png',
   });
 
   /// 检查是否被击沉

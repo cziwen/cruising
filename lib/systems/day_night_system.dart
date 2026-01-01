@@ -148,6 +148,9 @@ class DayNightSystem {
   bool updateWithDeltaTime(double dtRealSeconds) {
     if (_isPaused) return false;
     
+    // 记录更新前的状态
+    final double previousAccumulated = _accumulatedGameMinutes;
+    
     // 将实际时间增量转换为游戏内时间增量
     // 1现实秒 = 1游戏小时 = 60游戏分钟
     // 应用时间倍数
@@ -156,30 +159,28 @@ class DayNightSystem {
     // 累积游戏内时间
     _accumulatedGameMinutes += dtGameMinutes;
     
-    // 检查是否需要更新整数分钟数
-    final previousMinutes = _gameMinutes;
-    final newMinutes = _accumulatedGameMinutes.round();
+    // 更新整数分钟数（用于显示和序列化）
+    _gameMinutes = _accumulatedGameMinutes.round();
     
-    bool crossedMidnight = false;
+    // 检查是否跨越了 00:00 (1440分钟)
+    // 使用 floor 计算经过的总天数，如果总天数增加，说明跨越了午夜
+    final int previousTotalDays = (previousAccumulated / minutesPerDay).floor();
+    final int currentTotalDays = (_accumulatedGameMinutes / minutesPerDay).floor();
     
-    if (newMinutes > _gameMinutes) {
-      _gameMinutes = newMinutes;
+    if (currentTotalDays > previousTotalDays) {
+      // 跨越 00:00 时，增加日期
+      // 即使跳过了很多天（比如调试倍数极高），也能正确处理
+      _currentDay += (currentTotalDays - previousTotalDays);
       
-      // 检查是否跨越了00:00（用于工资结算）
-      final previousHour = (previousMinutes ~/ 60) % 24;
-      final newHour = currentHour;
-      if (previousHour == 23 && newHour == 0) {
-        crossedMidnight = true;
-        // 跨越00:00时，增加日期
-        _currentDay++;
-        // 如果超过120天，重置为1（新一年开始）
-        if (_currentDay > daysPerYear) {
-          _currentDay = 1;
-        }
+      // 处理跨年情况
+      while (_currentDay > daysPerYear) {
+        _currentDay -= daysPerYear;
       }
+      
+      return true;
     }
     
-    return crossedMidnight;
+    return false;
   }
   
   /// 更新时间（已废弃，保留用于兼容）
@@ -199,11 +200,11 @@ class DayNightSystem {
     _timeMultiplier = 1.0; // 重置时间倍数为1.0
   }
   
-  /// 检查是否刚跨越00:00（用于工资结算）
+  /// 检查是否跨越了00:00（用于工资结算）
   bool checkMidnightCrossing(int previousMinutes) {
-    final previousHour = (previousMinutes ~/ 60) % 24;
-    final currentHour = (_gameMinutes ~/ 60) % 24;
-    return previousHour == 23 && currentHour == 0;
+    final int previousDay = previousMinutes ~/ minutesPerDay;
+    final int currentDay = _gameMinutes ~/ minutesPerDay;
+    return currentDay > previousDay;
   }
 
   Map<String, dynamic> toJson() {
@@ -245,7 +246,7 @@ class CelestialBodyPosition {
     final arcHeight = screenHeight * 0.25; // 弧形高度（屏幕高度的25%）
     final startX = screenWidth + 50; // 起始X（屏幕右侧外）
     final endX = -50; // 结束X（屏幕左侧外）
-    final centerY = screenHeight * 0.15; // 弧形中心Y（屏幕上方15%）
+    final centerY = screenHeight * 0.15 - 50; // 弧形中心Y（调高50像素）
     
     // 将昼夜周期进度转换为天体移动进度
     // 太阳：progress 0.0-0.5 映射到移动进度 0.0-1.0
