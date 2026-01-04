@@ -7,6 +7,7 @@ import '../models/ship.dart';
 import '../models/goods.dart';
 import '../models/crew_member.dart';
 import '../models/enemy_ship.dart';
+import '../models/home_island.dart';
 import '../systems/crew_system.dart';
 import '../systems/day_night_system.dart';
 import '../systems/trade_system.dart';
@@ -101,6 +102,10 @@ class GameState extends ChangeNotifier {
   // 昼夜系统
   final DayNightSystem _dayNightSystem = DayNightSystem();
 
+  // 主岛养成系统
+  HomeIsland _homeIsland = HomeIsland();
+  HomeIsland get homeIsland => _homeIsland;
+
   // 动画相关系统 (集中管理)
   double _swayTime = 0.0;
   double _totalSailingOffset = 0.0;
@@ -111,6 +116,9 @@ class GameState extends ChangeNotifier {
   // 港口价格更新跟踪
   int _lastPriceUpdateDay = 1; // 上次价格更新的日期
   static const int _priceUpdateInterval = 7; // 价格更新间隔（天）
+
+  // 税收结算跟踪
+  int _lastTaxHour = -1;
 
   // 进度更新 Ticker（用于每帧更新航行进度）
   Ticker? _progressTicker;
@@ -269,10 +277,15 @@ class GameState extends ChangeNotifier {
     _ports.clear();
     _ports.addAll(ports);
 
+    // 确保主岛在港口列表中
+    _ensureHomeIslandInPorts();
+
     if (startingPort != null) {
       _currentPort = startingPort;
-    } else if (_ports.isNotEmpty) {
-      _currentPort = _ports.first;
+    } else {
+      // 默认初始在主岛
+      final homeIslandPort = _ports.firstWhere((p) => p.id == 'home_island', orElse: () => _ports.first);
+      _currentPort = homeIslandPort;
     }
 
     // 初始化船员和天气
@@ -338,6 +351,15 @@ class GameState extends ChangeNotifier {
 
     // 2. 使用 dt 增量更新游戏时间
     final crossedMidnight = _dayNightSystem.updateWithDeltaTime(dtRealSeconds);
+
+    // 检查是否跨越整点（用于税收结算）
+    final currentHour = _dayNightSystem.currentHour;
+    if (_lastTaxHour == -1) {
+      _lastTaxHour = currentHour;
+    } else if (currentHour != _lastTaxHour) {
+      _processTaxGeneration();
+      _lastTaxHour = currentHour;
+    }
 
     // 检查是否跨越00:00（工资结算、价格更新和酒馆刷新）
     if (crossedMidnight) {
@@ -899,6 +921,191 @@ class GameState extends ChangeNotifier {
 
     // 自动存档
     SaveManager.autoSave(this);
+  }
+
+  /// 处理税收生成（每小时执行一次）
+  void _processTaxGeneration() {
+    _homeIsland.accumulatedTax += _homeIsland.taxAmount;
+    notifyListeners();
+  }
+
+  /// 领取税收
+  void collectTax() {
+    if (_homeIsland.accumulatedTax > 0) {
+      addGold(_homeIsland.accumulatedTax);
+      _homeIsland.accumulatedTax = 0;
+      notifyListeners();
+    }
+  }
+
+  /// 确保主岛在港口列表中
+  void _ensureHomeIslandInPorts() {
+    // 1. 查找或创建主岛
+    final index = _ports.indexWhere((p) => p.id == 'home_island');
+    
+    // 根据主岛养成等级，计算主岛作为港口的各项属性
+    final homePort = Port(
+      id: 'home_island',
+      name: '我的岛屿',
+      backgroundImage: _homeIsland.appearance,
+      description: '这是你的私人岛屿，可以进行养成和存储。',
+      unlocked: true,
+      distances: {
+        'port_1': 480, // 距离起始港较近
+      },
+      goodsConfig: {
+        // 主岛也有商人，其配置受等级影响
+        'food': PortGoodsConfig(
+          alpha: (0.05 - (_homeIsland.economyLevel * 0.005)).clamp(0.01, 0.05), 
+          s0: 500 + _homeIsland.restockSpeedLevel * 100, 
+          basePrice: 8.0
+        ),
+        'wood': PortGoodsConfig(
+          alpha: (0.04 - (_homeIsland.economyLevel * 0.005)).clamp(0.01, 0.04), 
+          s0: 500 + _homeIsland.restockSpeedLevel * 100, 
+          basePrice: 12.0
+        ),
+        'spice': PortGoodsConfig(
+          alpha: (0.08 - (_homeIsland.economyLevel * 0.01)).clamp(0.01, 0.08), 
+          s0: 300 + _homeIsland.restockSpeedLevel * 50, 
+          basePrice: 28.0
+        ),
+        'metal': PortGoodsConfig(
+          alpha: (0.05 - (_homeIsland.economyLevel * 0.005)).clamp(0.01, 0.05), 
+          s0: 500 + _homeIsland.restockSpeedLevel * 100, 
+          basePrice: 23.0
+        ),
+      },
+      merchantMoney: 1000 + _homeIsland.merchantFundsLevel * 2000,
+      initialMerchantMoney: 1000 + _homeIsland.merchantFundsLevel * 2000,
+    );
+
+    if (index != -1) {
+      _ports[index] = homePort;
+    } else {
+      _ports.add(homePort);
+    }
+
+    // 2. 确保其他所有港口都能航行回主岛
+    for (int i = 0; i < _ports.length; i++) {
+      final port = _ports[i];
+      if (port.id != 'home_island' && !port.distances.containsKey('home_island')) {
+        // 创建新的 distances Map
+        final newDistances = Map<String, int>.from(port.distances);
+        // 如果是从 port_1 出发，距离为 480；其他港口则根据 port_1 的距离累加
+        int distanceToHome = 1200; // 默认较远
+        if (port.id == 'port_1') {
+          distanceToHome = 480;
+        } else if (port.distances.containsKey('port_1')) {
+          distanceToHome = port.distances['port_1']! + 480;
+        }
+        
+        newDistances['home_island'] = distanceToHome;
+        _ports[i] = port.copyWith(distances: newDistances);
+      }
+    }
+  }
+
+  /// 升级主岛功能
+  bool upgradeHomeIsland(String type) {
+    int currentLevel = 0;
+    
+    switch (type) {
+      case 'tax': currentLevel = _homeIsland.taxLevel; break;
+      case 'economy': currentLevel = _homeIsland.economyLevel; break;
+      case 'funds': currentLevel = _homeIsland.merchantFundsLevel; break;
+      case 'restock': currentLevel = _homeIsland.restockSpeedLevel; break;
+      default: return false;
+    }
+
+    if (currentLevel >= 7) return false;
+
+    // 同步规则：每个选项都不可单独超越其他选项一级。
+    // 即：当前等级不能大于岛屿的最低等级（level 属性返回的就是四个等级的最小值）
+    if (currentLevel > _homeIsland.level) return false;
+
+    // 升级花费逻辑：1000 * (level + 1)
+    int cost = 1000 * (currentLevel + 1);
+
+    if (spendGold(cost)) {
+      switch (type) {
+        case 'tax': _homeIsland.taxLevel++; break;
+        case 'economy': _homeIsland.economyLevel++; break;
+        case 'funds': _homeIsland.merchantFundsLevel++; break;
+        case 'restock': _homeIsland.restockSpeedLevel++; break;
+      }
+      
+      // 升级后更新主岛港口属性
+      _ensureHomeIslandInPorts();
+      
+      // 如果当前就在主岛，更新当前港口引用
+      if (_currentPort?.id == 'home_island') {
+        _currentPort = _ports.firstWhere((p) => p.id == 'home_island');
+      }
+      
+      notifyListeners();
+      return true;
+    }
+    return false;
+  }
+
+  /// 获取仓库库存
+  List<ShipInventoryItem> get warehouseInventory => List.unmodifiable(_homeIsland.warehouseInventory);
+
+  /// 获取仓库中商品数量
+  int getWarehouseQuantity(String goodsId) {
+    try {
+      final item = _homeIsland.warehouseInventory.firstWhere((item) => item.goodsId == goodsId);
+      return item.quantity;
+    } catch (e) {
+      return 0;
+    }
+  }
+
+  /// 将商品从船只存入仓库
+  bool depositToWarehouse(String goodsId, int quantity) {
+    final inventoryQuantity = getInventoryQuantity(goodsId);
+    if (inventoryQuantity < quantity) return false;
+
+    if (removeFromInventory(goodsId, quantity)) {
+      final existingItemIndex = _homeIsland.warehouseInventory.indexWhere(
+        (item) => item.goodsId == goodsId,
+      );
+
+      if (existingItemIndex != -1) {
+        _homeIsland.warehouseInventory[existingItemIndex].add(quantity);
+      } else {
+        _homeIsland.warehouseInventory.add(ShipInventoryItem(goodsId: goodsId, quantity: quantity));
+      }
+      notifyListeners();
+      return true;
+    }
+    return false;
+  }
+
+  /// 从仓库取出商品到船只
+  bool withdrawFromWarehouse(String goodsId, int quantity) {
+    final warehouseQuantity = getWarehouseQuantity(goodsId);
+    if (warehouseQuantity < quantity) return false;
+
+    // 检查船只载货空间
+    if (_getGoodsById == null) return false;
+    final goods = _getGoodsById!(goodsId);
+    final weight = quantity * goods.weight;
+    if (!_ship.hasEnoughCargo(_inventory, weight, _getGoodsById!)) return false;
+
+    if (addToInventory(goodsId, quantity)) {
+      final itemIndex = _homeIsland.warehouseInventory.indexWhere((item) => item.goodsId == goodsId);
+      if (itemIndex != -1) {
+        _homeIsland.warehouseInventory[itemIndex].remove(quantity);
+        if (_homeIsland.warehouseInventory[itemIndex].quantity == 0) {
+          _homeIsland.warehouseInventory.removeAt(itemIndex);
+        }
+      }
+      notifyListeners();
+      return true;
+    }
+    return false;
   }
 
   /// 添加金币
@@ -1482,6 +1689,8 @@ class GameState extends ChangeNotifier {
       'lastPriceUpdateDay': _lastPriceUpdateDay,
       'availableTavernCrew': _availableTavernCrew.map((m) => m.toJson()).toList(),
       'lastTavernRefreshDay': _lastTavernRefreshDay,
+      'homeIsland': _homeIsland.toJson(),
+      'lastTaxHour': _lastTaxHour,
     };
   }
 
@@ -1496,6 +1705,7 @@ class GameState extends ChangeNotifier {
     _accumulatedGameHours = (json['accumulatedGameHours'] as num).toDouble();
     _lastPriceUpdateDay = json['lastPriceUpdateDay'] as int;
     _lastTavernRefreshDay = (json['lastTavernRefreshDay'] as int?) ?? -1;
+    _lastTaxHour = (json['lastTaxHour'] as int?) ?? -1;
 
     // 2. 恢复酒馆船员
     _availableTavernCrew.clear();
@@ -1535,6 +1745,13 @@ class GameState extends ChangeNotifier {
     for (final portJson in portsList) {
       _ports.add(Port.fromJson(portJson as Map<String, dynamic>));
     }
+
+    // 恢复主岛养成数据
+    if (json.containsKey('homeIsland')) {
+      _homeIsland = HomeIsland.fromJson(json['homeIsland'] as Map<String, dynamic>);
+    }
+    // 确保加载后港口列表包含正确的主岛配置
+    _ensureHomeIslandInPorts();
 
     // 恢复当前港口和目标港口引用
     final currentPortId = json['currentPortId'] as String?;

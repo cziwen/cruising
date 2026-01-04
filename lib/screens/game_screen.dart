@@ -31,6 +31,13 @@ class GameScreen extends StatefulWidget {
     final List<String> imagesToPreload = [
       // 其他固定图片
       'assets/images/buildings/village_0.png',
+      'assets/images/buildings/village_1.png',
+      'assets/images/buildings/village_2.png',
+      'assets/images/buildings/village_3.png',
+      'assets/images/buildings/village_4.png',
+      'assets/images/buildings/village_5.png',
+      'assets/images/buildings/village_6.png',
+      'assets/images/buildings/village_7.png',
       'assets/images/buildings/business_port.png',
       'assets/images/buildings/exotic_village.png',
     ];
@@ -160,7 +167,8 @@ class _GameScreenState extends State<GameScreen> {
     final configLoader = GameConfigLoader();
     final ports = configLoader.portsList;
     
-    _gameState.initialize(ports, startingPort: ports.isNotEmpty ? ports.first : null);
+    // 不再手动指定 startingPort，让 GameState 内部默认选择主岛
+    _gameState.initialize(ports);
     
     // 初始化港口商品库存（使用配置的 s0 值）
     _gameState.initializePortGoodsStock();

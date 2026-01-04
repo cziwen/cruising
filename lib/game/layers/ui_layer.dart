@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../game_state.dart';
 import '../debug_panel.dart';
 import '../crew_management_dialog.dart';
+import '../main_hall_dialog.dart';
 import 'status_bar.dart';
 
 /// UI层 - 界面元素（按钮、菜单、信息显示等）
@@ -63,6 +64,14 @@ class UILayer extends StatelessWidget {
         
         // 岛屿周围的交互按钮（仅在非过渡且不在海上时显示）
         if (!gameState.isTransitioning && !gameState.isAtSea && gameState.currentPort != null) ...[
+          // 税收提示 - 岛屿正上方 (仅限主岛)
+          if (gameState.currentPort!.id == 'home_island' && gameState.homeIsland.accumulatedTax > 0)
+            Positioned(
+              left: islandCenterX - 60,
+              top: islandCenterY - 230,
+              child: _buildTaxButton(),
+            ),
+
           // 市场按钮 - 岛屿左侧
           Positioned(
             left: islandCenterX - 250,
@@ -73,6 +82,21 @@ class UILayer extends StatelessWidget {
               Colors.blue,
             ),
           ),
+          
+          // 大厅按钮 (仅限主岛)
+          if (gameState.currentPort!.id == 'home_island') ...[
+            // 大厅按钮 - 岛屿左下方
+            Positioned(
+              left: islandCenterX - 250,
+              top: islandCenterY + 80,
+              child: _buildIslandButton(
+                '大厅',
+                () => _showMainHall(context, 0),
+                Colors.indigo,
+              ),
+            ),
+          ],
+
           // 港口酒馆按钮 - 岛屿左上方
           Positioned(
             left: islandCenterX - 220,
@@ -178,6 +202,53 @@ class UILayer extends StatelessWidget {
       context: context,
       builder: (context) => CrewManagementDialog(
         gameState: gameState,
+      ),
+    );
+  }
+
+  /// 显示大厅对话框
+  void _showMainHall(BuildContext context, int initialTab) {
+    showDialog(
+      context: context,
+      builder: (context) => MainHallDialog(
+        gameState: gameState,
+        initialTab: initialTab,
+      ),
+    );
+  }
+
+  /// 构建税收提示按钮
+  Widget _buildTaxButton() {
+    return GestureDetector(
+      onTap: () => gameState.collectTax(),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        decoration: BoxDecoration(
+          color: Colors.amber.withValues(alpha: 0.9),
+          borderRadius: BorderRadius.circular(20),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.3),
+              blurRadius: 8,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Text('💰', style: TextStyle(fontSize: 20)),
+            const SizedBox(width: 8),
+            Text(
+              '${gameState.homeIsland.accumulatedTax}',
+              style: const TextStyle(
+                color: Colors.brown,
+                fontWeight: FontWeight.bold,
+                fontSize: 18,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

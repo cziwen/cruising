@@ -10,7 +10,14 @@ class PortSystem {
 
   /// 获取可访问的港口列表
   List<Port> getAvailablePorts() {
-    return gameState.ports.where((port) => port.unlocked).toList();
+    final ports = gameState.ports.where((port) => port.unlocked).toList();
+    // 将主岛放在第一个选项
+    ports.sort((a, b) {
+      if (a.id == 'home_island') return -1;
+      if (b.id == 'home_island') return 1;
+      return 0;
+    });
+    return ports;
   }
 
   /// 显示港口选择界面
