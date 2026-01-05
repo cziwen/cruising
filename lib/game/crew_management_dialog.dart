@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../models/crew_member.dart';
 import 'game_state.dart';
+import 'paper_dialog.dart';
 
 /// 船员管理对话框
 class CrewManagementDialog extends StatefulWidget {
@@ -39,169 +40,151 @@ class _CrewManagementDialogState extends State<CrewManagementDialog> {
     final autoRepair = crewManager.calculateAutoRepair(); // 直接返回每秒修复的耐久数
     final fireRateBonus = crewManager.calculateFireRateBonus(); // 直接返回每秒炮数
 
-    return Dialog(
-      backgroundColor: Colors.transparent,
-      child: Container(
-          width: 800, // 设计尺寸
-          // 移除固定高度，使用约束来限制最大高度
-          constraints: const BoxConstraints(
-            maxHeight: 900, // 设计最大高度
-          ),
-          decoration: BoxDecoration(
-            color: Colors.grey[900]?.withValues(alpha: 0.95),
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: Colors.blue.withValues(alpha: 0.3), width: 2),
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min, // 高度随内容自适应
-            children: [
-              // 标题栏
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                decoration: BoxDecoration(
-                  color: Colors.blue.withValues(alpha: 0.2),
-                  borderRadius: const BorderRadius.only(
-                    topLeft: Radius.circular(16),
-                    topRight: Radius.circular(16),
+    return PaperDialog(
+      assetPath: 'assets/paper_ui/Sprites/Book Desk/5.png',
+      width: 800,
+      height: 800,
+      child: Column(
+        mainAxisSize: MainAxisSize.min, // 高度随内容自适应
+        children: [
+          // 标题栏
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            child: Row(
+              children: [
+                const Icon(Icons.people, color: Color(0xFF4E342E), size: 24),
+                const SizedBox(width: 10),
+                const Text(
+                  '船员管理 Crew Management',
+                  style: TextStyle(
+                    color: Color(0xFF4E342E),
+                    fontSize: 22,
+                    fontWeight: FontWeight.bold,
                   ),
                 ),
-                child: Row(
-                  children: [
-                    const Icon(Icons.people, color: Colors.white, size: 24),
-                    const SizedBox(width: 10),
-                    const Text(
-                      '船员管理',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    const Spacer(),
-                    IconButton(
-                      icon: const Icon(Icons.close, color: Colors.white, size: 20),
-                      iconSize: 20,
-                      padding: EdgeInsets.zero,
-                      constraints: const BoxConstraints(),
-                      onPressed: () => Navigator.of(context).pop(),
-                    ),
-                  ],
+                const Spacer(),
+                IconButton(
+                  icon: const Icon(Icons.close, color: Color(0xFF4E342E), size: 24),
+                  onPressed: () => Navigator.of(context).pop(),
                 ),
-              ),
-
-              // 顶部统计区域
-              Container(
-                padding: const EdgeInsets.all(12),
-                child: Column(
-                  children: [
-                    // 分配情况
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                      children: [
-                        _buildRoleStat(
-                          CrewRole.sailor,
-                          crewManager.getSailorCount(),
-                          Colors.cyan,
-                        ),
-                        _buildRoleStat(
-                          CrewRole.shipwright,
-                          crewManager.getShipwrightCount(),
-                          Colors.orange,
-                        ),
-                        _buildRoleStat(
-                          CrewRole.gunner,
-                          crewManager.getGunnerCount(),
-                          Colors.red,
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 10),
-                    // 综合效果
-                    Container(
-                      padding: const EdgeInsets.all(8),
-                      decoration: BoxDecoration(
-                        color: Colors.black.withValues(alpha: 0.3),
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: Column(
-                        children: [
-                          _buildBonusRow(
-                            '航速加成',
-                            '+${sailingBonusKnots.toStringAsFixed(1)}节',
-                            Colors.cyan,
-                          ),
-                          const SizedBox(height: 6),
-                          _buildBonusRow(
-                            '自动修理',
-                            '${autoRepair.toStringAsFixed(1)} / 秒',
-                            Colors.orange,
-                          ),
-                          const SizedBox(height: 6),
-                          _buildBonusRow(
-                            '开炮速度',
-                            '${fireRateBonus.toStringAsFixed(1)} 炮/秒',
-                            Colors.red,
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-
-              const Divider(color: Colors.white24, height: 1),
-
-              // 船员列表
-              Flexible(
-                // Flexible 配合 mainAxisSize.min 可以让 Column 随内容高度变化，但不会超过最大约束
-                child: crewManager.crewMembers.isEmpty
-                    ? const Padding(
-                        padding: EdgeInsets.all(32),
-                        child: Text(
-                          '暂无船员\n请在人才市场招募',
-                          textAlign: TextAlign.center,
-                          style: TextStyle(
-                            color: Colors.white70,
-                            fontSize: 16,
-                          ),
-                        ),
-                      )
-                    : ScrollbarTheme(
-                        data: ScrollbarThemeData(
-                          thumbColor: WidgetStateProperty.all(
-                            Colors.grey[400]!, // 灰色滚动条
-                          ),
-                          trackColor: WidgetStateProperty.all(
-                            Colors.grey[800]!.withValues(alpha: 0.3), // 轨道颜色
-                          ),
-                        ),
-                        child: Scrollbar(
-                          controller: _scrollController,
-                          thumbVisibility: true, // 始终显示滚动条
-                          interactive: true, // 允许拖拽滚动条
-                          thickness: 8, // 滚动条宽度
-                          radius: const Radius.circular(4), // 滚动条圆角
-                          child: ListView.builder(
-                            controller: _scrollController,
-                            shrinkWrap: true, // 允许 ListView 根据内容决定高度
-                            padding: const EdgeInsets.only(
-                              left: 8,
-                              right: 16, // 右边留出滚动条空间
-                              top: 8,
-                              bottom: 8,
-                            ),
-                            itemCount: crewManager.crewMembers.length,
-                            itemBuilder: (context, index) {
-                              return _buildCrewCard(crewManager.crewMembers[index]);
-                            },
-                          ),
-                        ),
-                      ),
-              ),
-            ],
+              ],
+            ),
           ),
-        ),
-      );
+
+          const Divider(color: Color(0xFF8D6E63), thickness: 1),
+
+          // 顶部统计区域
+          Container(
+            padding: const EdgeInsets.all(12),
+            child: Column(
+              children: [
+                // 分配情况
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: [
+                    _buildRoleStat(
+                      CrewRole.sailor,
+                      crewManager.getSailorCount(),
+                      Colors.blue[800]!,
+                    ),
+                    _buildRoleStat(
+                      CrewRole.shipwright,
+                      crewManager.getShipwrightCount(),
+                      Colors.orange[900]!,
+                    ),
+                    _buildRoleStat(
+                      CrewRole.gunner,
+                      crewManager.getGunnerCount(),
+                      Colors.red[900]!,
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 10),
+                // 综合效果
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFD7CCC8).withValues(alpha: 0.5),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: const Color(0xFF8D6E63).withValues(alpha: 0.5)),
+                  ),
+                  child: Column(
+                    children: [
+                      _buildBonusRow(
+                        '航速加成',
+                        '+${sailingBonusKnots.toStringAsFixed(1)}节',
+                        Colors.blue[800]!,
+                      ),
+                      const SizedBox(height: 6),
+                      _buildBonusRow(
+                        '自动修理',
+                        '${autoRepair.toStringAsFixed(1)} / 秒',
+                        Colors.orange[900]!,
+                      ),
+                      const SizedBox(height: 6),
+                      _buildBonusRow(
+                        '开炮速度',
+                        '${fireRateBonus.toStringAsFixed(1)} 炮/秒',
+                        Colors.red[900]!,
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+
+          const Divider(color: Color(0xFF8D6E63), height: 1),
+
+          // 船员列表
+          Flexible(
+            child: crewManager.crewMembers.isEmpty
+                ? const Padding(
+                    padding: EdgeInsets.all(32),
+                    child: Text(
+                      '暂无船员\n请在人才市场招募',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        color: Color(0xFF5D4037),
+                        fontSize: 16,
+                      ),
+                    ),
+                  )
+                : ScrollbarTheme(
+                    data: ScrollbarThemeData(
+                      thumbColor: WidgetStateProperty.all(
+                        const Color(0xFF8D6E63),
+                      ),
+                      trackColor: WidgetStateProperty.all(
+                        const Color(0xFFD7CCC8).withValues(alpha: 0.3),
+                      ),
+                    ),
+                    child: Scrollbar(
+                      controller: _scrollController,
+                      thumbVisibility: true,
+                      interactive: true,
+                      thickness: 8,
+                      radius: const Radius.circular(4),
+                      child: ListView.builder(
+                        controller: _scrollController,
+                        shrinkWrap: true,
+                        padding: const EdgeInsets.only(
+                          left: 8,
+                          right: 16,
+                          top: 8,
+                          bottom: 8,
+                        ),
+                        itemCount: crewManager.crewMembers.length,
+                        itemBuilder: (context, index) {
+                          return _buildCrewCard(crewManager.crewMembers[index]);
+                        },
+                      ),
+                    ),
+                  ),
+          ),
+        ],
+      ),
+    );
   }
 
   /// 构建职业统计项
@@ -210,21 +193,22 @@ class _CrewManagementDialogState extends State<CrewManagementDialog> {
       children: [
         Text(
           role.emoji,
-          style: const TextStyle(fontSize: 18),
+          style: const TextStyle(fontSize: 24),
         ),
         const SizedBox(height: 4),
         Text(
           role.displayName,
-          style: TextStyle(
-            color: Colors.white70,
-            fontSize: 11,
+          style: const TextStyle(
+            color: Color(0xFF5D4037),
+            fontSize: 12,
+            fontWeight: FontWeight.bold,
           ),
         ),
         Text(
           '$count 人',
           style: TextStyle(
             color: color,
-            fontSize: 14,
+            fontSize: 16,
             fontWeight: FontWeight.bold,
           ),
         ),
@@ -240,15 +224,16 @@ class _CrewManagementDialogState extends State<CrewManagementDialog> {
         Text(
           label,
           style: const TextStyle(
-            color: Colors.white70,
-            fontSize: 12,
+            color: Color(0xFF4E342E),
+            fontSize: 14,
+            fontWeight: FontWeight.bold,
           ),
         ),
         Text(
           value,
           style: TextStyle(
             color: color,
-            fontSize: 14,
+            fontSize: 16,
             fontWeight: FontWeight.bold,
           ),
         ),
@@ -259,10 +244,15 @@ class _CrewManagementDialogState extends State<CrewManagementDialog> {
   /// 构建船员卡片
   Widget _buildCrewCard(CrewMember member) {
     return Card(
-      color: Colors.grey[800]?.withValues(alpha: 0.8),
-      margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+      color: const Color(0xFFD7CCC8).withValues(alpha: 0.3),
+      elevation: 0,
+      margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+        side: BorderSide(color: const Color(0xFF8D6E63).withValues(alpha: 0.5)),
+      ),
       child: Padding(
-        padding: const EdgeInsets.all(8),
+        padding: const EdgeInsets.all(12),
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -285,23 +275,23 @@ class _CrewManagementDialogState extends State<CrewManagementDialog> {
                             Text(
                               member.name,
                               style: const TextStyle(
-                                color: Colors.white,
+                                color: Color(0xFF4E342E),
                                 fontSize: 18,
                                 fontWeight: FontWeight.bold,
                               ),
                             ),
                             if (!member.isPaid)
                               Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+                                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                                 decoration: BoxDecoration(
-                                  color: Colors.red.withValues(alpha: 0.2),
+                                  color: Colors.red[100],
                                   borderRadius: BorderRadius.circular(4),
-                                  border: Border.all(color: Colors.red.withValues(alpha: 0.5)),
+                                  border: Border.all(color: Colors.red[800]!),
                                 ),
-                                child: const Text(
+                                child: Text(
                                   '欠薪中',
                                   style: TextStyle(
-                                    color: Colors.redAccent,
+                                    color: Colors.red[900],
                                     fontSize: 10,
                                     fontWeight: FontWeight.bold,
                                   ),
@@ -313,20 +303,21 @@ class _CrewManagementDialogState extends State<CrewManagementDialog> {
                       Text(
                         '工资：${member.salary} / 天',
                         style: const TextStyle(
-                          color: Colors.amber,
+                          color: Color(0xFF795548),
                           fontSize: 14,
+                          fontWeight: FontWeight.bold,
                         ),
                       ),
                     ],
                   ),
-                  const SizedBox(height: 8),
+                  const SizedBox(height: 12),
                   // 技能显示
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceAround,
                     children: [
-                      _buildSkillItem('⛵', member.sailorSkill, Colors.cyan),
-                      _buildSkillItem('🔧', member.shipwrightSkill, Colors.orange),
-                      _buildSkillItem('🔫', member.gunnerSkill, Colors.red),
+                      _buildSkillItem('⛵', member.sailorSkill, Colors.blue[800]!),
+                      _buildSkillItem('🔧', member.shipwrightSkill, Colors.orange[900]!),
+                      _buildSkillItem('🔫', member.gunnerSkill, Colors.red[900]!),
                     ],
                   ),
                 ],
@@ -337,15 +328,15 @@ class _CrewManagementDialogState extends State<CrewManagementDialog> {
             Column(
               children: [
                 _buildRoleSelector(member),
-                const SizedBox(height: 8),
+                const SizedBox(height: 12),
                 IconButton(
-                  icon: const Icon(Icons.person_remove, color: Colors.redAccent, size: 20),
+                  icon: const Icon(Icons.person_remove, color: Colors.redAccent, size: 24),
                   tooltip: '解雇船员',
                   onPressed: () => _showDismissConfirmation(context, member),
                   constraints: const BoxConstraints(),
-                  padding: const EdgeInsets.all(4),
+                  padding: const EdgeInsets.all(8),
                   style: IconButton.styleFrom(
-                    backgroundColor: Colors.red.withValues(alpha: 0.1),
+                    backgroundColor: Colors.red[100],
                   ),
                 ),
               ],
@@ -361,14 +352,14 @@ class _CrewManagementDialogState extends State<CrewManagementDialog> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        backgroundColor: Colors.grey[900],
-        title: const Text('解雇船员', style: TextStyle(color: Colors.white)),
+        backgroundColor: const Color(0xFFEFEBE9),
+        title: const Text('解雇船员', style: TextStyle(color: Color(0xFF4E342E), fontWeight: FontWeight.bold)),
         content: Text('确定要解雇 ${member.name} 吗？\n解雇后无法撤销。', 
-          style: const TextStyle(color: Colors.white70)),
+          style: const TextStyle(color: Color(0xFF5D4037))),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(),
-            child: const Text('取消'),
+            child: const Text('取消', style: TextStyle(color: Color(0xFF8D6E63))),
           ),
           TextButton(
             onPressed: () {
@@ -376,7 +367,7 @@ class _CrewManagementDialogState extends State<CrewManagementDialog> {
               Navigator.of(context).pop();
               setState(() {}); // 刷新列表
             },
-            child: const Text('确定解雇', style: TextStyle(color: Colors.redAccent)),
+            child: Text('确定解雇', style: TextStyle(color: Colors.red[900], fontWeight: FontWeight.bold)),
           ),
         ],
       ),
@@ -388,10 +379,10 @@ class _CrewManagementDialogState extends State<CrewManagementDialog> {
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Text(emoji, style: const TextStyle(fontSize: 18)),
+        Text(emoji, style: const TextStyle(fontSize: 20)),
         const SizedBox(height: 2),
         Text(
-          skill.toStringAsFixed(2),
+          skill.toStringAsFixed(1),
           style: TextStyle(
             color: color,
             fontSize: 14,
@@ -406,26 +397,19 @@ class _CrewManagementDialogState extends State<CrewManagementDialog> {
   Widget _buildRoleSelector(CrewMember member) {
     return Container(
       decoration: BoxDecoration(
-        color: Colors.grey[700]?.withValues(alpha: 0.6),
+        color: const Color(0xFFD7CCC8),
         borderRadius: BorderRadius.circular(8),
         border: Border.all(
-          color: _getRoleColor(member.assignedRole).withValues(alpha: 0.7),
+          color: _getRoleColor(member.assignedRole),
           width: 2,
         ),
-        boxShadow: [
-          BoxShadow(
-            color: _getRoleColor(member.assignedRole).withValues(alpha: 0.3),
-            blurRadius: 4,
-            offset: const Offset(0, 2),
-          ),
-        ],
       ),
       child: DropdownButton<CrewRole>(
         value: member.assignedRole,
         underline: const SizedBox(),
-        dropdownColor: Colors.grey[800],
-        style: const TextStyle(color: Colors.white, fontSize: 13),
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        dropdownColor: const Color(0xFFEFEBE9),
+        style: const TextStyle(color: Color(0xFF4E342E), fontSize: 14, fontWeight: FontWeight.bold),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
         icon: Icon(
           Icons.arrow_drop_down,
           color: _getRoleColor(member.assignedRole),
@@ -435,11 +419,11 @@ class _CrewManagementDialogState extends State<CrewManagementDialog> {
             return Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Text(role.emoji, style: const TextStyle(fontSize: 16)),
+                Text(role.emoji, style: const TextStyle(fontSize: 18)),
                 const SizedBox(width: 6),
                 Text(
                   role.displayName,
-                  style: const TextStyle(fontSize: 13),
+                  style: const TextStyle(fontSize: 14),
                 ),
               ],
             );
@@ -451,9 +435,9 @@ class _CrewManagementDialogState extends State<CrewManagementDialog> {
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Text(role.emoji, style: const TextStyle(fontSize: 16)),
+                Text(role.emoji, style: const TextStyle(fontSize: 18)),
                 const SizedBox(width: 8),
-                Text(role.displayName),
+                Text(role.displayName, style: TextStyle(color: _getRoleColor(role), fontWeight: FontWeight.bold)),
               ],
             ),
           );
@@ -473,13 +457,13 @@ class _CrewManagementDialogState extends State<CrewManagementDialog> {
   Color _getRoleColor(CrewRole role) {
     switch (role) {
       case CrewRole.sailor:
-        return Colors.cyan;
+        return Colors.blue[800]!;
       case CrewRole.shipwright:
-        return Colors.orange;
+        return Colors.orange[900]!;
       case CrewRole.gunner:
-        return Colors.red;
+        return Colors.red[900]!;
       case CrewRole.unassigned:
-        return Colors.grey;
+        return const Color(0xFF8D6E63);
     }
   }
 
@@ -492,7 +476,7 @@ class _CrewManagementDialogState extends State<CrewManagementDialog> {
         child: Container(
           width: 80,
           height: 80,
-          color: _getRoleColor(member.assignedRole).withValues(alpha: 0.3),
+          color: const Color(0xFFD7CCC8),
           child: Image.asset(
             member.avatarPath!,
             fit: BoxFit.cover,
@@ -526,24 +510,19 @@ class _CrewManagementDialogState extends State<CrewManagementDialog> {
         width: 80,
         height: 80,
         decoration: BoxDecoration(
-          color: roleColor.withValues(alpha: 0.3),
+          color: const Color(0xFFD7CCC8),
           border: Border.all(
-            color: roleColor.withValues(alpha: 0.5),
+            color: roleColor,
             width: 2,
           ),
         ),
-        child: Container(
-          decoration: BoxDecoration(
-            color: roleColor.withValues(alpha: 0.2),
-          ),
-          child: Center(
-            child: Text(
-              displayChar,
-              style: TextStyle(
-                fontSize: displayChar == roleEmoji ? 32 : 28,
-                fontWeight: FontWeight.bold,
-                color: Colors.white,
-              ),
+        child: Center(
+          child: Text(
+            displayChar,
+            style: TextStyle(
+              fontSize: displayChar == roleEmoji ? 32 : 28,
+              fontWeight: FontWeight.bold,
+              color: roleColor,
             ),
           ),
         ),
@@ -551,4 +530,3 @@ class _CrewManagementDialogState extends State<CrewManagementDialog> {
     );
   }
 }
-

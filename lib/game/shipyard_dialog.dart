@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'game_state.dart';
 import '../models/ship.dart';
 import '../systems/ship_system.dart';
+import 'paper_dialog.dart';
 
 /// 船厂对话框 - 用于升级船只
 class ShipyardDialog extends StatefulWidget {
@@ -76,107 +77,92 @@ class _ShipyardDialogState extends State<ShipyardDialog>
   Widget build(BuildContext context) {
     final ship = widget.gameState.ship;
 
-    return Dialog(
-      backgroundColor: Colors.transparent,
-      child: Container(
-          width: 1200, // 设计尺寸
-          height: 800, // 设计尺寸
-          decoration: BoxDecoration(
-            color: Colors.grey[900]?.withValues(alpha: 0.95),
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: Colors.blue.withValues(alpha: 0.3), width: 2),
+    return PaperDialog(
+      assetPath: 'assets/paper_ui/Sprites/Book Desk/7.png',
+      width: 1200,
+      height: 800,
+      child: Column(
+        children: [
+          // 标题栏
+          _buildHeader(context),
+          
+          // 主要内容区域
+          Expanded(
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Row(
+                children: [
+                  // 左侧：船只属性
+                  Expanded(
+                    flex: 3,
+                    child: _buildShipAttributes(ship),
+                  ),
+                  
+                  // 中央：船只展示
+                  Expanded(
+                    flex: 4,
+                    child: _buildShipVisual(ship),
+                  ),
+                ],
+              ),
+            ),
           ),
-          child: Column(
-            children: [
-              // 标题栏
-              _buildHeader(context),
-              
-              // 主要内容区域
-              Expanded(
-                child: Padding(
-                  padding: const EdgeInsets.all(16),
+          
+          // 底部：升级选项
+          Container(
+            height: 220,
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: const Color(0xFFD7CCC8).withValues(alpha: 0.3),
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(
+                color: const Color(0xFF8D6E63).withValues(alpha: 0.5),
+                width: 1,
+              ),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  '升级选项',
+                  style: TextStyle(
+                    color: Color(0xFF4E342E),
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(height: 12),
+                Expanded(
                   child: Row(
                     children: [
-                      // 左侧：船只属性
-                      Expanded(
-                        flex: 3,
-                        child: _buildShipAttributes(ship),
-                      ),
-                      
-                      // 中央：船只展示
-                      Expanded(
-                        flex: 4,
-                        child: _buildShipVisual(ship),
-                      ),
+                      Expanded(child: _buildUpgradeCard(ship, UpgradeType.cargo)),
+                      const SizedBox(width: 12),
+                      Expanded(child: _buildUpgradeCard(ship, UpgradeType.hull)),
+                      const SizedBox(width: 12),
+                      Expanded(child: _buildUpgradeCard(ship, UpgradeType.crew)),
                     ],
                   ),
                 ),
-              ),
-              
-              // 底部：升级选项
-              Container(
-                height: 220,
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: Colors.black.withValues(alpha: 0.3),
-                  border: Border(
-                    top: BorderSide(
-                      color: Colors.white.withValues(alpha: 0.1),
-                      width: 1,
-                    ),
-                  ),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text(
-                      '升级选项',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-                    Expanded(
-                      child: Row(
-                        children: [
-                          Expanded(child: _buildUpgradeCard(ship, UpgradeType.cargo)),
-                          const SizedBox(width: 12),
-                          Expanded(child: _buildUpgradeCard(ship, UpgradeType.hull)),
-                          const SizedBox(width: 12),
-                          Expanded(child: _buildUpgradeCard(ship, UpgradeType.crew)),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
+              ],
+            ),
           ),
-        ),
-      );
+        ],
+      ),
+    );
   }
 
   Widget _buildHeader(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      decoration: BoxDecoration(
-        color: Colors.blue.withValues(alpha: 0.2),
-        borderRadius: const BorderRadius.only(
-          topLeft: Radius.circular(16),
-          topRight: Radius.circular(16),
-        ),
-      ),
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       child: Row(
         children: [
-          const Icon(Icons.anchor, color: Colors.white, size: 24),
+          const Icon(Icons.anchor, color: Color(0xFF4E342E), size: 24),
           const SizedBox(width: 10),
           const Text(
             '船厂 Shipyard',
             style: TextStyle(
-              color: Colors.white,
-              fontSize: 20,
+              color: Color(0xFF4E342E),
+              fontSize: 22,
               fontWeight: FontWeight.bold,
             ),
           ),
@@ -185,9 +171,9 @@ class _ShipyardDialogState extends State<ShipyardDialog>
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
             decoration: BoxDecoration(
-              color: Colors.black.withValues(alpha: 0.5),
+              color: const Color(0xFFD7CCC8).withValues(alpha: 0.8),
               borderRadius: BorderRadius.circular(20),
-              border: Border.all(color: Colors.amber.withValues(alpha: 0.5)),
+              border: Border.all(color: const Color(0xFF8D6E63)),
             ),
             child: Row(
               children: [
@@ -196,7 +182,7 @@ class _ShipyardDialogState extends State<ShipyardDialog>
                 Text(
                   '${widget.gameState.gold}',
                   style: const TextStyle(
-                    color: Colors.amber,
+                    color: Color(0xFF5D4037),
                     fontWeight: FontWeight.bold,
                     fontSize: 16,
                   ),
@@ -206,7 +192,7 @@ class _ShipyardDialogState extends State<ShipyardDialog>
           ),
           const SizedBox(width: 16),
           IconButton(
-            icon: const Icon(Icons.close, color: Colors.white, size: 24),
+            icon: const Icon(Icons.close, color: Color(0xFF4E342E), size: 24),
             onPressed: () => Navigator.of(context).pop(),
           ),
         ],
@@ -218,9 +204,9 @@ class _ShipyardDialogState extends State<ShipyardDialog>
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.05),
+        color: const Color(0xFFD7CCC8).withValues(alpha: 0.3),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
+        border: Border.all(color: const Color(0xFF8D6E63).withValues(alpha: 0.5)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -228,7 +214,7 @@ class _ShipyardDialogState extends State<ShipyardDialog>
           const Text(
             '船只属性',
             style: TextStyle(
-              color: Colors.white70,
+              color: Color(0xFF4E342E),
               fontSize: 16,
               fontWeight: FontWeight.bold,
             ),
@@ -238,35 +224,35 @@ class _ShipyardDialogState extends State<ShipyardDialog>
             '船名',
             ship.name,
             Icons.directions_boat,
-            Colors.blue,
+            Colors.blue[800]!,
           ),
           const SizedBox(height: 16),
           _buildAttributeRow(
             '船只等级',
             'Lv. ${_shipSystem.getShipLevel(ship)}',
             Icons.trending_up,
-            Colors.purple,
+            Colors.purple[800]!,
           ),
           const SizedBox(height: 16),
           _buildAttributeRow(
             '载货量',
             '${widget.gameState.usedCargoWeight.toStringAsFixed(1)} / ${ship.cargoCapacity} kg',
             Icons.inventory_2,
-            Colors.orange,
+            Colors.orange[900]!,
           ),
           const SizedBox(height: 16),
           _buildAttributeRow(
             '耐久度',
             '${ship.durability} / ${ship.maxDurability}',
             Icons.shield,
-            Colors.red,
+            Colors.red[900]!,
           ),
           const SizedBox(height: 16),
           _buildAttributeRow(
             '船员容量',
             '${widget.gameState.crewManager.crewMembers.length} / ${ship.maxCrewMemberCount}',
             Icons.people,
-            Colors.green,
+            Colors.green[800]!,
           ),
         ],
       ),
@@ -284,7 +270,7 @@ class _ShipyardDialogState extends State<ShipyardDialog>
             Text(
               label,
               style: const TextStyle(
-                color: Colors.white54,
+                color: Color(0xFF5D4037),
                 fontSize: 12,
               ),
             ),
@@ -292,7 +278,7 @@ class _ShipyardDialogState extends State<ShipyardDialog>
             Text(
               value,
               style: const TextStyle(
-                color: Colors.white,
+                color: Color(0xFF4E342E),
                 fontSize: 16,
                 fontWeight: FontWeight.bold,
               ),
@@ -360,10 +346,11 @@ class _ShipyardDialogState extends State<ShipyardDialog>
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
       decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.05),
+        color: Colors.transparent,
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
-          color: canUpgrade ? Colors.white.withValues(alpha: 0.2) : Colors.red.withValues(alpha: 0.2),
+          color: canUpgrade ? const Color(0xFF8D6E63) : Colors.red[300]!,
+          width: 1,
         ),
       ),
       child: Column(
@@ -375,7 +362,7 @@ class _ShipyardDialogState extends State<ShipyardDialog>
               Text(
                 name,
                 style: const TextStyle(
-                  color: Colors.white,
+                  color: Color(0xFF4E342E),
                   fontWeight: FontWeight.bold,
                   fontSize: 15,
                 ),
@@ -383,7 +370,7 @@ class _ShipyardDialogState extends State<ShipyardDialog>
               Text(
                 'Lv.$level',
                 style: TextStyle(
-                  color: Colors.blue[300],
+                  color: Colors.blue[800],
                   fontWeight: FontWeight.bold,
                   fontSize: 13,
                 ),
@@ -394,7 +381,7 @@ class _ShipyardDialogState extends State<ShipyardDialog>
           Text(
             description,
             style: const TextStyle(
-              color: Colors.white54,
+              color: Color(0xFF5D4037),
               fontSize: 11,
             ),
           ),
@@ -404,8 +391,8 @@ class _ShipyardDialogState extends State<ShipyardDialog>
               padding: const EdgeInsets.only(bottom: 2),
               child: Text(
                 _shipSystem.getLevelConstraintMessage(ship, type),
-                style: const TextStyle(
-                  color: Colors.redAccent,
+                style: TextStyle(
+                  color: Colors.red[800],
                   fontSize: 10,
                 ),
               ),
@@ -413,7 +400,7 @@ class _ShipyardDialogState extends State<ShipyardDialog>
           Text(
             level >= _shipSystem.getMaxLevel() ? '已达最高等级' : valueChange,
             style: TextStyle(
-              color: level >= _shipSystem.getMaxLevel() ? Colors.orangeAccent : Colors.greenAccent,
+              color: level >= _shipSystem.getMaxLevel() ? Colors.orange[900] : Colors.green[800],
               fontWeight: FontWeight.bold,
               fontSize: 13,
             ),
@@ -424,8 +411,8 @@ class _ShipyardDialogState extends State<ShipyardDialog>
             child: ElevatedButton(
               onPressed: canUpgrade ? () => _handleUpgrade(type) : null,
               style: ElevatedButton.styleFrom(
-                backgroundColor: canUpgrade ? Colors.blue[800] : Colors.grey[800],
-                disabledBackgroundColor: Colors.grey[800]?.withValues(alpha: 0.5),
+                backgroundColor: canUpgrade ? const Color(0xFF5D4037) : Colors.grey[400],
+                disabledBackgroundColor: Colors.grey[300],
                 foregroundColor: Colors.white,
                 padding: const EdgeInsets.symmetric(vertical: 4),
               ),
@@ -440,7 +427,7 @@ class _ShipyardDialogState extends State<ShipyardDialog>
                       style: TextStyle(
                         fontWeight: FontWeight.bold,
                         fontSize: 13,
-                        color: canAfford ? Colors.amber : Colors.white38,
+                        color: canAfford ? Colors.amber[200] : Colors.grey[600],
                       ),
                     ),
                     const SizedBox(width: 4),

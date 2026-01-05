@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../models/crew_member.dart';
 import 'game_state.dart';
+import 'paper_dialog.dart';
 
 /// 港口酒馆对话框 - 用于招募船员
 class TavernDialog extends StatefulWidget {
@@ -120,112 +121,97 @@ class _TavernDialogState extends State<TavernDialog> {
   @override
   Widget build(BuildContext context) {
     final availableCrew = widget.gameState.availableTavernCrew;
-    return Dialog(
-      backgroundColor: Colors.transparent,
-      child: Container(
-          width: 1000, // 设计尺寸
-          height: 800, // 设计尺寸
-          decoration: BoxDecoration(
-            color: Colors.grey[900]?.withValues(alpha: 0.95),
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: Colors.purple.withValues(alpha: 0.3), width: 2),
-          ),
-          child: Column(
-            children: [
-              // 标题栏
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                decoration: BoxDecoration(
-                  color: Colors.purple.withValues(alpha: 0.2),
-                  borderRadius: const BorderRadius.only(
-                    topLeft: Radius.circular(16),
-                    topRight: Radius.circular(16),
+    return PaperDialog(
+      assetPath: 'assets/paper_ui/Sprites/Book Desk/6.png',
+      width: 1000,
+      height: 800,
+      child: Column(
+        children: [
+          // 标题栏
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            child: Row(
+              children: [
+                const Icon(Icons.local_bar, color: Color(0xFF4E342E), size: 24),
+                const SizedBox(width: 10),
+                const Text(
+                  '港口酒馆 Tavern',
+                  style: TextStyle(
+                    color: Color(0xFF4E342E),
+                    fontSize: 22,
+                    fontWeight: FontWeight.bold,
                   ),
                 ),
-                child: Row(
-                  children: [
-                    const Icon(Icons.local_bar, color: Colors.white, size: 24),
-                    const SizedBox(width: 10),
-                    const Text(
-                      '港口酒馆 Tavern',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
+                const Spacer(),
+                IconButton(
+                  icon: const Icon(Icons.close, color: Color(0xFF4E342E), size: 24),
+                  onPressed: () => Navigator.of(context).pop(),
+                ),
+              ],
+            ),
+          ),
+          
+          const Divider(color: Color(0xFF8D6E63), thickness: 1),
+          
+          // 主要内容区域（左右分栏）
+          Expanded(
+            child: Row(
+              children: [
+                // 左侧：船员列表
+                Expanded(
+                  flex: 2,
+                  child: Container(
+                    decoration: const BoxDecoration(
+                      border: Border(
+                        right: BorderSide(
+                          color: Color(0xFF8D6E63),
+                          width: 1,
+                        ),
                       ),
                     ),
-                    const Spacer(),
-                    IconButton(
-                      icon: const Icon(Icons.close, color: Colors.white, size: 20),
-                      iconSize: 20,
-                      padding: EdgeInsets.zero,
-                      constraints: const BoxConstraints(),
-                      onPressed: () => Navigator.of(context).pop(),
-                    ),
-                  ],
+                    child: availableCrew.isEmpty
+                        ? const Center(
+                            child: Text(
+                              '暂无可招募船员',
+                              style: TextStyle(
+                                color: Color(0xFF5D4037),
+                                fontSize: 16,
+                              ),
+                            ),
+                          )
+                        : ListView.builder(
+                            padding: const EdgeInsets.all(8),
+                            itemCount: availableCrew.length,
+                            itemBuilder: (context, index) {
+                              final crew = availableCrew[index];
+                              final isSelected = crew == _selectedCrew;
+                              return _buildCrewListItem(crew, isSelected);
+                            },
+                          ),
+                  ),
                 ),
-              ),
-              
-              // 主要内容区域（左右分栏）
-              Expanded(
-                child: Row(
-                  children: [
-                    // 左侧：船员列表
-                    Expanded(
-                      flex: 2,
-                      child: Container(
-                        decoration: BoxDecoration(
-                          border: Border(
-                            right: BorderSide(
-                              color: Colors.white.withValues(alpha: 0.1),
-                              width: 1,
+                
+                // 右侧：船员详情
+                Expanded(
+                  flex: 3,
+                  child: _selectedCrew == null
+                      ? const Center(
+                          child: Text(
+                            '请选择一名船员查看详情',
+                            style: TextStyle(
+                              color: Color(0xFF5D4037),
+                              fontSize: 16,
                             ),
                           ),
-                        ),
-                        child: availableCrew.isEmpty
-                            ? const Center(
-                                child: Text(
-                                  '暂无可招募船员',
-                                  style: TextStyle(
-                                    color: Colors.white70,
-                                    fontSize: 16,
-                                  ),
-                                ),
-                              )
-                            : ListView.builder(
-                                padding: const EdgeInsets.all(8),
-                                itemCount: availableCrew.length,
-                                itemBuilder: (context, index) {
-                                  final crew = availableCrew[index];
-                                  final isSelected = crew == _selectedCrew;
-                                  return _buildCrewListItem(crew, isSelected);
-                                },
-                              ),
-                      ),
-                    ),
-                    
-                    // 右侧：船员详情
-                    Expanded(
-                      flex: 3,
-                      child: _selectedCrew == null
-                          ? const Center(
-                              child: Text(
-                                '请选择一名船员查看详情',
-                                style: TextStyle(
-                                  color: Colors.white70,
-                                  fontSize: 16,
-                                ),
-                              ),
-                            )
-                          : _buildCrewDetail(_selectedCrew!),
-                    ),
-                  ],
+                        )
+                      : _buildCrewDetail(_selectedCrew!),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
-        ),
-      );
+        ],
+      ),
+    );
   }
 
   /// 构建船员列表项
@@ -241,12 +227,12 @@ class _TavernDialogState extends State<TavernDialog> {
         padding: const EdgeInsets.all(8),
         decoration: BoxDecoration(
           color: isSelected
-              ? Colors.purple.withValues(alpha: 0.3)
-              : Colors.grey[800]?.withValues(alpha: 0.5),
+              ? const Color(0xFFD7CCC8).withValues(alpha: 0.5)
+              : Colors.transparent,
           borderRadius: BorderRadius.circular(8),
           border: Border.all(
             color: isSelected
-                ? Colors.purple
+                ? const Color(0xFF5D4037)
                 : Colors.transparent,
             width: 2,
           ),
@@ -266,7 +252,7 @@ class _TavernDialogState extends State<TavernDialog> {
                   Text(
                     member.name,
                     style: const TextStyle(
-                      color: Colors.white,
+                      color: Color(0xFF4E342E),
                       fontSize: 16,
                       fontWeight: FontWeight.bold,
                     ),
@@ -275,16 +261,16 @@ class _TavernDialogState extends State<TavernDialog> {
                   // 技能和工资
                   Row(
                     children: [
-                      _buildSkillChip('⛵', member.sailorSkill, Colors.cyan),
+                      _buildSkillChip('⛵', member.sailorSkill, Colors.blue[700]!),
                       const SizedBox(width: 4),
-                      _buildSkillChip('🔧', member.shipwrightSkill, Colors.orange),
+                      _buildSkillChip('🔧', member.shipwrightSkill, Colors.orange[800]!),
                       const SizedBox(width: 4),
-                      _buildSkillChip('🔫', member.gunnerSkill, Colors.red),
+                      _buildSkillChip('🔫', member.gunnerSkill, Colors.red[800]!),
                       const Spacer(),
                       Text(
                         '${member.salary}G',
                         style: const TextStyle(
-                          color: Colors.amber,
+                          color: Color(0xFF795548),
                           fontSize: 14,
                           fontWeight: FontWeight.bold,
                         ),
@@ -325,9 +311,9 @@ class _TavernDialogState extends State<TavernDialog> {
         width: size,
         height: size,
         decoration: BoxDecoration(
-          color: Colors.purple.withValues(alpha: 0.3),
+          color: const Color(0xFFD7CCC8),
           border: Border.all(
-            color: Colors.purple.withValues(alpha: 0.5),
+            color: const Color(0xFF8D6E63),
             width: 1,
           ),
         ),
@@ -337,7 +323,7 @@ class _TavernDialogState extends State<TavernDialog> {
             style: TextStyle(
               fontSize: fontSize,
               fontWeight: FontWeight.bold,
-              color: Colors.white,
+              color: const Color(0xFF4E342E),
             ),
           ),
         ),
@@ -353,7 +339,7 @@ class _TavernDialogState extends State<TavernDialog> {
         Text(emoji, style: const TextStyle(fontSize: 12)),
         const SizedBox(width: 2),
         Text(
-          skill.toStringAsFixed(2),
+          skill.toStringAsFixed(1),
           style: TextStyle(
             color: color,
             fontSize: 12,
@@ -386,7 +372,7 @@ class _TavernDialogState extends State<TavernDialog> {
                 Text(
                   member.name,
                   style: const TextStyle(
-                    color: Colors.white,
+                    color: Color(0xFF4E342E),
                     fontSize: 24,
                     fontWeight: FontWeight.bold,
                   ),
@@ -395,7 +381,7 @@ class _TavernDialogState extends State<TavernDialog> {
                 Text(
                   '工资：${member.salary} 金币 / 天',
                   style: const TextStyle(
-                    color: Colors.amber,
+                    color: Color(0xFF795548),
                     fontSize: 16,
                   ),
                 ),
@@ -403,39 +389,39 @@ class _TavernDialogState extends State<TavernDialog> {
             ),
           ),
           
-          const Divider(color: Colors.white24, height: 32),
+          const Divider(color: Color(0xFF8D6E63), height: 32),
           
           // 技能详情
           const Text(
             '技能：',
             style: TextStyle(
-              color: Colors.white,
+              color: Color(0xFF4E342E),
               fontSize: 18,
               fontWeight: FontWeight.bold,
             ),
           ),
           const SizedBox(height: 12),
-          _buildSkillDetailRow('⛵', '水手技能', member.sailorSkill, Colors.cyan),
+          _buildSkillDetailRow('⛵', '水手技能', member.sailorSkill, Colors.blue[700]!),
           const SizedBox(height: 8),
-          _buildSkillDetailRow('🔧', '船工技能', member.shipwrightSkill, Colors.orange),
+          _buildSkillDetailRow('🔧', '船工技能', member.shipwrightSkill, Colors.orange[800]!),
           const SizedBox(height: 8),
-          _buildSkillDetailRow('🔫', '炮手技能', member.gunnerSkill, Colors.red),
+          _buildSkillDetailRow('🔫', '炮手技能', member.gunnerSkill, Colors.red[800]!),
           
-          const Divider(color: Colors.white24, height: 32),
+          const Divider(color: Color(0xFF8D6E63), height: 32),
           
           // 描述
           const Text(
             '招募后可分配职业以提供加成（在船员管理界面）',
             style: TextStyle(
-              color: Colors.white70,
-              fontSize: 12,
+              color: Color(0xFF5D4037),
+              fontSize: 13,
             ),
           ),
           const SizedBox(height: 8),
           Text(
             _getCrewDescription(member),
             style: const TextStyle(
-              color: Colors.white70,
+              color: Color(0xFF5D4037),
               fontSize: 14,
               fontStyle: FontStyle.italic,
             ),
@@ -456,11 +442,11 @@ class _TavernDialogState extends State<TavernDialog> {
                   },
                   style: OutlinedButton.styleFrom(
                     padding: const EdgeInsets.symmetric(vertical: 12),
-                    side: const BorderSide(color: Colors.white54),
+                    side: const BorderSide(color: Color(0xFF8D6E63)),
                   ),
                   child: const Text(
                     '取消',
-                    style: TextStyle(color: Colors.white),
+                    style: TextStyle(color: Color(0xFF4E342E)),
                   ),
                 ),
               ),
@@ -471,7 +457,7 @@ class _TavernDialogState extends State<TavernDialog> {
                       ? () => _recruitCrew(member)
                       : null,
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.purple,
+                    backgroundColor: const Color(0xFF5D4037),
                     padding: const EdgeInsets.symmetric(vertical: 12),
                   ),
                   child: const Text(
@@ -515,9 +501,9 @@ class _TavernDialogState extends State<TavernDialog> {
         width: 120,
         height: 120,
         decoration: BoxDecoration(
-          color: Colors.purple.withValues(alpha: 0.3),
+          color: const Color(0xFFD7CCC8),
           border: Border.all(
-            color: Colors.purple.withValues(alpha: 0.5),
+            color: const Color(0xFF8D6E63),
             width: 3,
           ),
         ),
@@ -527,7 +513,7 @@ class _TavernDialogState extends State<TavernDialog> {
             style: const TextStyle(
               fontSize: 48,
               fontWeight: FontWeight.bold,
-              color: Colors.white,
+              color: Color(0xFF4E342E),
             ),
           ),
         ),
@@ -545,13 +531,13 @@ class _TavernDialogState extends State<TavernDialog> {
           child: Text(
             label,
             style: const TextStyle(
-              color: Colors.white70,
+              color: Color(0xFF5D4037),
               fontSize: 14,
             ),
           ),
         ),
         Text(
-          skill.toStringAsFixed(2),
+          skill.toStringAsFixed(1),
           style: TextStyle(
             color: color,
             fontSize: 18,

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../models/port.dart';
 import '../game/game_state.dart';
+import '../game/paper_dialog.dart';
 
 /// 港口系统 - 管理港口列表和切换
 class PortSystem {
@@ -40,86 +41,99 @@ class _PortSelectDialog extends StatelessWidget {
     final availablePorts = portSystem.getAvailablePorts();
     final currentPort = portSystem.gameState.currentPort;
 
-    return Dialog(
-      child: Container(
-        width: 500,
-        height: 400,
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // 标题栏
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                const Text(
-                  '选择目的地',
-                  style: TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                  ),
+    return PaperDialog(
+      assetPath: 'assets/paper_ui/Sprites/Book Desk/4.png',
+      width: 500,
+      height: 500,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // 标题栏
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              const Text(
+                '选择目的地 Select Destination',
+                style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                  color: Color(0xFF4E342E),
                 ),
-                IconButton(
-                  icon: const Icon(Icons.close),
-                  onPressed: () => Navigator.of(context).pop(),
-                ),
-              ],
-            ),
-            const Divider(),
-            
-            // 港口列表
-            Expanded(
-              child: ListView.builder(
-                itemCount: availablePorts.length,
-                itemBuilder: (context, index) {
-                  final port = availablePorts[index];
-                  final isCurrentPort = port.id == currentPort?.id;
-                  
-                  return Card(
-                    margin: const EdgeInsets.symmetric(vertical: 4),
-                    color: isCurrentPort ? Colors.blue.withValues(alpha: 0.2) : null,
-                    child: ListTile(
-                      leading: const Icon(Icons.location_on),
-                      title: Text(port.name),
-                      subtitle: Text(port.description),
-                      trailing: isCurrentPort
-                          ? const Text(
-                              '当前港口',
-                              style: TextStyle(
-                                color: Colors.blue,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            )
-                          : ElevatedButton(
-                              onPressed: () async {
-                                // 在异步操作前保存必要的引用
-                                final navigator = Navigator.of(context);
-                                
-                                // 关闭对话框
-                                navigator.pop();
-                                
-                                // 使用 Future.microtask 确保在下一个事件循环中执行
-                                // 这样可以避免在 widget 销毁时访问 context
-                                Future.microtask(() async {
-                                  try {
-                                    await portSystem.gameState.startTravelToPort(port.id);
-                                    // 成功消息不再显示，因为对话框已关闭
-                                  } catch (e) {
-                                    // 错误处理：由于 context 可能已失效，我们不在异步操作后显示错误
-                                    // 错误会通过 GameState 的异常传播，可以在上层处理
-                                    debugPrint('航行失败: $e');
-                                  }
-                                });
-                              },
-                              child: const Text('出发'),
-                            ),
-                    ),
-                  );
-                },
               ),
+              IconButton(
+                icon: const Icon(Icons.close, color: Color(0xFF4E342E)),
+                onPressed: () => Navigator.of(context).pop(),
+              ),
+            ],
+          ),
+          const Divider(color: Color(0xFF8D6E63)),
+          
+          // 港口列表
+          Expanded(
+            child: ListView.builder(
+              itemCount: availablePorts.length,
+              itemBuilder: (context, index) {
+                final port = availablePorts[index];
+                final isCurrentPort = port.id == currentPort?.id;
+                
+                return Card(
+                  elevation: 0,
+                  margin: const EdgeInsets.symmetric(vertical: 4),
+                  color: isCurrentPort 
+                      ? const Color(0xFFD7CCC8).withValues(alpha: 0.5) 
+                      : const Color(0xFFD7CCC8).withValues(alpha: 0.2),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                    side: BorderSide(
+                      color: isCurrentPort ? const Color(0xFF5D4037) : const Color(0xFF8D6E63).withValues(alpha: 0.3),
+                    ),
+                  ),
+                  child: ListTile(
+                    leading: Icon(
+                      Icons.location_on, 
+                      color: isCurrentPort ? const Color(0xFF5D4037) : const Color(0xFF8D6E63),
+                    ),
+                    title: Text(
+                      port.name,
+                      style: const TextStyle(color: Color(0xFF4E342E), fontWeight: FontWeight.bold),
+                    ),
+                    subtitle: Text(
+                      port.description,
+                      style: const TextStyle(color: Color(0xFF5D4037), fontSize: 12),
+                    ),
+                    trailing: isCurrentPort
+                        ? const Text(
+                            '当前港口',
+                            style: TextStyle(
+                              color: Color(0xFF5D4037),
+                              fontWeight: FontWeight.bold,
+                            ),
+                          )
+                        : ElevatedButton(
+                            onPressed: () async {
+                              final navigator = Navigator.of(context);
+                              navigator.pop();
+                              Future.microtask(() async {
+                                try {
+                                  await portSystem.gameState.startTravelToPort(port.id);
+                                } catch (e) {
+                                  debugPrint('航行失败: $e');
+                                }
+                              });
+                            },
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: const Color(0xFF5D4037),
+                              foregroundColor: Colors.white,
+                              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                            ),
+                            child: const Text('出发'),
+                          ),
+                  ),
+                );
+              },
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
