@@ -5,6 +5,7 @@ import '../models/port.dart';
 import '../game/game_state.dart';
 import '../utils/game_config_loader.dart';
 import '../game/paper_dialog.dart';
+import '../game/paper_button.dart';
 
 /// 待交易物品
 class PendingTradeItem {
@@ -534,9 +535,12 @@ class _TradeDialogState extends State<_TradeDialog> {
                   color: Color(0xFF4E342E),
                 ),
               ),
-              IconButton(
-                icon: const Icon(Icons.close, color: Color(0xFF4E342E)),
+              PaperButton(
                 onPressed: () => Navigator.of(context).pop(),
+                icon: const Icon(Icons.close, color: Color(0xFF4E342E), size: 20),
+                style: PaperButtonStyle.brown,
+                width: 40,
+                height: 40,
               ),
             ],
           ),
@@ -620,19 +624,16 @@ class _TradeDialogState extends State<_TradeDialog> {
 
           // 平衡报价按钮
           Center(
-            child: TextButton(
+            child: PaperButton(
               onPressed: _canBalanceTrade() ? () => _balanceTrade() : null,
-              style: TextButton.styleFrom(
-                foregroundColor: const Color(0xFF5D4037),
-                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
-              ),
-              child: Text(
-                '平衡报价',
-                style: TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.bold,
-                  color: _canBalanceTrade() ? const Color(0xFF5D4037) : Colors.grey.withValues(alpha: 0.5),
-                ),
+              label: '平衡报价',
+              style: PaperButtonStyle.brown,
+              width: 100,
+              height: 40,
+              textStyle: TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.bold,
+                color: _canBalanceTrade() ? const Color(0xFF4E342E) : Colors.grey.withValues(alpha: 0.5),
               ),
             ),
           ),
@@ -640,19 +641,20 @@ class _TradeDialogState extends State<_TradeDialog> {
 
           // 确认按钮
           Center(
-            child: ElevatedButton(
+            child: PaperButton(
               onPressed: (_pendingTrade.itemsToReceive.isNotEmpty ||
                           _pendingTrade.itemsToGive.isNotEmpty) &&
                       isAcceptable
                   ? () => _executeTrade()
                   : null,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: isAcceptable ? const Color(0xFF5D4037) : Colors.grey,
-                padding: const EdgeInsets.symmetric(horizontal: 48, vertical: 16),
-              ),
-              child: Text(
-                isAcceptable ? '确认交易' : '交易不公平',
-                style: const TextStyle(fontSize: 18, color: Colors.white, fontWeight: FontWeight.bold),
+              label: isAcceptable ? '确认交易' : '交易不公平',
+              style: isAcceptable ? PaperButtonStyle.green : PaperButtonStyle.brown,
+              width: 120,
+              height: 48,
+              textStyle: const TextStyle(
+                fontSize: 18,
+                color: Color(0xFF4E342E),
+                fontWeight: FontWeight.bold,
               ),
             ),
           ),
@@ -916,14 +918,23 @@ class _TradeDialogState extends State<_TradeDialog> {
               Text('估值: ${addPrice.toStringAsFixed(1)}', style: const TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF4E342E))),
               Row(
                 children: [
-                  TextButton(onPressed: () => setState(() => _selectedMerchantGoodsId = _selectedPlayerGoodsId = null), child: const Text('取消', style: TextStyle(color: Color(0xFF8D6E63)))),
-                  ElevatedButton(
+                  PaperButton(
+                    onPressed: () => setState(() => _selectedMerchantGoodsId = _selectedPlayerGoodsId = null),
+                    label: '取消',
+                    style: PaperButtonStyle.brown,
+                    width: 80,
+                    height: 32,
+                  ),
+                  const SizedBox(width: 8),
+                  PaperButton(
                     onPressed: () {
                       _addToPending(goodsId, _selectedQuantity, isBuying, portId);
                       setState(() => _selectedMerchantGoodsId = _selectedPlayerGoodsId = null);
                     },
-                    style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF5D4037)),
-                    child: const Text('确认', style: TextStyle(color: Colors.white)),
+                    label: '确认',
+                    style: PaperButtonStyle.brown,
+                    width: 80,
+                    height: 32,
                   ),
                 ],
               ),

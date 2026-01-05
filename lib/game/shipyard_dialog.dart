@@ -3,6 +3,7 @@ import 'game_state.dart';
 import '../models/ship.dart';
 import '../systems/ship_system.dart';
 import 'paper_dialog.dart';
+import 'paper_button.dart';
 
 /// 船厂对话框 - 用于升级船只
 class ShipyardDialog extends StatefulWidget {
@@ -191,9 +192,12 @@ class _ShipyardDialogState extends State<ShipyardDialog>
             ),
           ),
           const SizedBox(width: 16),
-          IconButton(
-            icon: const Icon(Icons.close, color: Color(0xFF4E342E), size: 24),
+          PaperButton(
             onPressed: () => Navigator.of(context).pop(),
+            icon: const Icon(Icons.close, color: Color(0xFF4E342E), size: 20),
+            style: PaperButtonStyle.brown,
+            width: 40,
+            height: 40,
           ),
         ],
       ),
@@ -406,36 +410,16 @@ class _ShipyardDialogState extends State<ShipyardDialog>
             ),
           ),
           const SizedBox(height: 4),
-          SizedBox(
-            width: double.infinity,
-            child: ElevatedButton(
-              onPressed: canUpgrade ? () => _handleUpgrade(type) : null,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: canUpgrade ? const Color(0xFF5D4037) : Colors.grey[400],
-                disabledBackgroundColor: Colors.grey[300],
-                foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(vertical: 4),
-              ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  if (level < _shipSystem.getMaxLevel()) ...[
-                    const Text('💰', style: TextStyle(fontSize: 12)),
-                    const SizedBox(width: 2),
-                    Text(
-                      '$cost',
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 13,
-                        color: canAfford ? Colors.amber[200] : Colors.grey[600],
-                      ),
-                    ),
-                    const SizedBox(width: 4),
-                    const Text('[升级]', style: TextStyle(fontSize: 13)),
-                  ] else
-                    const Text('已满级', style: TextStyle(fontSize: 13)),
-                ],
-              ),
+          PaperButton(
+            onPressed: canUpgrade ? () => _handleUpgrade(type) : null,
+            label: level < _shipSystem.getMaxLevel() ? '💰$cost 升级' : '已满级',
+            style: PaperButtonStyle.brown,
+            width: 100,
+            height: 40,
+            textStyle: TextStyle(
+              fontWeight: FontWeight.bold,
+              fontSize: 13,
+              color: canAfford ? const Color(0xFF4E342E) : Colors.red[800],
             ),
           ),
         ],

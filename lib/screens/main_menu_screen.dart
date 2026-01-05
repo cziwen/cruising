@@ -5,6 +5,7 @@ import 'dart:io' show exit;
 import 'package:window_manager/window_manager.dart';
 import '../game/debug_panel.dart';
 import '../game/settings_dialog.dart';
+import '../game/paper_button.dart';
 import 'game_screen.dart';
 import 'loading_screen.dart';
 import 'save_load_screen.dart';
@@ -158,26 +159,16 @@ class _MainMenuScreenState extends State<MainMenuScreen> {
     required VoidCallback onPressed,
     bool isSecondary = false,
   }) {
-    return SizedBox(
-      width: 200,
-      height: 50,
-      child: ElevatedButton(
-        onPressed: onPressed,
-        style: ElevatedButton.styleFrom(
-          backgroundColor: isSecondary ? Colors.white.withOpacity(0.8) : Colors.white,
-          foregroundColor: Colors.blue[900],
-          elevation: 5,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(10),
-          ),
-        ),
-        child: Text(
-          label,
-          style: const TextStyle(
-            fontSize: 20,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
+    return PaperButton(
+      width: 160,
+      height: 64,
+      label: label,
+      onPressed: onPressed,
+      style: isSecondary ? PaperButtonStyle.blue : PaperButtonStyle.brown,
+      textStyle: const TextStyle(
+        fontSize: 20,
+        fontWeight: FontWeight.bold,
+        color: Color(0xFF4E342E),
       ),
     );
   }

@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import '../systems/save_system.dart';
 import '../game/game_state.dart';
+import '../game/paper_button.dart';
+import '../game/paper_dialog.dart';
 import 'game_screen.dart';
 import 'loading_screen.dart';
 
@@ -110,20 +112,39 @@ class _SaveLoadScreenState extends State<SaveLoadScreen> {
   Future<void> _handleDelete(int slotId) async {
     final confirmed = await showDialog<bool>(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('删除存档'),
-        content: const Text('确定要删除这个存档吗？此操作无法撤销。'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(false),
-            child: const Text('取消'),
-          ),
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(true),
-            style: TextButton.styleFrom(foregroundColor: Colors.red),
-            child: const Text('删除'),
-          ),
-        ],
+      builder: (context) => PaperDialog(
+        assetPath: 'assets/paper_ui/Sprites/Book Desk/4.png',
+        width: 400,
+        height: 250,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Text('删除存档', style: TextStyle(color: Color(0xFF4E342E), fontSize: 20, fontWeight: FontWeight.bold)),
+            const SizedBox(height: 20),
+            const Text('确定要删除这个存档吗？此操作无法撤销。', 
+              style: TextStyle(color: Color(0xFF5D4037)), textAlign: TextAlign.center),
+            const Spacer(),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                PaperButton(
+                  label: '取消',
+                  onPressed: () => Navigator.of(context).pop(false),
+                  style: PaperButtonStyle.brown,
+                  width: 80,
+                  height: 32,
+                ),
+                PaperButton(
+                  label: '删除',
+                  onPressed: () => Navigator.of(context).pop(true),
+                  style: PaperButtonStyle.red,
+                  width: 80,
+                  height: 32,
+                ),
+              ],
+            ),
+          ],
+        ),
       ),
     );
 
@@ -239,12 +260,15 @@ class _SaveLoadScreenState extends State<SaveLoadScreen> {
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         if (!isEmpty && !isAutoSave)
-                           IconButton(
-                            icon: const Icon(Icons.delete, color: Colors.red),
+                           PaperButton(
+                            icon: const Icon(Icons.delete, color: Color(0xFF4E342E), size: 20),
                             onPressed: () => _handleDelete(slotId),
+                            style: PaperButtonStyle.red,
+                            width: 32,
+                            height: 32,
                           ),
                         const SizedBox(width: 8),
-                        ElevatedButton(
+                        PaperButton(
                           onPressed: () {
                             if (widget.mode == SaveLoadMode.save) {
                               if (isAutoSave) {
@@ -265,17 +289,14 @@ class _SaveLoadScreenState extends State<SaveLoadScreen> {
                               }
                             }
                           },
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: widget.mode == SaveLoadMode.save 
-                                ? (isAutoSave ? Colors.grey : Colors.blue[900])
-                                : (isEmpty ? Colors.grey : Colors.green),
-                            foregroundColor: Colors.white,
-                          ),
-                          child: Text(
-                            widget.mode == SaveLoadMode.save 
+                          label: widget.mode == SaveLoadMode.save 
                                 ? (isEmpty ? '保存' : '覆盖') 
                                 : '读取',
-                          ),
+                          style: widget.mode == SaveLoadMode.save 
+                                ? (isAutoSave ? PaperButtonStyle.brown : PaperButtonStyle.blue)
+                                : (isEmpty ? PaperButtonStyle.brown : PaperButtonStyle.green),
+                          width: 80,
+                          height: 32,
                         ),
                       ],
                     ),

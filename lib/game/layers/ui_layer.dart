@@ -3,6 +3,7 @@ import '../game_state.dart';
 import '../debug_panel.dart';
 import '../crew_management_dialog.dart';
 import '../main_hall_dialog.dart';
+import '../paper_button.dart';
 import 'status_bar.dart';
 
 /// UI层 - 界面元素（按钮、菜单、信息显示等）
@@ -158,41 +159,32 @@ class UILayer extends StatelessWidget {
 
   /// 构建岛屿周围的按钮
   Widget _buildIslandButton(String text, VoidCallback? onPressed, Color color) {
-    return ElevatedButton(
+    PaperButtonStyle style = PaperButtonStyle.brown;
+    if (color == Colors.blue) style = PaperButtonStyle.blue;
+    if (color == Colors.green) style = PaperButtonStyle.green;
+    if (color == Colors.purple) style = PaperButtonStyle.gold; // Using gold for purple as a highlight
+    if (color == Colors.orange) style = PaperButtonStyle.gold;
+    if (color == Colors.teal) style = PaperButtonStyle.blue;
+    if (color == Colors.blueGrey) style = PaperButtonStyle.brown;
+
+    return PaperButton(
+      label: text,
       onPressed: onPressed,
-      style: ElevatedButton.styleFrom(
-        backgroundColor: color,
-        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(8),
-        ),
-        elevation: 4,
-      ),
-      child: Text(
-        text,
-        style: const TextStyle(
-          color: Colors.white,
-          fontSize: 16,
-          fontWeight: FontWeight.bold,
-        ),
-      ),
+      style: style,
+      width: 100,
+      height: 40,
     );
   }
 
   /// 构建选择目的地按钮
   Widget _buildDestinationButton() {
-    return FloatingActionButton.extended(
-      heroTag: 'destination_button',
+    return PaperButton(
+      label: '选择目的地',
+      icon: const Icon(Icons.map, color: Color(0xFF4E342E), size: 20),
       onPressed: onPortSelectPressed,
-      backgroundColor: Colors.green,
-      icon: const Icon(Icons.map, color: Colors.white),
-      label: const Text(
-        '选择目的地',
-        style: TextStyle(
-          color: Colors.white,
-          fontWeight: FontWeight.bold,
-        ),
-      ),
+      style: PaperButtonStyle.green,
+      width: 120,
+      height: 48,
     );
   }
 

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../models/port.dart';
 import '../game/game_state.dart';
 import '../game/paper_dialog.dart';
+import '../game/paper_button.dart';
 
 /// 港口系统 - 管理港口列表和切换
 class PortSystem {
@@ -60,9 +61,12 @@ class _PortSelectDialog extends StatelessWidget {
                   color: Color(0xFF4E342E),
                 ),
               ),
-              IconButton(
-                icon: const Icon(Icons.close, color: Color(0xFF4E342E)),
+              PaperButton(
                 onPressed: () => Navigator.of(context).pop(),
+                icon: const Icon(Icons.close, color: Color(0xFF4E342E), size: 20),
+                style: PaperButtonStyle.brown,
+                width: 40,
+                height: 40,
               ),
             ],
           ),
@@ -109,7 +113,7 @@ class _PortSelectDialog extends StatelessWidget {
                               fontWeight: FontWeight.bold,
                             ),
                           )
-                        : ElevatedButton(
+                        : PaperButton(
                             onPressed: () async {
                               final navigator = Navigator.of(context);
                               navigator.pop();
@@ -121,12 +125,10 @@ class _PortSelectDialog extends StatelessWidget {
                                 }
                               });
                             },
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: const Color(0xFF5D4037),
-                              foregroundColor: Colors.white,
-                              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-                            ),
-                            child: const Text('出发'),
+                            label: '出发',
+                            style: PaperButtonStyle.brown,
+                            width: 80,
+                            height: 32,
                           ),
                   ),
                 );

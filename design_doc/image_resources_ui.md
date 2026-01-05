@@ -21,19 +21,19 @@
 | `6.png` | 大型面板 | 酒馆、大厅主界面 |
 | `7.png` | 宽屏大型面板 | 市场交易、船厂升级、复杂报表 |
 
-### 2. 按钮
-- **实现**: 使用 `ElevatedButton` 和 `IconButton`。
-- **图标**: 使用 Flutter 材质图标库 (`Icons`)，图标颜色通常设为深褐色以匹配纸张背景。
-  - 交易: `Icons.swap_horiz`
-  - 酒馆: `Icons.nightlife`
-  - 船厂: `Icons.build`
-  - 存档: `Icons.save`
-  - 设置: `Icons.settings`
+### 2. 自定义纸质按钮 (PaperButton)
+- **实现**: 使用自定义的 `PaperButton` 组件，替代了标准 Material 按钮。
+- **资产来源**: `assets/paper_ui/Sprites/Content/4_Buttons/` 下的精灵图。
+- **状态支持**: 每个按钮由一对图片（普通/按下）组成，通过点击交互实时切换。
+- **样式分类**:
+  - **棕色 (0-1.png)**: 默认操作、返回、取消。
+  - **绿色 (2-3.png)**: 确认交易、出发、保存。
+  - **蓝色 (4-5.png)**: 设置中次要操作、存档覆盖。
+  - **红色 (6-7.png)**: 解雇、删除存档。
+  - **金色 (8-9.png)**: 特殊升级、加成提示。
 
-### 3. 状态栏与进度条
-- **实现**: 自定义 `CustomPainter` 或 `Container` 堆叠。
-- **航行进度条**: `LinearProgressIndicator` 风格的自定义实现。
-- **战斗血条**: 基于 `GameState.ship.durability` 的实时渲染。
+### 3. 图标与状态栏
+- **图标**: 结合 Flutter 材质图标库 (`Icons`) 和 Emoji。
 
 ---
 

@@ -3,6 +3,7 @@ import 'game_state.dart';
 import '../models/goods.dart';
 import '../utils/game_config_loader.dart';
 import 'paper_dialog.dart';
+import 'paper_button.dart';
 
 /// 大厅对话框 - 用于主岛升级和仓库管理
 class MainHallDialog extends StatefulWidget {
@@ -129,9 +130,12 @@ class _MainHallDialogState extends State<MainHallDialog> with SingleTickerProvid
                 ),
               ),
               const SizedBox(width: 16),
-              IconButton(
-                icon: const Icon(Icons.close, color: Color(0xFF4E342E), size: 24),
+              PaperButton(
                 onPressed: () => Navigator.of(context).pop(),
+                icon: const Icon(Icons.close, color: Color(0xFF4E342E), size: 20),
+                style: PaperButtonStyle.brown,
+                width: 40,
+                height: 40,
               ),
             ],
           ),
@@ -235,10 +239,12 @@ class _MainHallDialogState extends State<MainHallDialog> with SingleTickerProvid
               if (!isMaxLevel) ...[
                 Text('💰 $cost', style: TextStyle(color: canAfford ? const Color(0xFF795548) : Colors.red[800], fontWeight: FontWeight.bold)),
                 const SizedBox(height: 8),
-                ElevatedButton(
+                PaperButton(
                   onPressed: canUpgrade ? () => _handleUpgrade(type) : null,
-                  style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF5D4037)),
-                  child: const Text('升级', style: TextStyle(color: Colors.white)),
+                  label: '升级',
+                  style: PaperButtonStyle.brown,
+                  width: 80,
+                  height: 32,
                 ),
               ] else
                 const Text('已满级', style: TextStyle(color: Colors.green, fontWeight: FontWeight.bold)),
@@ -307,16 +313,19 @@ class _MainHallDialogState extends State<MainHallDialog> with SingleTickerProvid
           Row(
             mainAxisAlignment: MainAxisAlignment.end,
             children: [
-              TextButton(
+              PaperButton(
                 onPressed: () {
                   setState(() {
                     _selectedGoodsId = null;
                   });
                 },
-                child: const Text('取消', style: TextStyle(color: Color(0xFF8D6E63))),
+                label: '取消',
+                style: PaperButtonStyle.brown,
+                width: 80,
+                height: 32,
               ),
               const SizedBox(width: 8),
-              ElevatedButton(
+              PaperButton(
                 onPressed: () {
                   bool success;
                   if (isDepositing) {
@@ -346,8 +355,10 @@ class _MainHallDialogState extends State<MainHallDialog> with SingleTickerProvid
                     );
                   }
                 },
-                style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF5D4037)),
-                child: Text(isDepositing ? '确认存入' : '确认取出', style: const TextStyle(color: Colors.white)),
+                label: isDepositing ? '确认存入' : '确认取出',
+                style: PaperButtonStyle.green,
+                width: 80,
+                height: 32,
               ),
             ],
           ),

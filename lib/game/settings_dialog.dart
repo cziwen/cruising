@@ -6,6 +6,7 @@ import '../screens/save_load_screen.dart';
 import '../screens/loading_screen.dart';
 import '../screens/main_menu_screen.dart';
 import 'paper_dialog.dart';
+import 'paper_button.dart';
 
 /// 设置对话框
 class SettingsDialog extends StatefulWidget {
@@ -84,10 +85,7 @@ class _SettingsDialogState extends State<SettingsDialog> {
                     color: Color(0xFF4E342E),
                   ),
                 ),
-                IconButton(
-                  icon: const Icon(Icons.close, color: Color(0xFF4E342E)),
-                  onPressed: () => Navigator.of(context).pop(),
-                ),
+                // 移除右上角的 IconButton
               ],
             ),
           ),
@@ -205,12 +203,12 @@ class _SettingsDialogState extends State<SettingsDialog> {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.end,
               children: [
-                TextButton(
+                PaperButton(
+                  label: '关闭',
                   onPressed: () => Navigator.of(context).pop(),
-                  child: const Text(
-                    '关闭',
-                    style: TextStyle(color: Color(0xFF8D6E63), fontWeight: FontWeight.bold),
-                  ),
+                  style: PaperButtonStyle.brown,
+                  width: 80,
+                  height: 32,
                 ),
               ],
             ),
@@ -241,29 +239,47 @@ class _SettingsDialogState extends State<SettingsDialog> {
   void _showExitConfirmation(BuildContext context) {
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        backgroundColor: const Color(0xFFEFEBE9),
-        title: const Text('返回主菜单', style: TextStyle(color: Color(0xFF4E342E), fontWeight: FontWeight.bold)),
-        content: const Text('未保存的进度将会丢失，确定要返回主菜单吗？', style: TextStyle(color: Color(0xFF5D4037))),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: const Text('取消', style: TextStyle(color: Color(0xFF8D6E63))),
-          ),
-          TextButton(
-            onPressed: () {
-              Navigator.of(context).pop();
-              Navigator.of(context).pushReplacement(
-                MaterialPageRoute(
-                  builder: (context) => const LoadingScreen(
-                    nextScreen: MainMenuScreen(),
-                  ),
+      builder: (context) => PaperDialog(
+        assetPath: 'assets/paper_ui/Sprites/Book Desk/4.png',
+        width: 400,
+        height: 250,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Text('返回主菜单', style: TextStyle(color: Color(0xFF4E342E), fontSize: 20, fontWeight: FontWeight.bold)),
+            const SizedBox(height: 20),
+            const Text('未保存的进度将会丢失，确定要返回主菜单吗？', style: TextStyle(color: Color(0xFF5D4037)), textAlign: TextAlign.center),
+            const Spacer(),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                PaperButton(
+                  label: '取消',
+                  onPressed: () => Navigator.of(context).pop(),
+                  style: PaperButtonStyle.brown,
+                  width: 80,
+                  height: 32,
                 ),
-              );
-            },
-            child: const Text('确定', style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold)),
-          ),
-        ],
+                PaperButton(
+                  label: '确定',
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                    Navigator.of(context).pushReplacement(
+                      MaterialPageRoute(
+                        builder: (context) => const LoadingScreen(
+                          nextScreen: MainMenuScreen(),
+                        ),
+                      ),
+                    );
+                  },
+                  style: PaperButtonStyle.red,
+                  width: 80,
+                  height: 32,
+                ),
+              ],
+            ),
+          ],
+        ),
       ),
     );
   }

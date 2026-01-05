@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../models/crew_member.dart';
 import 'game_state.dart';
 import 'paper_dialog.dart';
+import 'paper_button.dart';
 
 /// 船员管理对话框
 class CrewManagementDialog extends StatefulWidget {
@@ -63,9 +64,12 @@ class _CrewManagementDialogState extends State<CrewManagementDialog> {
                   ),
                 ),
                 const Spacer(),
-                IconButton(
-                  icon: const Icon(Icons.close, color: Color(0xFF4E342E), size: 24),
+                PaperButton(
                   onPressed: () => Navigator.of(context).pop(),
+                  icon: const Icon(Icons.close, color: Color(0xFF4E342E), size: 20),
+                  style: PaperButtonStyle.brown,
+                  width: 40,
+                  height: 40,
                 ),
               ],
             ),
@@ -329,15 +333,12 @@ class _CrewManagementDialogState extends State<CrewManagementDialog> {
               children: [
                 _buildRoleSelector(member),
                 const SizedBox(height: 12),
-                IconButton(
-                  icon: const Icon(Icons.person_remove, color: Colors.redAccent, size: 24),
-                  tooltip: '解雇船员',
+                PaperButton(
+                  icon: const Icon(Icons.person_remove, color: Color(0xFF4E342E), size: 20),
                   onPressed: () => _showDismissConfirmation(context, member),
-                  constraints: const BoxConstraints(),
-                  padding: const EdgeInsets.all(8),
-                  style: IconButton.styleFrom(
-                    backgroundColor: Colors.red[100],
-                  ),
+                  style: PaperButtonStyle.red,
+                  width: 40,
+                  height: 40,
                 ),
               ],
             ),
@@ -351,25 +352,43 @@ class _CrewManagementDialogState extends State<CrewManagementDialog> {
   void _showDismissConfirmation(BuildContext context, CrewMember member) {
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        backgroundColor: const Color(0xFFEFEBE9),
-        title: const Text('解雇船员', style: TextStyle(color: Color(0xFF4E342E), fontWeight: FontWeight.bold)),
-        content: Text('确定要解雇 ${member.name} 吗？\n解雇后无法撤销。', 
-          style: const TextStyle(color: Color(0xFF5D4037))),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: const Text('取消', style: TextStyle(color: Color(0xFF8D6E63))),
-          ),
-          TextButton(
-            onPressed: () {
-              _gameState.dismissCrewMember(member);
-              Navigator.of(context).pop();
-              setState(() {}); // 刷新列表
-            },
-            child: Text('确定解雇', style: TextStyle(color: Colors.red[900], fontWeight: FontWeight.bold)),
-          ),
-        ],
+      builder: (context) => PaperDialog(
+        assetPath: 'assets/paper_ui/Sprites/Book Desk/4.png',
+        width: 400,
+        height: 250,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Text('解雇船员', style: TextStyle(color: Color(0xFF4E342E), fontSize: 20, fontWeight: FontWeight.bold)),
+            const SizedBox(height: 20),
+            Text('确定要解雇 ${member.name} 吗？\n解雇后无法撤销。', 
+              style: const TextStyle(color: Color(0xFF5D4037)), textAlign: TextAlign.center),
+            const Spacer(),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                PaperButton(
+                  label: '取消',
+                  onPressed: () => Navigator.of(context).pop(),
+                  style: PaperButtonStyle.brown,
+                  width: 80,
+                  height: 32,
+                ),
+                PaperButton(
+                  label: '确定',
+                  onPressed: () {
+                    _gameState.dismissCrewMember(member);
+                    Navigator.of(context).pop();
+                    setState(() {}); // 刷新列表
+                  },
+                  style: PaperButtonStyle.red,
+                  width: 80,
+                  height: 32,
+                ),
+              ],
+            ),
+          ],
+        ),
       ),
     );
   }

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../models/crew_member.dart';
 import 'game_state.dart';
 import 'paper_dialog.dart';
+import 'paper_button.dart';
 
 /// 港口酒馆对话框 - 用于招募船员
 class TavernDialog extends StatefulWidget {
@@ -66,54 +67,73 @@ class _TavernDialogState extends State<TavernDialog> {
     // 显示确认对话框
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('招募该船员？'),
-        content: Column(
+      builder: (context) => PaperDialog(
+        assetPath: 'assets/paper_ui/Sprites/Book Desk/4.png',
+        width: 400,
+        height: 300,
+        child: Column(
           mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('工资：${member.salary} 金币 / 天'),
-            const SizedBox(height: 8),
-            Text('招募费用：$recruitmentCost 金币'),
-            const SizedBox(height: 8),
-            Text('当前船员数：$currentCrewCount / $maxCrewCount'),
+            const Text('招募该船员？', style: TextStyle(color: Color(0xFF4E342E), fontSize: 20, fontWeight: FontWeight.bold)),
+            const SizedBox(height: 20),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('工资：${member.salary} 金币 / 天', style: const TextStyle(color: Color(0xFF5D4037))),
+                const SizedBox(height: 8),
+                Text('招募费用：$recruitmentCost 金币', style: const TextStyle(color: Color(0xFF5D4037))),
+                const SizedBox(height: 8),
+                Text('当前船员数：$currentCrewCount / $maxCrewCount', style: const TextStyle(color: Color(0xFF5D4037))),
+              ],
+            ),
+            const Spacer(),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                PaperButton(
+                  label: '再看看',
+                  onPressed: () => Navigator.of(context).pop(),
+                  style: PaperButtonStyle.brown,
+                  width: 80,
+                  height: 32,
+                ),
+                const SizedBox(width: 24),
+                PaperButton(
+                  label: '确认招募',
+                  onPressed: () {
+                    Navigator.of(context).pop(); // 关闭确认对话框
+                    
+                    // 扣除招募费用
+                    widget.gameState.spendGold(recruitmentCost);
+                    
+                    // 招募船员
+                    widget.gameState.recruitTavernCrew(member);
+                    
+                    // 更新本地选中状态
+                    setState(() {
+                      if (widget.gameState.availableTavernCrew.isEmpty) {
+                        _selectedCrew = null;
+                      } else {
+                        _selectedCrew = widget.gameState.availableTavernCrew.first;
+                      }
+                    });
+                    
+                    // 显示成功提示
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text('成功招募 ${member.name}！'),
+                        backgroundColor: Colors.green,
+                      ),
+                    );
+                  },
+                  style: PaperButtonStyle.green,
+                  width: 80,
+                  height: 32,
+                ),
+              ],
+            ),
           ],
         ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: const Text('再看看'),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              Navigator.of(context).pop(); // 关闭确认对话框
-              
-              // 扣除招募费用
-              widget.gameState.spendGold(recruitmentCost);
-              
-              // 招募船员
-              widget.gameState.recruitTavernCrew(member);
-              
-              // 更新本地选中状态
-              setState(() {
-                if (widget.gameState.availableTavernCrew.isEmpty) {
-                  _selectedCrew = null;
-                } else {
-                  _selectedCrew = widget.gameState.availableTavernCrew.first;
-                }
-              });
-              
-              // 显示成功提示
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text('成功招募 ${member.name}！'),
-                  backgroundColor: Colors.green,
-                ),
-              );
-            },
-            child: const Text('确认招募'),
-          ),
-        ],
       ),
     );
   }
@@ -143,9 +163,12 @@ class _TavernDialogState extends State<TavernDialog> {
                   ),
                 ),
                 const Spacer(),
-                IconButton(
-                  icon: const Icon(Icons.close, color: Color(0xFF4E342E), size: 24),
+                PaperButton(
                   onPressed: () => Navigator.of(context).pop(),
+                  icon: const Icon(Icons.close, color: Color(0xFF4E342E), size: 20),
+                  style: PaperButtonStyle.brown,
+                  width: 40,
+                  height: 40,
                 ),
               ],
             ),
@@ -431,43 +454,28 @@ class _TavernDialogState extends State<TavernDialog> {
           
           // 按钮
           Row(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Expanded(
-                child: OutlinedButton(
-                  onPressed: () {
-                    setState(() {
-                      _selectedCrew = null; // 取消选择，而不是关闭对话框
-                    });
-                  },
-                  style: OutlinedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(vertical: 12),
-                    side: const BorderSide(color: Color(0xFF8D6E63)),
-                  ),
-                  child: const Text(
-                    '取消',
-                    style: TextStyle(color: Color(0xFF4E342E)),
-                  ),
-                ),
+              PaperButton(
+                onPressed: () {
+                  setState(() {
+                    _selectedCrew = null; // 取消选择，而不是关闭对话框
+                  });
+                },
+                label: '取消',
+                style: PaperButtonStyle.brown,
+                width: 80,
+                height: 32,
               ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: ElevatedButton(
-                  onPressed: canRecruit
-                      ? () => _recruitCrew(member)
-                      : null,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF5D4037),
-                    padding: const EdgeInsets.symmetric(vertical: 12),
-                  ),
-                  child: const Text(
-                    '招募船员',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ),
+              const SizedBox(width: 24),
+              PaperButton(
+                onPressed: canRecruit
+                    ? () => _recruitCrew(member)
+                    : null,
+                label: '招募船员',
+                style: PaperButtonStyle.green,
+                width: 80,
+                height: 32,
               ),
             ],
           ),
