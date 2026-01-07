@@ -18,6 +18,28 @@ dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_lints: ^6.0.0
+  flutter_launcher_icons: ^0.14.4
+
+flutter_launcher_icons:
+  android: "launcher_icon"
+  ios: true
+  image_path: "assets/images/icon/gameicon.png"
+  min_sdk_android: 21 # android min sdk value
+  web:
+    generate: true
+    image_path: "assets/images/icon/gameicon.png"
+    background_color: "#ffffff"
+    theme_color: "#ffffff"
+  windows:
+    generate: true
+    image_path: "assets/images/icon/gameicon.png"
+    icon_size: 256 # min:48, max:256, default: 256
+  macos:
+    generate: true
+    image_path: "assets/images/icon/gameicon.png"
+  linux:
+    generate: true
+    image_path: "assets/images/icon/gameicon.png"
 
 flutter:
   uses-material-design: true
