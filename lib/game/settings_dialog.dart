@@ -7,6 +7,7 @@ import '../screens/loading_screen.dart';
 import '../screens/main_menu_screen.dart';
 import 'paper_dialog.dart';
 import 'paper_button.dart';
+import '../systems/music_system.dart';
 
 /// 设置对话框
 class SettingsDialog extends StatefulWidget {
@@ -97,7 +98,37 @@ class _SettingsDialogState extends State<SettingsDialog> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  _buildSwitchTile('音乐', true, (v) {}),
+                  const Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+                    child: Text(
+                      '声音设置',
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        color: Color(0xFF4E342E),
+                      ),
+                    ),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                    child: Row(
+                      children: [
+                        const Text('音乐音量', style: TextStyle(color: Color(0xFF4E342E))),
+                        Expanded(
+                          child: Slider(
+                            value: MusicSystem().volume,
+                            activeColor: const Color(0xFF5D4037),
+                            inactiveColor: const Color(0xFFD7CCC8),
+                            onChanged: (v) {
+                              setState(() {
+                                MusicSystem().setVolume(v);
+                              });
+                            },
+                          ),
+                        ),
+                        Text('${(MusicSystem().volume * 100).toInt()}%', style: const TextStyle(color: Color(0xFF4E342E))),
+                      ],
+                    ),
+                  ),
                   _buildSwitchTile('音效', true, (v) {}),
                   
                   // 仅在桌面端显示分辨率和全屏设置

@@ -13,6 +13,7 @@ class GameConfigLoader {
   List<Goods>? _goodsList;
   List<Port>? _portsList;
   Map<String, dynamic>? _crewConfig;
+  Map<String, dynamic>? _musicConfig;
   bool _isLoading = false;
   bool _isLoaded = false;
 
@@ -25,6 +26,15 @@ class GameConfigLoader {
       return {};
     }
     return _crewConfig!;
+  }
+
+  /// 获取音乐配置
+  Map<String, dynamic> get musicConfig {
+    if (_musicConfig == null) {
+      debugPrint('⚠ Warning: Accessing musicConfig before it is loaded.');
+      return {};
+    }
+    return _musicConfig!;
   }
 
   /// 获取所有货物列表
@@ -56,6 +66,7 @@ class GameConfigLoader {
         _loadGoodsConfig(),
         _loadPortsConfig(),
         _loadCrewConfig(),
+        _loadMusicConfig(),
       ]);
       _isLoaded = true;
     } finally {
@@ -92,6 +103,16 @@ class GameConfigLoader {
     } catch (e) {
       debugPrint('✗ Error loading crew config: $e');
       _crewConfig = {};
+    }
+  }
+
+  Future<void> _loadMusicConfig() async {
+    try {
+      final String response = await rootBundle.loadString('assets/config/music.json');
+      _musicConfig = json.decode(response);
+    } catch (e) {
+      debugPrint('✗ Error loading music config: $e');
+      _musicConfig = {};
     }
   }
 

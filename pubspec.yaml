@@ -12,6 +12,7 @@ dependencies:
   intl: ^0.20.2
   path_provider: ^2.1.5
   window_manager: ^0.5.1
+  audioplayers: ^6.1.0
 
 dev_dependencies:
   flutter_test:
@@ -32,3 +33,6 @@ flutter:
     - assets/images/goods/
     - assets/paper_ui/Sprites/Book Desk/
     - assets/paper_ui/Sprites/Content/4_Buttons/
+    - assets/music/main_menu/
+    - assets/music/combat/
+    - assets/music/cruising/

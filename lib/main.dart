@@ -3,10 +3,14 @@ import 'package:flutter/foundation.dart';
 import 'package:window_manager/window_manager.dart';
 import 'screens/main_menu_screen.dart';
 import 'game/scale_wrapper.dart';
+import 'utils/game_config_loader.dart';
 
 void main() async {
   // 确保 Flutter 绑定初始化
   WidgetsFlutterBinding.ensureInitialized();
+  
+  // 加载基础配置
+  await GameConfigLoader().loadConfig();
   
   // 初始化 window_manager（仅在桌面端）
   if (!kIsWeb && (defaultTargetPlatform == TargetPlatform.windows || 

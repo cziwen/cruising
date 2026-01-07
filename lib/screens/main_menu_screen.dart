@@ -10,6 +10,7 @@ import 'game_screen.dart';
 import 'loading_screen.dart';
 import 'save_load_screen.dart';
 import '../systems/save_system.dart';
+import '../systems/music_system.dart';
 
 class MainMenuScreen extends StatefulWidget {
   const MainMenuScreen({super.key});
@@ -19,19 +20,6 @@ class MainMenuScreen extends StatefulWidget {
 }
 
 class _MainMenuScreenState extends State<MainMenuScreen> {
-  // 分辨率选项
-  final List<Size> _resolutions = const [
-    Size(1280, 720),
-    Size(1920, 1080),
-    Size(2560, 1440),
-  ];
-  
-  // 当前选择的分辨率
-  final Size _currentResolution = const Size(1280, 720);
-  
-  // 全屏状态
-  bool _isFullScreen = false;
-
   @override
   void initState() {
     super.initState();
@@ -41,15 +29,14 @@ class _MainMenuScreenState extends State<MainMenuScreen> {
         defaultTargetPlatform == TargetPlatform.macOS)) {
       _checkFullScreenState();
     }
+    
+    // 播放主菜单音乐
+    MusicSystem().playState('main_menu');
   }
 
   Future<void> _checkFullScreenState() async {
-    final isFullScreen = await windowManager.isFullScreen();
-    if (mounted) {
-      setState(() {
-        _isFullScreen = isFullScreen;
-      });
-    }
+    // 仅初始化，暂未在 UI 中使用
+    await windowManager.isFullScreen();
   }
 
   @override

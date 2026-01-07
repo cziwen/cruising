@@ -1,0 +1,14 @@
+{
+  "main_menu": [
+    "music/main_menu/main_menu_background_music_1767740503078.mp3",
+    "music/main_menu/main_menu_background_music_1767740507834.mp3"
+  ],
+  "cruising": [
+    "music/cruising/cruising_background_music_1767740811421.mp3",
+    "music/cruising/cruising_background_music_1767740814856.mp3"
+  ],
+  "combat": [
+    "music/combat/combat_background_music_1767740800363.mp3",
+    "music/combat/combat_background_music_1767740803992.mp3"
+  ]
+}

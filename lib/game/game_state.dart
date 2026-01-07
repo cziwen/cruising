@@ -12,6 +12,7 @@ import '../systems/crew_system.dart';
 import '../systems/day_night_system.dart';
 import '../systems/trade_system.dart';
 import '../systems/save_system.dart';
+import '../systems/music_system.dart';
 import '../utils/game_config_loader.dart';
 
 /// 天气状况枚举
@@ -310,8 +311,10 @@ class GameState extends ChangeNotifier {
     // 如果停靠在港口，暂停时间
     if (_currentPort != null) {
       _dayNightSystem.pause();
+      MusicSystem().playState('port');
     } else {
       _dayNightSystem.resume();
+      MusicSystem().playState('cruising');
     }
 
     // 确保船只耐久度为满
@@ -738,6 +741,7 @@ class GameState extends ChangeNotifier {
 
     // 恢复时间流逝（离港后时间继续流动）
     _dayNightSystem.resume();
+    MusicSystem().playState('cruising');
 
     notifyListeners();
 
@@ -906,6 +910,9 @@ class GameState extends ChangeNotifier {
     _currentPort = port;
     _destinationPort = null;
     _isAtSea = false;
+
+    // 播放港口音乐
+    MusicSystem().playState('port');
 
     // 暂停时间流逝（停靠港口）
     _dayNightSystem.pause();
@@ -1313,6 +1320,8 @@ class GameState extends ChangeNotifier {
     // 启动敌方船只滑入动画
     _animateEnemyShipEnter();
 
+    MusicSystem().playState('combat');
+
     notifyListeners();
   }
 
@@ -1439,6 +1448,8 @@ class GameState extends ChangeNotifier {
     _isPlayerSinking = false;
     notifyListeners();
 
+    MusicSystem().playState('victory');
+
     // 敌方船只沉船动画
     await _animateEnemyShipSinking();
 
@@ -1476,6 +1487,8 @@ class GameState extends ChangeNotifier {
     _isSinking = true;
     _isPlayerSinking = true;
     notifyListeners();
+
+    MusicSystem().playState('defeat');
 
     // 启动沉船动画等待（但不阻塞黑屏启动）
     final sinkingFuture = _animatePlayerShipSinking();
