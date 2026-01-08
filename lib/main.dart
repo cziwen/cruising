@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 import 'package:window_manager/window_manager.dart';
 import 'screens/main_menu_screen.dart';
+import 'screens/loading_screen.dart';
+import 'screens/game_screen.dart';
 import 'game/scale_wrapper.dart';
 import 'utils/game_config_loader.dart';
 
@@ -58,7 +60,10 @@ class MainApp extends StatelessWidget {
           child: child!,
         );
       },
-      home: const MainMenuScreen(),
+      home: LoadingScreen(
+        nextScreen: const MainMenuScreen(),
+        onLoad: GameScreen.preload,
+      ),
     );
   }
 }

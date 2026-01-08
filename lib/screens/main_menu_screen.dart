@@ -7,7 +7,6 @@ import '../game/debug_panel.dart';
 import '../game/settings_dialog.dart';
 import '../game/paper_button.dart';
 import 'game_screen.dart';
-import 'loading_screen.dart';
 import 'save_load_screen.dart';
 import '../systems/save_system.dart';
 import '../systems/music_system.dart';
@@ -42,9 +41,12 @@ class _MainMenuScreenState extends State<MainMenuScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Stack(
-        children: [
-          // 背景层
+      body: GestureDetector(
+        onTapDown: (_) => MusicSystem().resumeMusic(),
+        behavior: HitTestBehavior.translucent,
+        child: Stack(
+          children: [
+            // 背景层
           Positioned.fill(
             child: Image.asset(
               'assets/images/painting/Cover_0.png', // 使用指定的封面图片
@@ -137,6 +139,7 @@ class _MainMenuScreenState extends State<MainMenuScreen> {
           const DebugPanel(),
         ],
       ),
+    ),
     );
   }
 
@@ -163,10 +166,7 @@ class _MainMenuScreenState extends State<MainMenuScreen> {
   void _startNewGame(BuildContext context) {
     Navigator.of(context).pushReplacement(
       MaterialPageRoute(
-        builder: (context) => LoadingScreen(
-          nextScreen: const GameScreen(),
-          onLoad: GameScreen.preload,
-        ),
+        builder: (context) => const GameScreen(),
       ),
     );
   }
@@ -192,10 +192,7 @@ class _MainMenuScreenState extends State<MainMenuScreen> {
       if (mounted) {
         Navigator.of(context).pushReplacement(
           MaterialPageRoute(
-            builder: (context) => LoadingScreen(
-              nextScreen: GameScreen(initialSaveData: gameData),
-              onLoad: GameScreen.preload,
-            ),
+            builder: (context) => GameScreen(initialSaveData: gameData),
           ),
         );
       }

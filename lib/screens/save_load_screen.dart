@@ -4,7 +4,6 @@ import '../game/game_state.dart';
 import '../game/paper_button.dart';
 import '../game/paper_dialog.dart';
 import 'game_screen.dart';
-import 'loading_screen.dart';
 
 enum SaveLoadMode {
   save,
@@ -92,10 +91,7 @@ class _SaveLoadScreenState extends State<SaveLoadScreen> {
         // Navigate to GameScreen with loaded data
         Navigator.of(context).pushAndRemoveUntil(
           MaterialPageRoute(
-            builder: (context) => LoadingScreen(
-              nextScreen: GameScreen(initialSaveData: gameData),
-              onLoad: GameScreen.preload,
-            ),
+            builder: (context) => GameScreen(initialSaveData: gameData),
           ),
           (route) => false, // Remove all previous routes
         );
@@ -172,7 +168,7 @@ class _SaveLoadScreenState extends State<SaveLoadScreen> {
                 BlendMode.darken,
               ),
               child: Image.asset(
-                'assets/images/background/oceanbg_0.png', // 使用有效的备用图片
+                'assets/images/background/oceanbg_1.png', // 使用有效的备用图片
                 fit: BoxFit.cover,
                 errorBuilder: (context, error, stackTrace) {
                   // 如果备用图片也失败，使用渐变背景

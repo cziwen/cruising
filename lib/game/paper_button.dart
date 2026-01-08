@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../systems/music_system.dart';
 
 enum PaperButtonStyle {
   brown,  // 0.png, 1.png
@@ -74,6 +75,7 @@ class _PaperButtonState extends State<PaperButton> {
         onTapDown: enabled ? (_) => setState(() => _isPressed = true) : null,
         onTapUp: enabled ? (_) {
           setState(() => _isPressed = false);
+          MusicSystem().resumeMusic();
           widget.onPressed?.call();
         } : null,
         onTapCancel: enabled ? () => setState(() => _isPressed = false) : null,

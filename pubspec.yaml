@@ -58,3 +58,7 @@ flutter:
     - assets/music/main_menu/
     - assets/music/combat/
     - assets/music/cruising/
+    - assets/sfx/button_press/
+    - assets/sfx/panel_open/
+    - assets/sfx/seagull/
+    - assets/sfx/wave/

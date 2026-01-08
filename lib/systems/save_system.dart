@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
+import 'package:flutter/foundation.dart';
 import 'package:intl/intl.dart';
 import 'package:path_provider/path_provider.dart';
 import '../game/game_state.dart';
@@ -64,24 +65,31 @@ class SaveManager {
 
   /// 获取文档目录
   static Future<String> get _localPath async {
+    if (kIsWeb) return ''; // Web 不支持文件路径
     final directory = await getApplicationDocumentsDirectory();
     return directory.path;
   }
 
   /// 获取存档文件
   static Future<File> _getSaveFile(int slotId) async {
+    if (kIsWeb) return File(''); // Web 上的 File 是 stub
     final path = await _localPath;
     return File('$path/$_saveFileNamePrefix$slotId.json');
   }
 
   /// 获取元数据文件
   static Future<File> _getMetaFile() async {
+    if (kIsWeb) return File('');
     final path = await _localPath;
     return File('$path/$_metaFileName');
   }
 
   /// 保存游戏
   static Future<void> saveGame(int slotId, GameState state) async {
+    if (kIsWeb) {
+      print('Web platform: Saving is currently not supported via File IO.');
+      return;
+    }
     try {
       // 1. 保存游戏数据
       final gameData = state.toJson();
@@ -107,11 +115,15 @@ class SaveManager {
 
   /// 自动存档
   static Future<void> autoSave(GameState state) async {
+    if (kIsWeb) return;
     await saveGame(0, state);
   }
 
   /// 读取游戏
   static Future<Map<String, dynamic>> loadGame(int slotId) async {
+    if (kIsWeb) {
+      throw Exception('Web platform: Loading is currently not supported via File IO.');
+    }
     try {
       final file = await _getSaveFile(slotId);
       if (!await file.exists()) {
@@ -127,6 +139,7 @@ class SaveManager {
 
   /// 删除存档
   static Future<void> deleteSave(int slotId) async {
+    if (kIsWeb) return;
     try {
       final file = await _getSaveFile(slotId);
       if (await file.exists()) {
@@ -140,6 +153,7 @@ class SaveManager {
 
   /// 获取所有存档槽位信息
   static Future<List<SaveSlot>> getSaveSlots() async {
+    if (kIsWeb) return []; // Web 平台暂不返回存档
     try {
       final file = await _getMetaFile();
       if (!await file.exists()) {
@@ -156,6 +170,7 @@ class SaveManager {
 
   /// 更新单个槽位的元数据
   static Future<void> _updateMeta(SaveSlot newSlot) async {
+    if (kIsWeb) return;
     final slots = await getSaveSlots();
     // 移除旧的同ID槽位
     slots.removeWhere((s) => s.id == newSlot.id);
@@ -172,6 +187,7 @@ class SaveManager {
 
   /// 移除单个槽位的元数据
   static Future<void> _removeMeta(int slotId) async {
+    if (kIsWeb) return;
     final slots = await getSaveSlots();
     slots.removeWhere((s) => s.id == slotId);
     
@@ -182,12 +198,14 @@ class SaveManager {
   
   /// 检查是否有存档
   static Future<bool> hasAnySave() async {
+    if (kIsWeb) return false;
     final slots = await getSaveSlots();
     return slots.isNotEmpty;
   }
 
   /// 删除所有存档
   static Future<void> deleteAllSaves() async {
+    if (kIsWeb) return;
     try {
       final slots = await getSaveSlots();
       for (final slot in slots) {

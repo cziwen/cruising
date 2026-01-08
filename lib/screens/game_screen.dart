@@ -1,11 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart';
+import 'package:audioplayers/audioplayers.dart';
 import '../game/game_state.dart';
 import '../game/game_scene.dart';
 import '../game/tavern_dialog.dart';
 import '../systems/trade_system.dart';
 import '../systems/port_system.dart';
+import '../systems/music_system.dart';
 import '../game/shipyard_dialog.dart';
 import '../game/settings_dialog.dart';
 import '../utils/game_config_loader.dart';
@@ -15,91 +18,104 @@ class GameScreen extends StatefulWidget {
 
   const GameScreen({super.key, this.initialSaveData});
 
-  /// 预加载游戏资源（图片等）
+  /// 预加载游戏资源（图片、音频等）
   /// 返回一个 Future，可以传递给 LoadingScreen.waitFor 来等待加载完成
   static Future<void> preload(BuildContext context) async {
-    // 加载游戏配置
+    // 1. 加载游戏配置
     try {
       final configLoader = GameConfigLoader();
       await configLoader.loadConfig();
     } catch (e) {
       debugPrint('✗ Failed to load game config: $e');
-      // 不再重新抛出，允许应用尝试继续运行（GameConfigLoader 内部已处理为返回空列表）
     }
 
-    // 动态从配置中获取需要预加载的图片
-    final List<String> imagesToPreload = [
-      // 其他固定图片
-      'assets/images/buildings/village_0.png',
-      'assets/images/buildings/village_1.png',
-      'assets/images/buildings/village_2.png',
-      'assets/images/buildings/village_3.png',
-      'assets/images/buildings/village_4.png',
-      'assets/images/buildings/village_5.png',
-      'assets/images/buildings/village_6.png',
-      'assets/images/buildings/village_7.png',
-      'assets/images/buildings/business_port.png',
-      'assets/images/buildings/exotic_village.png',
-    ];
+    // 2. 动态发现所有资源
+    final List<String> imageAssets = [];
+    final List<String> audioAssets = [];
 
     try {
-      final configLoader = GameConfigLoader();
-      if (configLoader.portsList.isNotEmpty) {
-        imagesToPreload.addAll(configLoader.portsList.map((p) => p.backgroundImage));
-      }
-      if (configLoader.goodsList.isNotEmpty) {
-        imagesToPreload.addAll(configLoader.goodsList.where((g) => g.imagePath != null).map((g) => g.imagePath!));
-      }
-    } catch (e) {
-      debugPrint('Warning: Could not extract images from config for preloading: $e');
-    }
-
-    final uniqueImagesToPreload = imagesToPreload.toSet().toList(); // 去重
-
-    // 预加载所有图片，带错误处理
-    // 在web平台上，precacheImage可能成功但实际使用时仍会失败（asset manifest问题）
-    // 使用 wait 的 continueOnError 模式，确保即使某些图片失败也不影响整体流程
-    final results = await Future.wait(
-      uniqueImagesToPreload.map((path) async {
-        try {
-          // 尝试预加载图片
-          await precacheImage(AssetImage(path), context);
-          return true;
-        } catch (e) {
-          final errorMsg = e.toString();
-          
-          // 检查错误类型
-          final isAssetNotFound = errorMsg.contains('Unable to load asset') || 
-                                  errorMsg.contains('Asset not found');
-          final isInvalidImageData = errorMsg.contains('Invalid image data') || 
-                                     errorMsg.contains('CodecException');
-          
-          if (isAssetNotFound) {
-            if (kIsWeb) {
-              debugPrint('⚠ Web asset not found: $path');
-            } else {
-              debugPrint('⚠ Asset not found: $path');
-            }
-          } else if (isInvalidImageData) {
-            debugPrint('⚠ Skipped invalid/corrupted image: $path');
-          } else {
-            debugPrint('✗ Failed to preload: $path');
-            debugPrint('  Error: $e');
-          }
-          
-          return false;
+      final AssetManifest manifest = await AssetManifest.loadFromAssetBundle(rootBundle);
+      final allAssets = manifest.listAssets();
+      
+      for (final asset in allAssets) {
+        final lowerAsset = asset.toLowerCase();
+        // 只加载 assets/ 目录下的资源，排除其他可能的资源
+        if (!lowerAsset.startsWith('assets/')) continue;
+        
+        if (lowerAsset.endsWith('.png') || 
+            lowerAsset.endsWith('.jpg') || 
+            lowerAsset.endsWith('.jpeg') || 
+            lowerAsset.endsWith('.webp') || 
+            lowerAsset.endsWith('.gif')) {
+          imageAssets.add(asset);
+        } else if (lowerAsset.endsWith('.mp3') || 
+                   lowerAsset.endsWith('.wav') || 
+                   lowerAsset.endsWith('.ogg')) {
+          audioAssets.add(asset);
         }
-      }),
-      eagerError: false, // 不因单个错误而立即失败
-    );
-    
-    final successCount = results.where((r) => r).length;
-    final failCount = results.length - successCount;
-    if (failCount > 0) {
-      debugPrint('✓ Game resources loaded ($successCount/${results.length} images, $failCount failed)');
-    } else {
-      debugPrint('✓ Game resources loaded (${results.length} images)');
+      }
+      debugPrint('Found ${imageAssets.length} images and ${audioAssets.length} audio files to preload.');
+    } catch (e) {
+      debugPrint('✗ Failed to discover assets: $e');
     }
+
+    // 3. 预加载图片
+    if (imageAssets.isNotEmpty) {
+      final imageResults = await Future.wait(
+        imageAssets.map((path) async {
+          try {
+            // 在 Web 平台上，AssetImage 可能会将路径前的 assets/ 视为重复
+            // 但在其他平台上则需要完整的 assets/ 前缀。
+            // 经验做法是，如果 precache 失败，尝试移除 assets/ 前缀再试一次。
+            await precacheImage(AssetImage(path), context);
+            return true;
+          } catch (e) {
+            try {
+              if (path.startsWith('assets/')) {
+                final alternativePath = path.replaceFirst('assets/', '');
+                await precacheImage(AssetImage(alternativePath), context);
+                return true;
+              }
+            } catch (_) {}
+            
+            // 检查错误类型，精简日志
+            final errorMsg = e.toString();
+            if (errorMsg.contains('Unable to load asset')) {
+              // 暂时忽略 Web 上的 404 详细日志，避免刷屏
+            } else {
+              debugPrint('⚠ Failed to preload image: $path ($e)');
+            }
+            return false;
+          }
+        }),
+        eagerError: false,
+      );
+      final successCount = imageResults.where((r) => r).length;
+      debugPrint('✓ Image preloading complete: $successCount/${imageAssets.length} successful');
+    }
+
+    // 4. 预加载音频 (触发初始化解码)
+    if (audioAssets.isNotEmpty) {
+      final player = AudioPlayer();
+      int audioSuccessCount = 0;
+      for (final path in audioAssets) {
+        try {
+          // AssetSource 期望相对于 assets/ 的路径
+          final sourcePath = path.replaceFirst('assets/', '');
+          await player.setSource(AssetSource(sourcePath));
+          audioSuccessCount++;
+        } catch (e) {
+          debugPrint('⚠ Failed to preload audio: $path ($e)');
+        }
+      }
+      await player.dispose();
+      debugPrint('✓ Audio preloading complete: $audioSuccessCount/${audioAssets.length} successful');
+    }
+
+    // 5. 初始化音乐系统
+    MusicSystem().initialize();
+    
+    debugPrint('✓ All resources preloading task finished.');
   }
 
   @override

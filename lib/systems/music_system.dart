@@ -23,8 +23,20 @@ class MusicSystem {
   String? _currentTrack;
   double _volume = 0.5;
   Timer? _fadeTimer;
+  bool _isInitialized = false;
 
   double get volume => _volume;
+
+  /// 初始化音乐系统 (通常在资源预加载后调用)
+  void initialize() {
+    _isInitialized = true;
+    if (_currentState != null && _currentTrack != null) {
+      debugPrint('MusicSystem: Initialized with pending state: $_currentState');
+      // 如果已经有待播放的状态，在初始化后尝试播放
+      // 注意：在 Web 端这仍可能被浏览器拦截，直到用户交互
+      _crossFadeTo(_currentTrack!);
+    }
+  }
 
   /// 设置全局音乐音量 (0.0 到 1.0)
   void setVolume(double value) {
@@ -36,7 +48,7 @@ class MusicSystem {
   /// 如果状态匹配成功，随机从该状态的音乐列表中选择一首播放
   /// 如果状态匹配失败或状态名改变，平滑淡出当前音乐
   Future<void> playState(String stateName) async {
-    if (_currentState == stateName) return;
+    if (_currentState == stateName && _currentPlayer.state == PlayerState.playing) return;
 
     final config = GameConfigLoader().musicConfig;
     if (!config.containsKey(stateName)) {
@@ -60,7 +72,7 @@ class MusicSystem {
     final random = Random();
     final String trackPath = tracks[random.nextInt(tracks.length)];
 
-    if (_currentTrack == trackPath) {
+    if (_currentTrack == trackPath && _currentPlayer.state == PlayerState.playing) {
       _currentState = stateName;
       return;
     }
@@ -68,6 +80,11 @@ class MusicSystem {
     debugPrint('MusicSystem: Switching to state "$stateName", track: $trackPath');
     _currentState = stateName;
     _currentTrack = trackPath;
+
+    if (!_isInitialized) {
+      debugPrint('MusicSystem: Not initialized yet. Delaying playback.');
+      return;
+    }
 
     try {
       await _crossFadeTo(trackPath);
@@ -91,8 +108,14 @@ class MusicSystem {
       await nextPlayer.setVolume(0);
       
       // 在播放前确保状态正确
-      await nextPlayer.resume();
-      debugPrint('MusicSystem: Next player resumed (initially silent)');
+      try {
+        await nextPlayer.resume();
+        debugPrint('MusicSystem: Next player resumed (initially silent)');
+      } catch (e) {
+        // 在 Web 端，如果还没有用户交互，这里会报错 NotAllowedError
+        // 我们忽略它，让淡入淡出逻辑继续，这样 _currentPlayer 会正确切换
+        debugPrint('MusicSystem Warning: Could not auto-resume next player (expected on Web): $e');
+      }
     } catch (e) {
       debugPrint('MusicSystem Error: Error preparing next player: $e');
       return;
@@ -169,6 +192,27 @@ class MusicSystem {
         }
       }
     });
+  }
+
+  /// 尝试恢复播放当前音乐 (常用于 Web 端用户交互后)
+  Future<void> resumeMusic() async {
+    // 如果没有初始化，不执行
+    if (!_isInitialized) return;
+
+    // 如果当前播放器不在播放状态，且已经有选定的曲目
+    if (_currentPlayer.state != PlayerState.playing && _currentTrack != null) {
+      try {
+        debugPrint('MusicSystem: Attempting to resume music after interaction. State: ${_currentPlayer.state}, Track: $_currentTrack');
+        
+        // 在某些 Web 浏览器上，resume() 可能不够，重新调用 playState 逻辑
+        // 但为了避免重新选择音轨，我们直接调用 _crossFadeTo
+        await _crossFadeTo(_currentTrack!);
+        
+        debugPrint('MusicSystem: Resumed music successfully');
+      } catch (e) {
+        debugPrint('MusicSystem Error: Failed to resume music: $e');
+      }
+    }
   }
 }
 
