@@ -1,0 +1,51 @@
+{
+  "ambient": {
+    "wave": {
+      "tracks": [
+        "sfx/wave/wave_1767760583270.mp3",
+        "sfx/wave/wave_1767760594993.mp3",
+        "sfx/wave/wave_1767760597725.mp3",
+        "sfx/wave/wave_1767760600690.mp3",
+        "sfx/wave/wave_1767760604299.mp3",
+        "sfx/wave/wave_1767760607690.mp3",
+        "sfx/wave/wave_1767760609617.mp3",
+        "sfx/wave/wave_1767760611332.mp3"
+      ],
+      "min_delay": 5,
+      "max_delay": 15,
+      "states": ["port", "cruising"]
+    },
+    "seagull": {
+      "tracks": [
+        "sfx/seagull/seagull_cry_1767760456642.mp3",
+        "sfx/seagull/seagull_cry_1767760459950.mp3",
+        "sfx/seagull/seagull_cry_1767760462141.mp3",
+        "sfx/seagull/seagull_cry_1767760501209.mp3",
+        "sfx/seagull/seagull_cry_1767760507129.mp3",
+        "sfx/seagull/seagull_cry_1767760511735.mp3"
+      ],
+      "min_delay": 10,
+      "max_delay": 30,
+      "states": ["port"]
+    },
+    "seagull_rare": {
+      "tracks": [
+        "sfx/seagull/seagull_cry_1767760456642.mp3",
+        "sfx/seagull/seagull_cry_1767760459950.mp3",
+        "sfx/seagull/seagull_cry_1767760462141.mp3",
+        "sfx/seagull/seagull_cry_1767760501209.mp3",
+        "sfx/seagull/seagull_cry_1767760507129.mp3",
+        "sfx/seagull/seagull_cry_1767760511735.mp3"
+      ],
+      "min_delay": 30,
+      "max_delay": 120,
+      "states": ["cruising"]
+    }
+  },
+  "one_shot": {
+    "button_press": "sfx/button_press/button_press_1767760066856.mp3",
+    "panel_open": "sfx/panel_open/panel_open_1767760127142.mp3",
+    "victory": "sfx/panel_open/panel_open_1767760127142.mp3",
+    "defeat": "sfx/panel_open/panel_open_1767760127142.mp3"
+  }
+}

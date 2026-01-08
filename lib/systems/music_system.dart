@@ -4,7 +4,76 @@ import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/foundation.dart';
 import '../utils/game_config_loader.dart';
 
-/// 音乐系统，负责背景音乐的切换、淡入淡出和音量管理
+/// 环境音效控制器，负责在特定状态下间歇性播放音效
+class AmbientSFXController {
+  final String category;
+  final List<String> tracks;
+  final int minDelay;
+  final int maxDelay;
+  final List<String> activeStates;
+  final AudioPlayer _player = AudioPlayer();
+  Timer? _timer;
+  double _volume = 0.5;
+
+  AmbientSFXController({
+    required this.category,
+    required this.tracks,
+    required this.minDelay,
+    required this.maxDelay,
+    required this.activeStates,
+  });
+
+  void setVolume(double volume) {
+    _volume = volume;
+    _player.setVolume(volume);
+  }
+
+  void updateState(String stateName) {
+    if (activeStates.contains(stateName)) {
+      _start();
+    } else {
+      _stop();
+    }
+  }
+
+  void _start() {
+    if (_timer != null) return;
+    _scheduleNext();
+  }
+
+  void _stop() {
+    _timer?.cancel();
+    _timer = null;
+    _player.stop();
+  }
+
+  void _scheduleNext() {
+    _timer?.cancel();
+    final delay = minDelay + Random().nextInt(maxDelay - minDelay + 1);
+    _timer = Timer(Duration(seconds: delay), () {
+      _playRandom();
+      _scheduleNext();
+    });
+  }
+
+  Future<void> _playRandom() async {
+    if (tracks.isEmpty) return;
+    final track = tracks[Random().nextInt(tracks.length)];
+    try {
+      await _player.setVolume(_volume);
+      await _player.play(AssetSource(track));
+    } catch (e) {
+      debugPrint('AmbientSFX Error ($category): $e');
+    }
+  }
+
+  void dispose() {
+    _stop();
+    _player.dispose();
+  }
+}
+
+/// 音频系统，负责背景音乐和音效的切换、管理
 class MusicSystem {
   static final MusicSystem _instance = MusicSystem._internal();
   factory MusicSystem() => _instance;
@@ -13,76 +82,123 @@ class MusicSystem {
     _playerA = AudioPlayer();
     _playerB = AudioPlayer();
     _currentPlayer = _playerA;
+
+    // 初始化 SFX 播放器池
+    for (int i = 0; i < _sfxPoolSize; i++) {
+      _sfxPool.add(AudioPlayer());
+    }
   }
 
   late AudioPlayer _playerA;
   late AudioPlayer _playerB;
   late AudioPlayer _currentPlayer;
 
+  // SFX 相关
+  final int _sfxPoolSize = 5;
+  final List<AudioPlayer> _sfxPool = [];
+  int _nextSfxIndex = 0;
+  final Map<String, AmbientSFXController> _ambientControllers = {};
+
   String? _currentState;
   String? _currentTrack;
-  double _volume = 0.5;
+  double _musicVolume = 0.3;
+  double _sfxVolume = 0.1;
   Timer? _fadeTimer;
   bool _isInitialized = false;
 
-  double get volume => _volume;
+  double get musicVolume => _musicVolume;
+  double get sfxVolume => _sfxVolume;
 
-  /// 初始化音乐系统 (通常在资源预加载后调用)
+  /// 初始化音频系统
   void initialize() {
     _isInitialized = true;
-    if (_currentState != null && _currentTrack != null) {
+    
+    // 加载环境音配置
+    final sfxConfig = GameConfigLoader().sfxConfig;
+    if (sfxConfig.containsKey('ambient')) {
+      final ambientConfig = sfxConfig['ambient'] as Map<String, dynamic>;
+      ambientConfig.forEach((key, value) {
+        final config = value as Map<String, dynamic>;
+        _ambientControllers[key] = AmbientSFXController(
+          category: key,
+          tracks: List<String>.from(config['tracks']),
+          minDelay: config['min_delay'],
+          maxDelay: config['max_delay'],
+          activeStates: List<String>.from(config['states']),
+        )..setVolume(_sfxVolume);
+      });
+    }
+
+    if (_currentState != null) {
       debugPrint('MusicSystem: Initialized with pending state: $_currentState');
-      // 如果已经有待播放的状态，在初始化后尝试播放
-      // 注意：在 Web 端这仍可能被浏览器拦截，直到用户交互
-      _crossFadeTo(_currentTrack!);
+      _updateAmbientControllers(_currentState!);
+      
+      if (_currentTrack != null) {
+        _crossFadeTo(_currentTrack!);
+      }
     }
   }
 
   /// 设置全局音乐音量 (0.0 到 1.0)
-  void setVolume(double value) {
-    _volume = value.clamp(0.0, 1.0);
-    _currentPlayer.setVolume(_volume);
+  void setMusicVolume(double value) {
+    _musicVolume = value.clamp(0.0, 1.0);
+    _currentPlayer.setVolume(_musicVolume);
   }
 
-  /// 播放指定状态对应的音乐
-  /// 如果状态匹配成功，随机从该状态的音乐列表中选择一首播放
-  /// 如果状态匹配失败或状态名改变，平滑淡出当前音乐
+  /// 设置全局音效音量 (0.0 到 1.0)
+  void setSfxVolume(double value) {
+    _sfxVolume = value.clamp(0.0, 1.0);
+    for (var controller in _ambientControllers.values) {
+      controller.setVolume(_sfxVolume);
+    }
+  }
+
+  /// 播放指定状态对应的背景音乐和环境音
   Future<void> playState(String stateName) async {
+    // 即使 BGM 没变，也要更新环境音状态
+    _updateAmbientControllers(stateName);
+
+    // 检查是否有状态触发的单次音效
+    final sfxConfig = GameConfigLoader().sfxConfig;
+    if (sfxConfig.containsKey('one_shot')) {
+      final oneShotConfig = sfxConfig['one_shot'] as Map<String, dynamic>;
+      if (oneShotConfig.containsKey(stateName)) {
+        playSFX(stateName);
+      }
+    }
+
     if (_currentState == stateName && _currentPlayer.state == PlayerState.playing) return;
 
-    final config = GameConfigLoader().musicConfig;
-    if (!config.containsKey(stateName)) {
-      debugPrint('MusicSystem: State "$stateName" not found in config. Stopping music.');
-      _currentState = stateName;
+    final musicConfig = GameConfigLoader().musicConfig;
+    _currentState = stateName;
+
+    if (!musicConfig.containsKey(stateName)) {
+      debugPrint('MusicSystem: State "$stateName" not found in music config. Stopping BGM.');
       _currentTrack = null;
       await _fadeOutAndStop();
       return;
     }
 
-    final List<dynamic> tracks = config[stateName];
+    final List<dynamic> tracks = musicConfig[stateName];
     if (tracks.isEmpty) {
-      debugPrint('MusicSystem: State "$stateName" has no tracks. Stopping music.');
-      _currentState = stateName;
+      debugPrint('MusicSystem: State "$stateName" has no tracks. Stopping BGM.');
       _currentTrack = null;
       await _fadeOutAndStop();
       return;
     }
 
-    // 随机选择一首歌
     final random = Random();
     final String trackPath = tracks[random.nextInt(tracks.length)];
 
     if (_currentTrack == trackPath && _currentPlayer.state == PlayerState.playing) {
-      _currentState = stateName;
       return;
     }
 
-    debugPrint('MusicSystem: Switching to state "$stateName", track: $trackPath');
-    _currentState = stateName;
+    debugPrint('MusicSystem: Switching BGM to state "$stateName", track: $trackPath');
     _currentTrack = trackPath;
 
     if (!_isInitialized) {
-      debugPrint('MusicSystem: Not initialized yet. Delaying playback.');
+      debugPrint('MusicSystem: Not initialized yet. Delaying BGM playback.');
       return;
     }
 
@@ -93,27 +209,51 @@ class MusicSystem {
     }
   }
 
+  /// 播放单次音效
+  Future<void> playSFX(String sfxId) async {
+    final sfxConfig = GameConfigLoader().sfxConfig;
+    if (!sfxConfig.containsKey('one_shot')) return;
+
+    final oneShotConfig = sfxConfig['one_shot'] as Map<String, dynamic>;
+    if (!oneShotConfig.containsKey(sfxId)) {
+      // debugPrint('MusicSystem: SFX "$sfxId" not found in config.');
+      return;
+    }
+
+    final String assetPath = oneShotConfig[sfxId];
+    
+    // 从池中获取播放器
+    final player = _sfxPool[_nextSfxIndex];
+    _nextSfxIndex = (_nextSfxIndex + 1) % _sfxPoolSize;
+
+    try {
+      await player.setVolume(_sfxVolume);
+      await player.play(AssetSource(assetPath));
+    } catch (e) {
+      debugPrint('MusicSystem SFX Error: Failed to play SFX "$sfxId": $e');
+    }
+  }
+
+  void _updateAmbientControllers(String stateName) {
+    for (var controller in _ambientControllers.values) {
+      controller.updateState(stateName);
+    }
+  }
+
   /// 交叉淡入淡出到新音轨
   Future<void> _crossFadeTo(String assetPath) async {
     _fadeTimer?.cancel();
 
     final nextPlayer = (_currentPlayer == _playerA) ? _playerB : _playerA;
     
-    debugPrint('MusicSystem: Preparing next player with $assetPath');
-    
-    // 准备下一个播放器
     try {
       await nextPlayer.setSource(AssetSource(assetPath));
       await nextPlayer.setReleaseMode(ReleaseMode.loop);
       await nextPlayer.setVolume(0);
       
-      // 在播放前确保状态正确
       try {
         await nextPlayer.resume();
-        debugPrint('MusicSystem: Next player resumed (initially silent)');
       } catch (e) {
-        // 在 Web 端，如果还没有用户交互，这里会报错 NotAllowedError
-        // 我们忽略它，让淡入淡出逻辑继续，这样 _currentPlayer 会正确切换
         debugPrint('MusicSystem Warning: Could not auto-resume next player (expected on Web): $e');
       }
     } catch (e) {
@@ -121,8 +261,6 @@ class MusicSystem {
       return;
     }
 
-    // 开始淡入淡出过程
-    // 减少步数，增加步长，以减少对 Windows 消息队列的压力
     const steps = 15;
     const duration = Duration(milliseconds: 2000);
     final stepDuration = Duration(milliseconds: duration.inMilliseconds ~/ steps);
@@ -133,10 +271,8 @@ class MusicSystem {
       final double progress = currentStep / steps;
 
       try {
-        // 淡出当前播放器
-        await _currentPlayer.setVolume(((1 - progress) * _volume).clamp(0.0, 1.0));
-        // 淡入下一个播放器
-        await nextPlayer.setVolume((progress * _volume).clamp(0.0, 1.0));
+        await _currentPlayer.setVolume(((1 - progress) * _musicVolume).clamp(0.0, 1.0));
+        await nextPlayer.setVolume((progress * _musicVolume).clamp(0.0, 1.0));
       } catch (e) {
         debugPrint('MusicSystem Warning: Error setting volume during fade: $e');
       }
@@ -158,8 +294,7 @@ class MusicSystem {
   Future<void> _fadeOutAndStop() async {
     _fadeTimer?.cancel();
     
-    // 如果已经在音量为0，直接停止
-    if (_volume <= 0) {
+    if (_musicVolume <= 0) {
       await _currentPlayer.stop();
       return;
     }
@@ -169,7 +304,7 @@ class MusicSystem {
     final stepDuration = Duration(milliseconds: duration.inMilliseconds ~/ steps);
     int currentStep = 0;
 
-    final initialVolume = _volume;
+    final initialVolume = _musicVolume;
 
     _fadeTimer = Timer.periodic(stepDuration, (timer) async {
       currentStep++;
@@ -196,23 +331,33 @@ class MusicSystem {
 
   /// 尝试恢复播放当前音乐 (常用于 Web 端用户交互后)
   Future<void> resumeMusic() async {
-    // 如果没有初始化，不执行
     if (!_isInitialized) return;
 
-    // 如果当前播放器不在播放状态，且已经有选定的曲目
     if (_currentPlayer.state != PlayerState.playing && _currentTrack != null) {
       try {
-        debugPrint('MusicSystem: Attempting to resume music after interaction. State: ${_currentPlayer.state}, Track: $_currentTrack');
-        
-        // 在某些 Web 浏览器上，resume() 可能不够，重新调用 playState 逻辑
-        // 但为了避免重新选择音轨，我们直接调用 _crossFadeTo
         await _crossFadeTo(_currentTrack!);
-        
-        debugPrint('MusicSystem: Resumed music successfully');
       } catch (e) {
         debugPrint('MusicSystem Error: Failed to resume music: $e');
       }
     }
   }
-}
 
+  /// 停止所有音频（包括环境音）
+  void stopAll() {
+    _fadeOutAndStop();
+    for (var controller in _ambientControllers.values) {
+      controller._stop();
+    }
+  }
+
+  void dispose() {
+    _playerA.dispose();
+    _playerB.dispose();
+    for (var player in _sfxPool) {
+      player.dispose();
+    }
+    for (var controller in _ambientControllers.values) {
+      controller.dispose();
+    }
+  }
+}

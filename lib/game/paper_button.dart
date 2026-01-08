@@ -75,6 +75,7 @@ class _PaperButtonState extends State<PaperButton> {
         onTapDown: enabled ? (_) => setState(() => _isPressed = true) : null,
         onTapUp: enabled ? (_) {
           setState(() => _isPressed = false);
+          MusicSystem().playSFX('button_press');
           MusicSystem().resumeMusic();
           widget.onPressed?.call();
         } : null,

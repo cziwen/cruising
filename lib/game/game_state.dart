@@ -947,10 +947,7 @@ class GameState extends ChangeNotifier {
 
   /// 确保主岛在港口列表中
   void _ensureHomeIslandInPorts() {
-    // 1. 查找或创建主岛
-    final index = _ports.indexWhere((p) => p.id == 'home_island');
-    
-    // 根据主岛养成等级，计算主岛作为港口的各项属性
+    // 1. 查找或创建主岛基本属性
     final homePort = Port(
       id: 'home_island',
       name: '我的岛屿',
@@ -958,7 +955,7 @@ class GameState extends ChangeNotifier {
       description: '这是你的私人岛屿，可以进行养成和存储。',
       unlocked: true,
       distances: {
-        'port_1': 480, // 距离起始港较近
+        'port_1': 480, // 默认到起始港较近
       },
       goodsConfig: {
         // 主岛也有商人，其配置受等级影响
@@ -987,29 +984,37 @@ class GameState extends ChangeNotifier {
       initialMerchantMoney: 1000 + _homeIsland.merchantFundsLevel * 2000,
     );
 
-    if (index != -1) {
-      _ports[index] = homePort;
-    } else {
-      _ports.add(homePort);
-    }
+    // 2. 建立双向距离连接
+    final homeDistances = Map<String, int>.from(homePort.distances);
 
-    // 2. 确保其他所有港口都能航行回主岛
     for (int i = 0; i < _ports.length; i++) {
       final port = _ports[i];
-      if (port.id != 'home_island' && !port.distances.containsKey('home_island')) {
-        // 创建新的 distances Map
-        final newDistances = Map<String, int>.from(port.distances);
-        // 如果是从 port_1 出发，距离为 480；其他港口则根据 port_1 的距离累加
-        int distanceToHome = 1200; // 默认较远
-        if (port.id == 'port_1') {
-          distanceToHome = 480;
-        } else if (port.distances.containsKey('port_1')) {
-          distanceToHome = port.distances['port_1']! + 480;
-        }
-        
-        newDistances['home_island'] = distanceToHome;
-        _ports[i] = port.copyWith(distances: newDistances);
+      if (port.id == 'home_island') continue;
+
+      // 计算该港口到主岛的距离
+      int distanceToHome = 1200; // 默认较远
+      if (port.id == 'port_1') {
+        distanceToHome = 480;
+      } else if (port.distances.containsKey('port_1')) {
+        distanceToHome = port.distances['port_1']! + 480;
       }
+      
+      // 更新其他港口到主岛的距离
+      final newDistances = Map<String, int>.from(port.distances);
+      newDistances['home_island'] = distanceToHome;
+      _ports[i] = port.copyWith(distances: newDistances);
+
+      // 同时更新主岛到该港口的距离，防止瞬间移动
+      homeDistances[port.id] = distanceToHome;
+    }
+
+    // 3. 将带有完整距离图的主岛更新到列表中
+    final finalHomePort = homePort.copyWith(distances: homeDistances);
+    final index = _ports.indexWhere((p) => p.id == 'home_island');
+    if (index != -1) {
+      _ports[index] = finalHomePort;
+    } else {
+      _ports.add(finalHomePort);
     }
   }
 

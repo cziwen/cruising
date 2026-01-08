@@ -115,21 +115,41 @@ class _SettingsDialogState extends State<SettingsDialog> {
                         const Text('音乐音量', style: TextStyle(color: Color(0xFF4E342E))),
                         Expanded(
                           child: Slider(
-                            value: MusicSystem().volume,
+                            value: MusicSystem().musicVolume,
                             activeColor: const Color(0xFF5D4037),
                             inactiveColor: const Color(0xFFD7CCC8),
                             onChanged: (v) {
                               setState(() {
-                                MusicSystem().setVolume(v);
+                                MusicSystem().setMusicVolume(v);
                               });
                             },
                           ),
                         ),
-                        Text('${(MusicSystem().volume * 100).toInt()}%', style: const TextStyle(color: Color(0xFF4E342E))),
+                        Text('${(MusicSystem().musicVolume * 100).toInt()}%', style: const TextStyle(color: Color(0xFF4E342E))),
                       ],
                     ),
                   ),
-                  _buildSwitchTile('音效', true, (v) {}),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                    child: Row(
+                      children: [
+                        const Text('音效音量', style: TextStyle(color: Color(0xFF4E342E))),
+                        Expanded(
+                          child: Slider(
+                            value: MusicSystem().sfxVolume,
+                            activeColor: const Color(0xFF5D4037),
+                            inactiveColor: const Color(0xFFD7CCC8),
+                            onChanged: (v) {
+                              setState(() {
+                                MusicSystem().setSfxVolume(v);
+                              });
+                            },
+                          ),
+                        ),
+                        Text('${(MusicSystem().sfxVolume * 100).toInt()}%', style: const TextStyle(color: Color(0xFF4E342E))),
+                      ],
+                    ),
+                  ),
                   
                   // 仅在桌面端显示分辨率和全屏设置
                   if (!kIsWeb && (defaultTargetPlatform == TargetPlatform.windows || 

@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
+import '../systems/music_system.dart';
 
 /// 纸质风格对话框包装器
-class PaperDialog extends StatelessWidget {
+class PaperDialog extends StatefulWidget {
   final Widget child;
   final String assetPath;
   final double? width;
@@ -18,31 +19,41 @@ class PaperDialog extends StatelessWidget {
   });
 
   @override
+  State<PaperDialog> createState() => _PaperDialogState();
+}
+
+class _PaperDialogState extends State<PaperDialog> {
+  @override
+  void initState() {
+    super.initState();
+    // 播放打开面板音效
+    MusicSystem().playSFX('panel_open');
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Dialog(
       backgroundColor: Colors.transparent,
       elevation: 0,
       child: Container(
-        width: width,
-        height: height,
+        width: widget.width,
+        height: widget.height,
         decoration: BoxDecoration(
           image: DecorationImage(
-            image: AssetImage(assetPath),
+            image: AssetImage(widget.assetPath),
             fit: BoxFit.fill,
           ),
         ),
-        padding: padding,
+        padding: widget.padding,
         child: DefaultTextStyle(
           style: const TextStyle(
             color: Color(0xFF4E342E), // 深褐色，适合纸张背景
             fontSize: 16,
             fontFamily: 'Roboto', // 或者游戏使用的像素字体
           ),
-          child: child,
+          child: widget.child,
         ),
       ),
     );
   }
 }
-
-

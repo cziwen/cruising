@@ -14,6 +14,7 @@ class GameConfigLoader {
   List<Port>? _portsList;
   Map<String, dynamic>? _crewConfig;
   Map<String, dynamic>? _musicConfig;
+  Map<String, dynamic>? _sfxConfig;
   bool _isLoading = false;
   bool _isLoaded = false;
 
@@ -35,6 +36,15 @@ class GameConfigLoader {
       return {};
     }
     return _musicConfig!;
+  }
+
+  /// 获取音效配置
+  Map<String, dynamic> get sfxConfig {
+    if (_sfxConfig == null) {
+      debugPrint('⚠ Warning: Accessing sfxConfig before it is loaded.');
+      return {};
+    }
+    return _sfxConfig!;
   }
 
   /// 获取所有货物列表
@@ -67,6 +77,7 @@ class GameConfigLoader {
         _loadPortsConfig(),
         _loadCrewConfig(),
         _loadMusicConfig(),
+        _loadSfxConfig(),
       ]);
       _isLoaded = true;
     } finally {
@@ -113,6 +124,16 @@ class GameConfigLoader {
     } catch (e) {
       debugPrint('✗ Error loading music config: $e');
       _musicConfig = {};
+    }
+  }
+
+  Future<void> _loadSfxConfig() async {
+    try {
+      final String response = await rootBundle.loadString('assets/config/sfx.json');
+      _sfxConfig = json.decode(response);
+    } catch (e) {
+      debugPrint('✗ Error loading sfx config: $e');
+      _sfxConfig = {};
     }
   }
 
