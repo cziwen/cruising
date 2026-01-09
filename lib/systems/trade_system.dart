@@ -981,37 +981,40 @@ class _TradeDialogState extends State<_TradeDialog> {
 
   /// 判断是否可以平衡报价
   bool _canBalanceTrade() {
-    // 1. 换入区域必须有物品
-    if (_pendingTrade.itemsToReceive.isEmpty) return false;
+    // 1. 至少有一方提供了物品或金币
+    if (_pendingTrade.itemsToReceive.isEmpty && _pendingTrade.itemsToGive.isEmpty) return false;
     
-    // 2. 当前交易尚未平衡（偏向玩家）
+    // 2. 当前交易尚未平衡
     final favor = _pendingTrade.calculateTradeFavor();
-    if (favor <= 0) return false; // 已经公平或偏向商人
+    if (favor == 0) return false; // 已经公平
     
-    // 3. 检查玩家库存总价值是否足以补齐差额
-    final deficit = _pendingTrade.playerReceivedValue - _pendingTrade.playerGivenValue;
-    if (deficit <= 0) return false;
-
-    // 计算玩家所有可用于交易的物品总价值
-    double totalPlayerAvailableValue = 0;
     final gameState = widget.tradeSystem.gameState;
     final portId = gameState.currentPort!.id;
-    
-    // 金币价值
-    final availableGold = gameState.gold - _getPendingPlayerStockAdjustment('gold');
-    totalPlayerAvailableValue += availableGold;
-    
-    // 其他物品价值
-    for (final goods in widget.tradeSystem.getGoodsList()) {
-      if (goods.id == 'gold') continue;
-      final qty = gameState.getInventoryQuantity(goods.id) - _getPendingPlayerStockAdjustment(goods.id);
-      if (qty > 0) {
-        final price = widget.tradeSystem.getPortGoodsPrice(portId, goods.id).sellPrice;
-        totalPlayerAvailableValue += qty * price;
+    final port = gameState.ports.firstWhere((p) => p.id == portId);
+
+    if (favor > 0) {
+      // 玩家欠账 (玩家获得 > 玩家支付)：检查玩家库存
+      final availableGold = gameState.gold - _getPendingPlayerStockAdjustment('gold');
+      if (availableGold > 0) return true;
+      
+      for (final goods in widget.tradeSystem.getGoodsList()) {
+        if (goods.id == 'gold') continue;
+        final qty = gameState.getInventoryQuantity(goods.id) - _getPendingPlayerStockAdjustment(goods.id);
+        if (qty > 0) return true;
+      }
+    } else {
+      // 商人欠账 (玩家支付 > 玩家获得)：检查商人库存
+      final availableGold = port.merchantMoney - _getPendingMerchantStockAdjustment('gold');
+      if (availableGold > 0) return true;
+      
+      for (final goods in widget.tradeSystem.getGoodsList()) {
+        if (goods.id == 'gold') continue;
+        final qty = _getMerchantStock(port, goods.id) - _getPendingMerchantStockAdjustment(goods.id);
+        if (qty > 0) return true;
       }
     }
     
-    return totalPlayerAvailableValue > 0;
+    return false;
   }
 
   /// 执行平衡报价逻辑
@@ -1019,49 +1022,109 @@ class _TradeDialogState extends State<_TradeDialog> {
     setState(() {
       final gameState = widget.tradeSystem.gameState;
       final portId = gameState.currentPort!.id;
+      final port = gameState.ports.firstWhere((p) => p.id == portId);
       double deficit = _pendingTrade.playerReceivedValue - _pendingTrade.playerGivenValue;
       
-      if (deficit <= 0) return;
+      if (deficit == 0) return;
 
-      // 1. 优先使用金币
-      final availableGold = gameState.gold - _getPendingPlayerStockAdjustment('gold');
-      if (availableGold > 0) {
-        final goldToUse = min(deficit.ceil(), availableGold);
-        if (goldToUse > 0) {
-          _internalAddToPending('gold', goldToUse, false, portId);
-          deficit = _pendingTrade.playerReceivedValue - _pendingTrade.playerGivenValue;
-        }
-      }
-
-      // 2. 如果仍有差额，使用其他物品
-      if (deficit > 0.1) {
-        // 获取所有有库存的物品并按价值降序排序（贪心策略，或者升序？通常贪心用大价值物品补齐快）
-        final otherGoods = widget.tradeSystem.getGoodsList()
-            .where((g) => g.id != 'gold' && (gameState.getInventoryQuantity(g.id) - _getPendingPlayerStockAdjustment(g.id)) > 0)
-            .toList();
-        
-        // 按单价降序排列，尝试用最少的格子补齐
-        otherGoods.sort((a, b) {
-          final priceA = widget.tradeSystem.getPortGoodsPrice(portId, a.id).sellPrice;
-          final priceB = widget.tradeSystem.getPortGoodsPrice(portId, b.id).sellPrice;
-          return priceB.compareTo(priceA);
-        });
-
-        for (final goods in otherGoods) {
-          if (deficit <= 0.1) break;
-          
-          final availableQty = gameState.getInventoryQuantity(goods.id) - _getPendingPlayerStockAdjustment(goods.id);
-          final unitPrice = widget.tradeSystem.getPortGoodsPrice(portId, goods.id).sellPrice;
-          
-          if (unitPrice <= 0) continue;
-          
-          // 需要的数量 = ceil(剩余差额 / 单价)
-          int qtyNeeded = (deficit / unitPrice).ceil();
-          int qtyToUse = min(qtyNeeded, availableQty);
-          
-          if (qtyToUse > 0) {
-            _internalAddToPending(goods.id, qtyToUse, false, portId);
+      if (deficit > 0) {
+        // --- 玩家欠账 (玩家获得 > 玩家支付) ---
+        // 1. 优先使用金币
+        final availableGold = gameState.gold - _getPendingPlayerStockAdjustment('gold');
+        if (availableGold > 0) {
+          final goldToUse = min(deficit.ceil(), availableGold);
+          if (goldToUse > 0) {
+            _internalAddToPending('gold', goldToUse, false, portId);
             deficit = _pendingTrade.playerReceivedValue - _pendingTrade.playerGivenValue;
+          }
+        }
+
+        // 2. 如果仍有差额，使用其他物品
+        if (deficit > 0.1) {
+          final otherGoods = widget.tradeSystem.getGoodsList()
+              .where((g) => g.id != 'gold' && (gameState.getInventoryQuantity(g.id) - _getPendingPlayerStockAdjustment(g.id)) > 0)
+              .toList();
+          
+          // 按单价降序排列，尝试用最少的格子补齐
+          otherGoods.sort((a, b) {
+            final priceA = widget.tradeSystem.getPortGoodsPrice(portId, a.id).sellPrice;
+            final priceB = widget.tradeSystem.getPortGoodsPrice(portId, b.id).sellPrice;
+            return priceB.compareTo(priceA);
+          });
+
+          for (final goods in otherGoods) {
+            if (deficit <= 0.1) break;
+            
+            final availableQty = gameState.getInventoryQuantity(goods.id) - _getPendingPlayerStockAdjustment(goods.id);
+            final unitPrice = widget.tradeSystem.getPortGoodsPrice(portId, goods.id).sellPrice;
+            
+            if (unitPrice <= 0) continue;
+            
+            // 需要的数量 = ceil(剩余差额 / 单价)
+            int qtyNeeded = (deficit / unitPrice).ceil();
+            int qtyToUse = min(qtyNeeded, availableQty);
+            
+            if (qtyToUse > 0) {
+              _internalAddToPending(goods.id, qtyToUse, false, portId);
+              deficit = _pendingTrade.playerReceivedValue - _pendingTrade.playerGivenValue;
+            }
+          }
+        }
+      } else {
+        // --- 商人欠账 (玩家支付 > 玩家获得) ---
+        double merchantDeficit = -deficit; // 玩家付多了，商人需要补足价值给玩家
+        
+        // 1. 优先使用金币
+        final availableGold = port.merchantMoney - _getPendingMerchantStockAdjustment('gold');
+        if (availableGold > 0) {
+          // 商人提供的价值不能超过差额，否则会导致交易不公平 (favor > 0)，所以用 floor
+          final goldToUse = min(merchantDeficit.floor(), availableGold);
+          if (goldToUse > 0) {
+            _internalAddToPending('gold', goldToUse, true, portId);
+            merchantDeficit = _pendingTrade.playerGivenValue - _pendingTrade.playerReceivedValue;
+          }
+        }
+
+        // 2. 如果仍有差额，使用其他物品 (需检查玩家载货空间)
+        if (merchantDeficit > 0.1) {
+          final otherGoods = widget.tradeSystem.getGoodsList()
+              .where((g) => g.id != 'gold' && (_getMerchantStock(port, g.id) - _getPendingMerchantStockAdjustment(g.id)) > 0)
+              .toList();
+          
+          // 按单价降序排列
+          otherGoods.sort((a, b) {
+            final priceA = widget.tradeSystem.getPortGoodsPrice(portId, a.id).buyPrice;
+            final priceB = widget.tradeSystem.getPortGoodsPrice(portId, b.id).buyPrice;
+            return priceB.compareTo(priceA);
+          });
+
+          final capacity = gameState.ship.cargoCapacity;
+
+          for (final goods in otherGoods) {
+            if (merchantDeficit <= 0.1) break;
+            
+            int availableQty = _getMerchantStock(port, goods.id) - _getPendingMerchantStockAdjustment(goods.id);
+            
+            while (availableQty > 0 && merchantDeficit > 0.1) {
+              // 检查载货空间
+              final currentWeight = gameState.usedCargoWeight;
+              final previewWeight = currentWeight - _pendingTrade.getTotalGiveWeight() + _pendingTrade.getTotalReceiveWeight();
+              if (previewWeight + goods.weight > capacity) break;
+
+              // 计算下一个货物的价格 (基于当前 pending 调整)
+              final nextPrice = widget.tradeSystem.getPortGoodsPrice(
+                portId, 
+                goods.id, 
+                pendingStockAdjustment: _getPendingMerchantStockAdjustment(goods.id)
+              ).buyPrice;
+              
+              // 不能让商人亏本 (总获得 < 总支付)，所以添加后的价格不能超过剩余差额
+              if (nextPrice > merchantDeficit + 0.1) break;
+
+              _internalAddToPending(goods.id, 1, true, portId);
+              merchantDeficit = _pendingTrade.playerGivenValue - _pendingTrade.playerReceivedValue;
+              availableQty--;
+            }
           }
         }
       }
