@@ -15,6 +15,11 @@ class PixelProgressBar extends StatefulWidget {
     this.height = 32, // Default height for Holder background
   });
 
+  /// 预加载进度条素材
+  static Future<void> preload() async {
+    await _PixelProgressBarState.preloadImages();
+  }
+
   @override
   State<PixelProgressBar> createState() => _PixelProgressBarState();
 }
@@ -23,16 +28,30 @@ class _PixelProgressBarState extends State<PixelProgressBar> {
   static const String barBasePath = 'assets/paper_ui/Sprites/Content/3_Progress_Bars/';
   static const String holderBasePath = 'assets/paper_ui/Sprites/Content/5_Holders/';
   
-  Map<String, ui.Image>? _images;
-  bool _loading = true;
+  static Map<String, ui.Image>? _cachedImages;
+  static Future<void>? _loadingFuture;
+  
+  bool _localLoading = true;
 
   @override
   void initState() {
     super.initState();
-    _loadImages();
+    if (_cachedImages != null) {
+      _localLoading = false;
+    } else {
+      _loadImages();
+    }
   }
 
-  Future<void> _loadImages() async {
+  static Future<void> preloadImages() async {
+    if (_cachedImages != null) return;
+    if (_loadingFuture != null) return _loadingFuture;
+
+    _loadingFuture = _doLoadImages();
+    return _loadingFuture;
+  }
+
+  static Future<void> _doLoadImages() async {
     final Map<String, String> assetMap = {
       'bar_10': '${barBasePath}10_clean.png',
       'bar_11': '${barBasePath}11_clean.png',
@@ -54,20 +73,31 @@ class _PixelProgressBarState extends State<PixelProgressBar> {
         final frame = await codec.getNextFrame();
         loadedImages[entry.key] = frame.image;
       }
+      _cachedImages = loadedImages;
+    } catch (e) {
+      debugPrint('Error preloading progress bar images: $e');
+      rethrow;
+    } finally {
+      _loadingFuture = null;
+    }
+  }
+
+  Future<void> _loadImages() async {
+    try {
+      await preloadImages();
       if (mounted) {
         setState(() {
-          _images = loadedImages;
-          _loading = false;
+          _localLoading = false;
         });
       }
     } catch (e) {
-      debugPrint('Error loading progress bar images: $e');
+      debugPrint('Error loading progress bar images in widget: $e');
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    if (_loading || _images == null) {
+    if (_localLoading || _cachedImages == null) {
       return SizedBox(
         width: widget.width == double.infinity ? null : widget.width,
         height: widget.height,
@@ -84,7 +114,7 @@ class _PixelProgressBarState extends State<PixelProgressBar> {
           size: Size(availableWidth, widget.height),
           painter: _PixelProgressBarPainter(
             value: widget.value,
-            images: _images!,
+            images: _cachedImages!,
           ),
         );
       },
@@ -176,37 +206,26 @@ class _PixelProgressBarPainter extends CustomPainter {
     final double totalBarWidth = barLeftWidth + barRightWidth + (midBarSegments * barMidWidth);
 
     // 在水平方向上居中对齐进度条
-    double currentX = (size.width - totalBarWidth) / 2;
+    double baseStartX = (size.width - totalBarWidth) / 2;
 
     final int totalBarSegments = midBarSegments + 2;
-    final int fullSegments = (value * totalBarSegments).floor();
 
+    // 第一遍绘制：绘制完整的“空”进度条作为背景（设置半透明）
+    paint.color = Colors.white.withValues(alpha: 0.5);
+    double currentX = baseStartX;
     for (int i = 0; i < totalBarSegments; i++) {
-      final bool isFull = i < fullSegments;
       ui.Image image;
       double currentSegmentWidth;
 
       if (i == 0) {
-        image = images['bar_10']!;
+        image = images['bar_13']!; // Empty Left
         currentSegmentWidth = barLeftWidth;
       } else if (i == totalBarSegments - 1) {
-        image = images['bar_12']!;
+        image = images['bar_15']!; // Empty Right
         currentSegmentWidth = barRightWidth;
       } else {
-        image = images['bar_11']!;
+        image = images['bar_14']!; // Empty Mid
         currentSegmentWidth = barMidWidth;
-      }
-
-      // 如果当前段应该显示“满”，但实际上还在后面（即 i >= fullSegments），则使用“空”素材
-      if (!isFull) {
-        if (i == 0) image = images['bar_13']!;
-        else if (i == totalBarSegments - 1) image = images['bar_15']!;
-        else image = images['bar_14']!;
-        
-        // 让空进度条稍微透明一点，减少“深色背景”的感觉
-        paint.color = Colors.white.withValues(alpha: 0.5);
-      } else {
-        paint.color = Colors.white;
       }
 
       canvas.drawImageRect(
@@ -215,7 +234,35 @@ class _PixelProgressBarPainter extends CustomPainter {
         Rect.fromLTWH(currentX, barY, currentSegmentWidth, barTargetHeight),
         paint,
       );
+      currentX += currentSegmentWidth;
+    }
 
+    // 第二遍绘制：根据进度覆盖“满”进度条（恢复完全不透明）
+    paint.color = Colors.white;
+    currentX = baseStartX;
+    final int fullSegments = (value * totalBarSegments).floor();
+    
+    for (int i = 0; i < fullSegments; i++) {
+      ui.Image image;
+      double currentSegmentWidth;
+
+      if (i == 0) {
+        image = images['bar_10']!; // Full Left
+        currentSegmentWidth = barLeftWidth;
+      } else if (i == totalBarSegments - 1) {
+        image = images['bar_12']!; // Full Right
+        currentSegmentWidth = barRightWidth;
+      } else {
+        image = images['bar_11']!; // Full Mid
+        currentSegmentWidth = barMidWidth;
+      }
+
+      canvas.drawImageRect(
+        image,
+        Rect.fromLTWH(0, 0, image.width.toDouble(), image.height.toDouble()),
+        Rect.fromLTWH(currentX, barY, currentSegmentWidth, barTargetHeight),
+        paint,
+      );
       currentX += currentSegmentWidth;
     }
   }

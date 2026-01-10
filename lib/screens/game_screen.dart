@@ -6,6 +6,7 @@ import 'package:audioplayers/audioplayers.dart';
 import '../game/game_state.dart';
 import '../game/game_scene.dart';
 import '../game/tavern_dialog.dart';
+import '../game/pixel_progress_bar.dart';
 import '../systems/trade_system.dart';
 import '../systems/port_system.dart';
 import '../systems/music_system.dart';
@@ -114,6 +115,9 @@ class GameScreen extends StatefulWidget {
 
     // 5. 初始化音乐系统
     MusicSystem().initialize();
+    
+    // 6. 预加载进度条素材
+    await PixelProgressBar.preload();
     
     debugPrint('✓ All resources preloading task finished.');
   }

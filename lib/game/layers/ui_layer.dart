@@ -44,7 +44,7 @@ class UILayer extends StatelessWidget {
     return Stack(
       children: [
         // 顶部航行进度条（仅在海上航行时显示）
-        if (gameState.isAtSea && gameState.totalTravelDistance > 0)
+        if (gameState.isAtSea)
           Positioned(
             top: 0,
             left: 180,  // 左侧留出更多空间，避免与左上角时间显示冲突

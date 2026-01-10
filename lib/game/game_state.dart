@@ -743,8 +743,6 @@ class GameState extends ChangeNotifier {
     _dayNightSystem.resume();
     MusicSystem().playState('cruising');
 
-    notifyListeners();
-
     // 获取航行距离（节）
     int travelDistance = 8; // 默认8节（基础速度1小时的距离）
     if (previousPort != null) {
@@ -758,6 +756,7 @@ class GameState extends ChangeNotifier {
     _lastProgressUpdateTime = DateTime.now(); // 记录开始时间，用于计算 dt
     _accumulatedGameHours = 0.0; // 重置累积时间
     _travelProgress = 0.0;
+
     notifyListeners();
 
     // 如果启用跳过动画，直接完成
