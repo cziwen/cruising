@@ -282,7 +282,7 @@ class MusicSystem {
         try {
           await _currentPlayer.stop();
           _currentPlayer = nextPlayer;
-          debugPrint('MusicSystem: Fade completed. Current track: $assetPath');
+          debugPrint('MusicSystem: Current track: $assetPath');
         } catch (e) {
           debugPrint('MusicSystem Error: Error stopping old player: $e');
         }

@@ -4,6 +4,7 @@ import '../debug_panel.dart';
 import '../crew_management_dialog.dart';
 import '../main_hall_dialog.dart';
 import '../paper_button.dart';
+import '../pixel_progress_bar.dart';
 import 'status_bar.dart';
 
 /// UI层 - 界面元素（按钮、菜单、信息显示等）
@@ -31,20 +32,16 @@ class UILayer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // 使用 AnimatedBuilder 监听 GameState 的变化，确保实时更新
-    return AnimatedBuilder(
-      animation: gameState,
-      builder: (context, child) {
-        final screenSize = MediaQuery.of(context).size;
-        final centerX = screenSize.width / 2;
-        final centerY = screenSize.height / 2;
-        
-        // 岛屿位置（与near_background_layer中的位置对齐）
-        // 岛屿中心在屏幕中心向下40像素，岛屿大小约400x300
-        final islandCenterX = centerX;
-        final islandCenterY = centerY + 40;
-        
-        return Stack(
+    final screenSize = MediaQuery.of(context).size;
+    final centerX = screenSize.width / 2;
+    final centerY = screenSize.height / 2;
+    
+    // 岛屿位置（与near_background_layer中的位置对齐）
+    // 岛屿中心在屏幕中心向下40像素，岛屿大小约400x300
+    final islandCenterX = centerX;
+    final islandCenterY = centerY + 40;
+    
+    return Stack(
       children: [
         // 顶部航行进度条（仅在海上航行时显示）
         if (gameState.isAtSea && gameState.totalTravelDistance > 0)
@@ -150,12 +147,9 @@ class UILayer extends StatelessWidget {
         
         // 调试面板
         DebugPanel(gameState: gameState),
-        ],
-      );
-      },
+      ],
     );
   }
-
 
   /// 构建岛屿周围的按钮
   Widget _buildIslandButton(String text, VoidCallback? onPressed, Color color) {
@@ -264,13 +258,6 @@ class UILayer extends StatelessWidget {
     
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      decoration: BoxDecoration(
-        color: Colors.black.withValues(alpha: 0.8),
-        borderRadius: const BorderRadius.only(
-          bottomLeft: Radius.circular(10),
-          bottomRight: Radius.circular(10),
-        ),
-      ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
@@ -297,14 +284,10 @@ class UILayer extends StatelessWidget {
           ),
           const SizedBox(height: 8),
           // 进度条
-          ClipRRect(
-            borderRadius: BorderRadius.circular(4),
-            child: LinearProgressIndicator(
-              value: gameState.travelProgress,
-              minHeight: 8,
-              backgroundColor: Colors.grey.withValues(alpha: 0.3),
-              valueColor: const AlwaysStoppedAnimation<Color>(Colors.blue),
-            ),
+          PixelProgressBar(
+            value: gameState.travelProgress,
+            width: double.infinity,
+            height: 32, // 背景板高度
           ),
         ],
       ),

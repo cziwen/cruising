@@ -1722,6 +1722,12 @@ class GameState extends ChangeNotifier {
     _accumulatedDistance = (json['accumulatedDistance'] as num).toDouble();
     _accumulatedGameHours = (json['accumulatedGameHours'] as num).toDouble();
     _lastPriceUpdateDay = json['lastPriceUpdateDay'] as int;
+
+    // 如果加载后是在海上航行状态，且航行未完成，则恢复进度更新
+    if (_isAtSea && _totalTravelDistance > 0 && _travelProgress < 1.0) {
+      // 延迟一帧调用，确保环境已初始化
+      Future.microtask(() => _resumeTravelProgress());
+    }
     _lastTavernRefreshDay = (json['lastTavernRefreshDay'] as int?) ?? -1;
     _lastTaxHour = (json['lastTaxHour'] as int?) ?? -1;
 

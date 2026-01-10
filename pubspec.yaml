@@ -55,6 +55,8 @@ flutter:
     - assets/images/goods/
     - assets/paper_ui/Sprites/Book Desk/
     - assets/paper_ui/Sprites/Content/4_Buttons/
+    - assets/paper_ui/Sprites/Content/5_Holders/
+    - assets/paper_ui/Sprites/Content/3_Progress_Bars/
     - assets/music/main_menu/
     - assets/music/combat/
     - assets/music/cruising/
