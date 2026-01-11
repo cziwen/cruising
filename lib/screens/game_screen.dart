@@ -160,9 +160,9 @@ class _GameScreenState extends State<GameScreen> {
         return;
       }
       
-      // 30 FPS 限制逻辑：如果距离上一帧时间不足 33ms，则跳过本次更新
+      // 60 FPS 限制逻辑：如果距离上一帧时间不足 16ms，则跳过本次更新
       final dtRealSeconds = now.difference(_lastFrameTime!).inMilliseconds / 1000.0;
-      if (dtRealSeconds < 0.033) {
+      if (dtRealSeconds < 0.016) {
         return;
       }
       

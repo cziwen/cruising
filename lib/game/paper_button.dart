@@ -12,6 +12,7 @@ enum PaperButtonStyle {
 class PaperButton extends StatefulWidget {
   final String? label;
   final Widget? icon;
+  final Widget? child;
   final VoidCallback? onPressed;
   final PaperButtonStyle style;
   final double? width;
@@ -23,6 +24,7 @@ class PaperButton extends StatefulWidget {
     super.key,
     this.label,
     this.icon,
+    this.child,
     this.onPressed,
     this.style = PaperButtonStyle.brown,
     this.width = 80,
@@ -94,7 +96,7 @@ class _PaperButtonState extends State<PaperButton> {
           child: Center(
             child: FittedBox(
               fit: BoxFit.scaleDown,
-              child: Row(
+              child: widget.child ?? Row(
                 mainAxisSize: MainAxisSize.min,
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [

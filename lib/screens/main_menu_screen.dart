@@ -8,6 +8,7 @@ import '../game/settings_dialog.dart';
 import '../game/paper_button.dart';
 import 'game_screen.dart';
 import 'save_load_screen.dart';
+import '../systems/window_controller.dart';
 import '../systems/save_system.dart';
 import '../systems/music_system.dart';
 
@@ -43,6 +44,12 @@ class _MainMenuScreenState extends State<MainMenuScreen> {
     return Scaffold(
       body: GestureDetector(
         onTapDown: (_) => MusicSystem().resumeMusic(),
+        onPanStart: (_) {
+          // 仅在非沉浸模式下允许拖拽，锁定沉浸模式位置
+          if (!WindowController.isWallpaperMode) {
+            windowManager.startDragging();
+          }
+        },
         behavior: HitTestBehavior.translucent,
         child: Stack(
           children: [

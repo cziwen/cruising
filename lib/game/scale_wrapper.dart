@@ -1,6 +1,7 @@
 import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
+import '../systems/window_controller.dart';
 
 /// 一个用于按比例缩放子组件的包装器
 /// 基于 1920x1080 的设计尺寸
@@ -40,40 +41,73 @@ class ScaleWrapper extends StatelessWidget {
           // 计算缩放比例 - 统一基于高度缩放，宽度保持自适应（超宽屏支持）
           double scale = screenHeight / designSize.height;
           
-          // 如果强制保持比例（传统模式），则按原逻辑
-          if (maintainAspectRatio && !kIsWeb) {
-            double scaleX = screenWidth / designSize.width;
-            double scaleY = screenHeight / designSize.height;
-            scale = min(scaleX, scaleY);
-            
-            return Center(
+    if (maintainAspectRatio && !kIsWeb) {
+      double scaleX = screenWidth / designSize.width;
+      double scaleY = screenHeight / designSize.height;
+      scale = min(scaleX, scaleY);
+      
+      Widget content = Center(
+        child: SizedBox(
+          width: designSize.width * scale,
+          height: designSize.height * scale,
+          child: MediaQuery(
+            data: (baseMediaQuery ?? const MediaQueryData()).copyWith(
+              size: designSize,
+              padding: EdgeInsets.zero,
+              viewInsets: EdgeInsets.zero,
+              viewPadding: EdgeInsets.zero,
+            ),
+            child: FittedBox(
+              fit: BoxFit.contain,
               child: SizedBox(
-                width: designSize.width * scale,
-                height: designSize.height * scale,
-                child: MediaQuery(
-                  data: (baseMediaQuery ?? const MediaQueryData()).copyWith(
-                    size: designSize,
-                    padding: EdgeInsets.zero,
-                    viewInsets: EdgeInsets.zero,
-                    viewPadding: EdgeInsets.zero,
-                  ),
-                  child: FittedBox(
-                    fit: BoxFit.contain,
-                    child: SizedBox(
-                      width: designSize.width,
-                      height: designSize.height,
-                      child: child,
-                    ),
-                  ),
-                ),
+                width: designSize.width,
+                height: designSize.height,
+                child: child,
               ),
-            );
-          }
+            ),
+          ),
+        ),
+      );
+
+      // 在沉浸模式下应用边缘羽化效果
+      return ValueListenableBuilder<bool>(
+        valueListenable: WindowController.isWallpaperModeProvider,
+        builder: (context, isWallpaper, _) {
+          if (!isWallpaper) return content;
+          
+          return ShaderMask(
+            shaderCallback: (rect) {
+              // 1. 水平方向羽化
+              return const LinearGradient(
+                begin: Alignment.centerLeft,
+                end: Alignment.centerRight,
+                colors: [Colors.transparent, Colors.black, Colors.black, Colors.transparent],
+                stops: [0.0, 0.02, 0.98, 1.0],
+              ).createShader(rect);
+            },
+            blendMode: BlendMode.dstIn,
+            child: ShaderMask(
+              shaderCallback: (rect) {
+                // 2. 垂直方向羽化
+                return const LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [Colors.transparent, Colors.black, Colors.black, Colors.transparent],
+                  stops: [0.0, 0.02, 0.98, 1.0],
+                ).createShader(rect);
+              },
+              blendMode: BlendMode.dstIn,
+              child: content,
+            ),
+          );
+        },
+      );
+    }
 
           // 超宽屏/自适应模式：高度锁定比例，宽度自由伸展
           final effectiveWidth = screenWidth / scale;
           
-          return SizedBox.expand(
+          Widget content = SizedBox.expand(
             child: MediaQuery(
               data: (baseMediaQuery ?? const MediaQueryData()).copyWith(
                 size: Size(effectiveWidth, designSize.height),
@@ -91,6 +125,40 @@ class ScaleWrapper extends StatelessWidget {
                 ),
               ),
             ),
+          );
+
+          // 在沉浸模式下应用边缘羽化效果
+          return ValueListenableBuilder<bool>(
+            valueListenable: WindowController.isWallpaperModeProvider,
+            builder: (context, isWallpaper, _) {
+              if (!isWallpaper) return content;
+              
+              return ShaderMask(
+                shaderCallback: (rect) {
+                  // 1. 水平方向羽化
+                  return const LinearGradient(
+                    begin: Alignment.centerLeft,
+                    end: Alignment.centerRight,
+                    colors: [Colors.transparent, Colors.black, Colors.black, Colors.transparent],
+                    stops: [0.0, 0.02, 0.98, 1.0],
+                  ).createShader(rect);
+                },
+                blendMode: BlendMode.dstIn,
+                child: ShaderMask(
+                  shaderCallback: (rect) {
+                    // 2. 垂直方向羽化
+                    return const LinearGradient(
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                      colors: [Colors.transparent, Colors.black, Colors.black, Colors.transparent],
+                      stops: [0.0, 0.02, 0.98, 1.0],
+                    ).createShader(rect);
+                  },
+                  blendMode: BlendMode.dstIn,
+                  child: content,
+                ),
+              );
+            },
           );
         },
       ),

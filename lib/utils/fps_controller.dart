@@ -1,6 +1,6 @@
 /// 简单的帧率控制器，用于将 Flutter 的渲染频率限制在指定 FPS
 class FPSController {
-  static const double targetFPS = 30.0;
+  static const double targetFPS = 60.0;
   static const double frameDuration = 1000 / targetFPS;
   
   static double _lastFrameTime = 0;
