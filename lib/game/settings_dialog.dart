@@ -8,6 +8,7 @@ import '../screens/main_menu_screen.dart';
 import 'paper_dialog.dart';
 import 'paper_button.dart';
 import '../systems/music_system.dart';
+import '../systems/window_controller.dart';
 
 /// 设置对话框
 class SettingsDialog extends StatefulWidget {
@@ -31,6 +32,7 @@ class _SettingsDialogState extends State<SettingsDialog> {
   ];
   Size _currentResolution = const Size(1280, 720);
   bool _isFullScreen = false;
+  bool _isWallpaperMode = false;
 
   @override
   void initState() {
@@ -46,9 +48,13 @@ class _SettingsDialogState extends State<SettingsDialog> {
   Future<void> _checkFullScreenState() async {
     final isFullScreen = await windowManager.isFullScreen();
     final size = await windowManager.getSize();
+    // 这里简单通过 skipTaskbar 来判断是否是壁纸模式
+    final skipTaskbar = await windowManager.isSkipTaskbar();
+
     if (mounted) {
       setState(() {
         _isFullScreen = isFullScreen;
+        _isWallpaperMode = skipTaskbar;
         // 尝试匹配当前分辨率
         try {
           _currentResolution = _resolutions.firstWhere(
@@ -172,8 +178,21 @@ class _SettingsDialogState extends State<SettingsDialog> {
                         _isFullScreen = value;
                       });
                     }),
+                    if (defaultTargetPlatform == TargetPlatform.windows)
+                      _buildSwitchTile('动态壁纸模式', _isWallpaperMode, (value) async {
+                        if (value) {
+                          WindowController.embedInDesktop();
+                          await windowManager.setSkipTaskbar(true);
+                        } else {
+                          WindowController.restoreWindow();
+                          await windowManager.setSkipTaskbar(false);
+                        }
+                        setState(() {
+                          _isWallpaperMode = value;
+                        });
+                      }),
                     // 只有非全屏模式下才显示分辨率选择
-                    if (!_isFullScreen)
+                    if (!_isFullScreen && !_isWallpaperMode)
                       Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 16.0),
                         child: Row(

@@ -1,5 +1,6 @@
 import 'dart:math';
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 
 /// 一个用于按比例缩放子组件的包装器
 /// 基于 1920x1080 的设计尺寸
@@ -36,33 +37,57 @@ class ScaleWrapper extends StatelessWidget {
             return child;
           }
           
-          // 计算缩放比例
-          double scaleX = screenWidth / designSize.width;
-          double scaleY = screenHeight / designSize.height;
+          // 计算缩放比例 - 统一基于高度缩放，宽度保持自适应（超宽屏支持）
+          double scale = screenHeight / designSize.height;
           
-          // 4. 防止 Infinity 或 NaN 导致渲染崩溃
-          double scale = (scaleX.isFinite && scaleY.isFinite) 
-              ? (maintainAspectRatio ? min(scaleX, scaleY) : min(scaleX, scaleY))
-              : 1.0;
-
-          return Center(
-            child: SizedBox(
-              width: designSize.width * scale,
-              height: designSize.height * scale,
-              child: MediaQuery(
-                data: (baseMediaQuery ?? const MediaQueryData()).copyWith(
-                  size: designSize,
-                  padding: EdgeInsets.zero,
-                  viewInsets: EdgeInsets.zero,
-                  viewPadding: EdgeInsets.zero,
-                ),
-                child: FittedBox(
-                  fit: BoxFit.contain,
-                  child: SizedBox(
-                    width: designSize.width,
-                    height: designSize.height,
-                    child: child,
+          // 如果强制保持比例（传统模式），则按原逻辑
+          if (maintainAspectRatio && !kIsWeb) {
+            double scaleX = screenWidth / designSize.width;
+            double scaleY = screenHeight / designSize.height;
+            scale = min(scaleX, scaleY);
+            
+            return Center(
+              child: SizedBox(
+                width: designSize.width * scale,
+                height: designSize.height * scale,
+                child: MediaQuery(
+                  data: (baseMediaQuery ?? const MediaQueryData()).copyWith(
+                    size: designSize,
+                    padding: EdgeInsets.zero,
+                    viewInsets: EdgeInsets.zero,
+                    viewPadding: EdgeInsets.zero,
                   ),
+                  child: FittedBox(
+                    fit: BoxFit.contain,
+                    child: SizedBox(
+                      width: designSize.width,
+                      height: designSize.height,
+                      child: child,
+                    ),
+                  ),
+                ),
+              ),
+            );
+          }
+
+          // 超宽屏/自适应模式：高度锁定比例，宽度自由伸展
+          final effectiveWidth = screenWidth / scale;
+          
+          return SizedBox.expand(
+            child: MediaQuery(
+              data: (baseMediaQuery ?? const MediaQueryData()).copyWith(
+                size: Size(effectiveWidth, designSize.height),
+                padding: EdgeInsets.zero,
+                viewInsets: EdgeInsets.zero,
+                viewPadding: EdgeInsets.zero,
+              ),
+              child: Transform.scale(
+                scale: scale,
+                alignment: Alignment.center,
+                child: SizedBox(
+                  width: effectiveWidth,
+                  height: designSize.height,
+                  child: child,
                 ),
               ),
             ),

@@ -6,8 +6,12 @@ import 'screens/loading_screen.dart';
 import 'screens/game_screen.dart';
 import 'game/scale_wrapper.dart';
 import 'utils/game_config_loader.dart';
+import 'systems/window_controller.dart';
 
-void main() async {
+void main(List<String> args) async {
+  // 检查是否以壁纸模式启动
+  final bool isWallpaperMode = args.contains('--wallpaper');
+
   // 确保 Flutter 绑定初始化
   WidgetsFlutterBinding.ensureInitialized();
   
@@ -20,36 +24,43 @@ void main() async {
       defaultTargetPlatform == TargetPlatform.macOS)) {
     await windowManager.ensureInitialized();
     
-    WindowOptions windowOptions = const WindowOptions(
-      size: Size(1280, 720),
+    WindowOptions windowOptions = WindowOptions(
+      size: const Size(1280, 720),
       center: true,
       backgroundColor: Colors.transparent,
-      skipTaskbar: false,
+      skipTaskbar: isWallpaperMode,
       title: 'Cruising',
+      titleBarStyle: isWallpaperMode ? TitleBarStyle.hidden : TitleBarStyle.normal,
     );
     
     await windowManager.waitUntilReadyToShow(windowOptions, () async {
       await windowManager.show();
-      await windowManager.focus();
-      try {
-        await windowManager.setAspectRatio(16 / 9);
-      } catch (e) {
-        // 部分平台可能不支持设置纵横比，或者需要特定的系统配置
-        debugPrint('Failed to set aspect ratio: $e');
+      if (!isWallpaperMode) {
+        await windowManager.focus();
+        try {
+          await windowManager.setAspectRatio(16 / 9);
+        } catch (e) {
+          debugPrint('Failed to set aspect ratio: $e');
+        }
+      } else if (defaultTargetPlatform == TargetPlatform.windows) {
+        // 如果是 Windows 且开启了壁纸模式，执行嵌入逻辑
+        WindowController.embedInDesktop();
       }
     });
   }
 
-  runApp(const MainApp());
+  runApp(MainApp(isWallpaperMode: isWallpaperMode));
 }
 
 class MainApp extends StatelessWidget {
-  const MainApp({super.key});
+  final bool isWallpaperMode;
+  const MainApp({super.key, this.isWallpaperMode = false});
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Cruising',
+      debugShowCheckedModeBanner: false,
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.blue),
         useMaterial3: true,
@@ -57,6 +68,8 @@ class MainApp extends StatelessWidget {
       builder: (context, child) {
         return ScaleWrapper(
           backgroundColor: Colors.black,
+          // 在壁纸模式下，不强制保持比例，允许宽度充满
+          maintainAspectRatio: !isWallpaperMode,
           child: child!,
         );
       },

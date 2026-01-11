@@ -171,7 +171,7 @@ class _BackgroundLayerState extends State<BackgroundLayer> {
     );
   }
 
-  /// 构建单个背景层（包含三张图片实现无缝循环）
+  /// 构建单个背景层（包含多张图片实现无缝循环，支持超宽屏）
   Widget _buildLayer(
     int layerIndex,
     _BackgroundLayerConfig config,
@@ -179,10 +179,12 @@ class _BackgroundLayerState extends State<BackgroundLayer> {
     double screenHeight,
     GameState gameState,
   ) {
+    // 渲染区域宽度
+    final renderWidth = MediaQuery.of(context).size.width;
+    
     // 计算滚动偏移（背景向左移动，所以是负值）
     // 使用集中管理的 totalSailingOffset
     // 应用随机初始偏移，防止所有层一开始都对齐
-    // 叠加常驻漂移速度（baseDriftSpeed * swayTime）
     double initialOffset = _randomInitialOffsets[layerIndex] * displayWidth;
     double scrollOffset = -(gameState.totalSailingOffset * config.speedMultiplier + 
                            gameState.swayTime * config.baseDriftSpeed + 
@@ -194,39 +196,26 @@ class _BackgroundLayerState extends State<BackgroundLayer> {
       if (scrollOffset > 0) scrollOffset -= displayWidth;
     }
 
+    // 计算所需图片数量（适配超宽屏）
+    // 基础数量是：(渲染宽度 / 图片宽度).ceil() + 1
+    // 例如屏幕 3440，图片 1920 -> (3440/1920) = 1.79 -> 2 + 1 = 3 张
+    int copyCount = (renderWidth / displayWidth).ceil() + 1;
+    if (copyCount < 3) copyCount = 3; // 至少保持3张以防万一
+
     // 计算晃动偏移（视差规则：近大远小）
-    // 左右晃动频率 2.0 rad/s，基础幅度 2 像素
     final swayX = math.sin(gameState.swayTime * 2.0) * (2.0 * config.speedMultiplier);
-    // 上下浮动频率 1.2 rad/s，基础幅度 1.5 像素（同步减少，保持视差比例）
     final swayY = math.sin(gameState.swayTime * 1.2) * (1.5 * config.speedMultiplier * gameState.waveAmplitudeMultiplier);
 
     return Stack(
       children: [
-        // 使用三张相同的图片实现无缝循环
-        // 图片1：左侧
-        _buildBackgroundImage(
-          config.assetPath,
-          displayWidth,
-          screenHeight,
-          -displayWidth + scrollOffset + swayX,
-          swayY,
-        ),
-        // 图片2：中间
-        _buildBackgroundImage(
-          config.assetPath,
-          displayWidth,
-          screenHeight,
-          scrollOffset + swayX,
-          swayY,
-        ),
-        // 图片3：右侧
-        _buildBackgroundImage(
-          config.assetPath,
-          displayWidth,
-          screenHeight,
-          displayWidth + scrollOffset + swayX,
-          swayY,
-        ),
+        for (int i = 0; i < copyCount; i++)
+          _buildBackgroundImage(
+            config.assetPath,
+            displayWidth,
+            screenHeight,
+            (i - 1) * displayWidth + scrollOffset + swayX,
+            swayY,
+          ),
       ],
     );
   }
