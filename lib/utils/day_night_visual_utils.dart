@@ -102,9 +102,9 @@ class DayNightVisualUtils {
     final Color dayTop = baseSeaColor; 
     final Color dayBottom = const Color(0xFF3D5A8A);
 
-    // 夜晚海面颜色
-    final Color nightTop = const Color(0xFF1A2A44);    
-    final Color nightBottom = const Color(0xFF0D1522);
+    // 夜晚海面颜色 (稍微调亮一点，避免叠加强度滤镜后过黑)
+    final Color nightTop = const Color(0xFF243B5E);    
+    final Color nightBottom = const Color(0xFF152238);
 
     // 黄昏/黎明海面颜色 (偏暖偏深的墨蓝色)
     final Color sunsetTop = const Color(0xFF2C3E50);    
@@ -172,7 +172,7 @@ class DayNightVisualUtils {
     double minBrightness;
     switch (layerType) {
       case VisualLayerType.ocean:
-        minBrightness = 0.55;
+        minBrightness = 0.75;
         break;
       case VisualLayerType.island:
         minBrightness = 0.9;
@@ -205,7 +205,7 @@ class DayNightVisualUtils {
     double minSaturation;
     switch (layerType) {
       case VisualLayerType.ocean:
-        minSaturation = 0.5;
+        minSaturation = 0.7;
         break;
       case VisualLayerType.island:
         minSaturation = 1.0;
