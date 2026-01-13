@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'dart:math' as math;
 import '../game_state.dart';
 import 'celestial_layer.dart';
+import '../../utils/day_night_visual_utils.dart';
 
 /// 背景层 - 远距离背景（海洋背景）
 /// 在航行时（isAtSea == true）会向左滚动，模拟船只向前航行的感觉
@@ -118,47 +119,100 @@ class _BackgroundLayerState extends State<BackgroundLayer> {
           child: ListenableBuilder(
             listenable: widget.gameState,
             builder: (context, child) {
+              final progress = widget.gameState.dayNightSystem.dayCycleProgress;
+              final skyColors = DayNightVisualUtils.getSkyGradient(progress);
+              final seaColors = DayNightVisualUtils.getSeaGradient(progress);
+              
+              // 获取不同层级的颜色滤镜
+              final oceanFilter = DayNightVisualUtils.getColorFilter(progress, layerType: VisualLayerType.ocean);
+              final waveFilter = DayNightVisualUtils.getColorFilter(progress, layerType: VisualLayerType.wave);
+              final cloudFilter = DayNightVisualUtils.getColorFilter(progress, layerType: VisualLayerType.cloud);
+
               return Container(
                 width: double.infinity,
                 height: double.infinity,
                 decoration: BoxDecoration(
-                  // 备用渐变背景（如果图片加载失败）
+                  // 海面底色（作为整个背景的基底）
                   gradient: LinearGradient(
                     begin: Alignment.topCenter,
                     end: Alignment.bottomCenter,
-                    colors: [
-                      const Color(0xFF87CEEB), // 天空蓝
-                      const Color(0xFF4682B4), // 钢蓝色
-                      const Color(0xFF1E90FF), // 道奇蓝
-                    ],
+                    colors: seaColors,
                   ),
                 ),
                 child: ClipRect(
                   child: Stack(
                     children: [
+                      // Layer -1: 天空渐变区域（仅限顶部 40%）
+                      Positioned(
+                        top: 0,
+                        left: 0,
+                        right: 0,
+                        height: screenHeight * 0.4,
+                        child: Container(
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                              begin: Alignment.topCenter,
+                              end: Alignment.bottomCenter,
+                              colors: skyColors,
+                            ),
+                          ),
+                        ),
+                      ),
+                      
                       // 渲染所有背景层（从底到顶）
                       // 顺序：underwater, 天体层, wave3, wave2, wave1, cloud3, cloud2, cloud1
                       
                       // 第1层：underwater
-                      _buildLayer(
-                        0,
-                        _layers[0],
-                        displayWidth,
-                        screenHeight,
-                        widget.gameState,
+                      ColorFiltered(
+                        colorFilter: oceanFilter,
+                        child: _buildLayer(
+                          0,
+                          _layers[0],
+                          displayWidth,
+                          screenHeight,
+                          widget.gameState,
+                        ),
                       ),
 
                       // Layer 0.5: 天体层（太阳/月亮，插入在海底背景之上，但在海浪和云朵之下）
                       CelestialLayer(gameState: widget.gameState),
 
-                      // 其余层：wave3 到 cloud1
-                      for (int i = 1; i < _layers.length; i++)
-                        _buildLayer(
-                          i,
-                          _layers[i],
+                      // 第2-3层：wave3, wave2 (使用 ocean 滤镜)
+                      for (int i = 1; i <= 2; i++)
+                        ColorFiltered(
+                          colorFilter: oceanFilter,
+                          child: _buildLayer(
+                            i,
+                            _layers[i],
+                            displayWidth,
+                            screenHeight,
+                            widget.gameState,
+                          ),
+                        ),
+
+                      // 第4层：wave1 (使用 wave 滤镜)
+                      ColorFiltered(
+                        colorFilter: waveFilter,
+                        child: _buildLayer(
+                          3,
+                          _layers[3],
                           displayWidth,
                           screenHeight,
                           widget.gameState,
+                        ),
+                      ),
+
+                      // 第5-7层：cloud3, cloud2, cloud1 (使用 cloud 滤镜)
+                      for (int i = 4; i < _layers.length; i++)
+                        ColorFiltered(
+                          colorFilter: cloudFilter,
+                          child: _buildLayer(
+                            i,
+                            _layers[i],
+                            displayWidth,
+                            screenHeight,
+                            widget.gameState,
+                          ),
                         ),
                     ],
                   ),

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 import '../game_state.dart';
+import '../../utils/day_night_visual_utils.dart';
 
 /// 船层 - 船只，支持战斗模式
 class ShipLayer extends StatefulWidget {
@@ -188,16 +189,21 @@ class _ShipLayerState extends State<ShipLayer>
       animation: widget.gameState,
       builder: (context, child) {
         final screenSize = MediaQuery.of(context).size;
+        final progress = widget.gameState.dayNightSystem.dayCycleProgress;
+        final colorFilter = DayNightVisualUtils.getColorFilter(progress, layerType: VisualLayerType.ship);
         
-        return Stack(
-          children: [
-            // 玩家船只
-            _buildPlayerShip(screenSize),
-            
-            // 敌方船只（战斗时显示）
-            if (widget.gameState.isInCombat && widget.gameState.enemyShip != null)
-              _buildEnemyShip(screenSize),
-          ],
+        return ColorFiltered(
+          colorFilter: colorFilter,
+          child: Stack(
+            children: [
+              // 玩家船只
+              _buildPlayerShip(screenSize),
+              
+              // 敌方船只（战斗时显示）
+              if (widget.gameState.isInCombat && widget.gameState.enemyShip != null)
+                _buildEnemyShip(screenSize),
+            ],
+          ),
         );
       },
     );

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'dart:math' as math;
 import '../game_state.dart';
+import '../../utils/day_night_visual_utils.dart';
 
 /// 前景波浪层 - 位于船和岛屿之后的前景波浪
 /// 在航行时（isAtSea == true）会向左滚动，模拟船只向前航行的感觉
@@ -94,19 +95,25 @@ class _ForegroundWaveLayerState extends State<ForegroundWaveLayer> {
           child: ListenableBuilder(
             listenable: widget.gameState,
             builder: (context, child) {
-              return Stack(
-                children: [
-                  // 渲染前景波浪层（从底到顶）
-                  // 顺序：underwater, wave2_duplicate, wave1_duplicate
-                  for (int i = 0; i < _layers.length; i++)
-                    _buildLayer(
-                      i,
-                      _layers[i],
-                      displayWidth,
-                      screenHeight,
-                      widget.gameState,
-                    ),
-                ],
+              final progress = widget.gameState.dayNightSystem.dayCycleProgress;
+              final colorFilter = DayNightVisualUtils.getColorFilter(progress, layerType: VisualLayerType.wave);
+
+              return ColorFiltered(
+                colorFilter: colorFilter,
+                child: Stack(
+                  children: [
+                    // 渲染前景波浪层（从底到顶）
+                    // 顺序：underwater, wave2_duplicate, wave1_duplicate
+                    for (int i = 0; i < _layers.length; i++)
+                      _buildLayer(
+                        i,
+                        _layers[i],
+                        displayWidth,
+                        screenHeight,
+                        widget.gameState,
+                      ),
+                  ],
+                ),
               );
             },
           ),

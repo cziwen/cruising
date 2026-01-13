@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 import '../../models/port.dart';
 import '../game_state.dart';
+import '../../utils/day_night_visual_utils.dart';
 
 /// 近背景层 - 近距离背景（港口、岛屿等可切换元素）
 /// 港口滚动速度与背景层 wave1 一致（40 像素/秒）
@@ -71,6 +72,8 @@ class _NearBackgroundLayerState extends State<NearBackgroundLayer> {
             final isAtSea = widget.gameState.isAtSea;
             final currentPort = widget.gameState.currentPort;
             final destinationPort = widget.gameState.destinationPort;
+            final progress = widget.gameState.dayNightSystem.dayCycleProgress;
+            final colorFilter = DayNightVisualUtils.getColorFilter(progress, layerType: VisualLayerType.island);
 
             // 计算离开动画的偏移量
             double? exitOffset;
@@ -102,38 +105,41 @@ class _NearBackgroundLayerState extends State<NearBackgroundLayer> {
               }
             }
 
-            return Stack(
-              children: [
-                // 正在离开的港口（基于航行进度）
-                if (exitOffset != null && _lastPort != null && exitOffset > -_screenWidth)
-                  Positioned(
-                    left: exitOffset,
-                    top: 0,
-                    right: null,
-                    bottom: 0,
-                    child: SizedBox(
-                      width: _screenWidth,
-                      child: _buildPortImage(_lastPort!),
+            return ColorFiltered(
+              colorFilter: colorFilter,
+              child: Stack(
+                children: [
+                  // 正在离开的港口（基于航行进度）
+                  if (exitOffset != null && _lastPort != null && exitOffset > -_screenWidth)
+                    Positioned(
+                      left: exitOffset,
+                      top: 0,
+                      right: null,
+                      bottom: 0,
+                      child: SizedBox(
+                        width: _screenWidth,
+                        child: _buildPortImage(_lastPort!),
+                      ),
                     ),
-                  ),
-                
-                // 正在接近的港口（基于航行进度）
-                if (enterOffset != null && destinationPort != null && enterOffset < _screenWidth)
-                  Positioned(
-                    left: enterOffset,
-                    top: 0,
-                    right: null,
-                    bottom: 0,
-                    child: SizedBox(
-                      width: _screenWidth,
-                      child: _buildPortImage(destinationPort),
+                  
+                  // 正在接近的港口（基于航行进度）
+                  if (enterOffset != null && destinationPort != null && enterOffset < _screenWidth)
+                    Positioned(
+                      left: enterOffset,
+                      top: 0,
+                      right: null,
+                      bottom: 0,
+                      child: SizedBox(
+                        width: _screenWidth,
+                        child: _buildPortImage(destinationPort),
+                      ),
                     ),
-                  ),
-                
-                // 静态显示（不在海上且没有进行中的进入动画）
-                if (!isAtSea && currentPort != null)
-                  _buildPortImage(currentPort),
-              ],
+                  
+                  // 静态显示（不在海上且没有进行中的进入动画）
+                  if (!isAtSea && currentPort != null)
+                    _buildPortImage(currentPort),
+                ],
+              ),
             );
           },
         );
