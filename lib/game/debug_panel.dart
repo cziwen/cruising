@@ -261,10 +261,10 @@ class _DebugPanelState extends State<DebugPanel>
                       width: double.infinity,
                       child: ElevatedButton(
                         onPressed: () {
-                          widget.gameState!.addGold(1000);
+                          widget.gameState!.addGold(10000);
                           ScaffoldMessenger.of(context).showSnackBar(
                             const SnackBar(
-                              content: Text('已添加 1000 金币'),
+                              content: Text('已添加 10000 金币'),
                               duration: Duration(milliseconds: 500),
                             ),
                           );
@@ -275,7 +275,7 @@ class _DebugPanelState extends State<DebugPanel>
                           padding: const EdgeInsets.symmetric(vertical: 8),
                         ),
                         child: const Text(
-                          '添加 1000 金币',
+                          '添加 10000 金币',
                           style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
                         ),
                       ),
