@@ -1,5 +1,16 @@
 [
   {
+    "id": "home_island",
+    "name": "我的岛屿",
+    "description": "这是你的私人领地，一切传奇开始的地方。这里物资丰富，价格稳定，是你最坚实的后盾。",
+    "goodsConfig": {
+      "food": { "alpha": 0.08, "s0": 200, "basePrice": 6.0 },
+      "wood": { "alpha": 0.09, "s0": 200, "basePrice": 10.0 },
+      "spice": { "alpha": 0.15, "s0": 150, "basePrice": 25.0 },
+      "metal": { "alpha": 0.12, "s0": 120, "basePrice": 21.0 }
+    }
+  },
+  {
     "id": "port_1",
     "name": "起始港",
     "backgroundImage": "assets/images/buildings/village_stone_0.png",
@@ -10,10 +21,10 @@
       "port_3": 1920
     },
     "goodsConfig": {
-      "food": { "alpha": 0.05, "s0": 500, "basePrice": 8.0 },
-      "wood": { "alpha": 0.04, "s0": 500, "basePrice": 12.0 },
-      "spice": { "alpha": 0.08, "s0": 300, "basePrice": 28.0 },
-      "metal": { "alpha": 0.05, "s0": 500, "basePrice": 23.0 }
+      "food": { "alpha": 0.2, "s0": 500, "basePrice": 10.0 },
+      "wood": { "alpha": 0.16, "s0": 500, "basePrice": 15.0 },
+      "spice": { "alpha": 0.48, "s0": 300, "basePrice": 30.0 },
+      "metal": { "alpha": 0.2, "s0": 500, "basePrice": 27.0 }
     },
     "merchantMoney": 10000,
     "initialMerchantMoney": 10000
@@ -29,10 +40,10 @@
       "port_3": 1080
     },
     "goodsConfig": {
-      "food": { "alpha": 0.06, "s0": 600, "basePrice": 11.0 },
-      "wood": { "alpha": 0.05, "s0": 400, "basePrice": 16.0 },
-      "spice": { "alpha": 0.12, "s0": 250, "basePrice": 35.0 },
-      "metal": { "alpha": 0.06, "s0": 450, "basePrice": 28.0 }
+      "food": { "alpha": 0.24, "s0": 600, "basePrice": 14.0 },
+      "wood": { "alpha": 0.2, "s0": 400, "basePrice": 18.0 },
+      "spice": { "alpha": 0.5, "s0": 250, "basePrice": 37.0 },
+      "metal": { "alpha": 0.24, "s0": 450, "basePrice": 28.0 }
     },
     "merchantMoney": 20000,
     "initialMerchantMoney": 20000
@@ -48,10 +59,10 @@
       "port_2": 1080
     },
     "goodsConfig": {
-      "food": { "alpha": 0.04, "s0": 550, "basePrice": 9.0 },
-      "wood": { "alpha": 0.03, "s0": 600, "basePrice": 16.0 },
-      "spice": { "alpha": 0.15, "s0": 20, "basePrice": 25.0 },
-      "metal": { "alpha": 0.04, "s0": 500, "basePrice": 22.0 }
+      "food": { "alpha": 0.32, "s0": 550, "basePrice": 12.0 },
+      "wood": { "alpha": 0.24, "s0": 600, "basePrice": 17.0 },
+      "spice": { "alpha": 0.3, "s0": 3000, "basePrice": 22.0 },
+      "metal": { "alpha": 0.4, "s0": 500, "basePrice": 30.0 }
     },
     "merchantMoney": 15000,
     "initialMerchantMoney": 15000

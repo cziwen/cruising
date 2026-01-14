@@ -15,6 +15,7 @@ dependencies:
   audioplayers: ^6.1.0
   win32: ^5.11.0
   tray_manager: ^0.5.2
+  uuid: ^4.5.2
 
 dev_dependencies:
   flutter_test:
@@ -47,6 +48,8 @@ flutter:
   uses-material-design: true
   
   assets:
+    - assets/paper_ui/Sprites/Paper UI Pack/Folding & Cutout/4 Notification/
+    - assets/paper_ui/Sprites/Content Appear Animation/Folding & Cutout/4 Notification/1/
     - assets/config/
     - assets/images/
     - assets/images/icon/

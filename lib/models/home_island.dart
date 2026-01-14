@@ -36,7 +36,7 @@ class HomeIsland {
   String get appearance => 'assets/images/buildings/village_$level.png';
 
   /// 获取当前等级的税收额度（每小时产出）
-  int get taxAmount => taxLevel + 1;
+  int get taxAmount => (taxLevel + 1) * 60;
 
   Map<String, dynamic> toJson() {
     return {

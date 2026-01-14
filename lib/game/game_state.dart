@@ -13,6 +13,7 @@ import '../systems/day_night_system.dart';
 import '../systems/trade_system.dart';
 import '../systems/save_system.dart';
 import '../systems/music_system.dart';
+import '../systems/guidance_system.dart';
 import '../utils/game_config_loader.dart';
 
 /// 天气状况枚举
@@ -219,6 +220,11 @@ class GameState extends ChangeNotifier {
   List<CrewMember> get availableTavernCrew => _availableTavernCrew;
   DayNightSystem get dayNightSystem => _dayNightSystem;
 
+  /// 获取当前时间流逝比例
+  /// 在海上航行时使用 cruisingTimeScale (60.0, 现实1秒=游戏1小时)
+  /// 在港口时使用 portTimeScale (1.0, 现实1秒=游戏1分钟)
+  double get currentTimeScale => _isAtSea ? DayNightSystem.cruisingTimeScale : DayNightSystem.portTimeScale;
+
   // 动画相关 getter
   double get swayTime => _swayTime;
   double get totalSailingOffset => _totalSailingOffset;
@@ -308,12 +314,10 @@ class GameState extends ChangeNotifier {
     _lastTavernRefreshDay = -1;
     refreshTavernCrew();
 
-    // 如果停靠在港口，暂停时间
+    // 根据状态播放音乐，不再自动暂停/恢复时间
     if (_currentPort != null) {
-      _dayNightSystem.pause();
       MusicSystem().playState('port');
     } else {
-      _dayNightSystem.resume();
       MusicSystem().playState('cruising');
     }
 
@@ -353,7 +357,7 @@ class GameState extends ChangeNotifier {
     }
 
     // 2. 使用 dt 增量更新游戏时间
-    final crossedMidnight = _dayNightSystem.updateWithDeltaTime(dtRealSeconds);
+    final crossedMidnight = _dayNightSystem.updateWithDeltaTime(dtRealSeconds, currentTimeScale);
 
     // 检查是否跨越整点（用于税收结算）
     final currentHour = _dayNightSystem.currentHour;
@@ -405,15 +409,26 @@ class GameState extends ChangeNotifier {
     // 随机打乱支付顺序，以公平决定在金币不足时谁被欠薪
     crewMembers.shuffle();
 
+    int totalPaid = 0;
+    List<String> unpaidNames = [];
+
     for (final member in crewMembers) {
       if (_gold >= member.salary) {
         _gold -= member.salary;
         member.isPaid = true;
+        totalPaid += member.salary;
       } else {
         member.isPaid = false;
-        // 如果想在这里显示警告，可以发送一个事件或打印日志
+        unpaidNames.add(member.name);
       }
     }
+
+    if (unpaidNames.isEmpty) {
+      GuidanceSystem.instance.showNotification('已支付今日船员工资 (共 $totalPaid 💰)');
+    } else {
+      GuidanceSystem.instance.showNotification('金币不足！${unpaidNames.join("、")} 等船员未收到工资，士气下降');
+    }
+
     notifyListeners();
   }
 
@@ -739,8 +754,7 @@ class GameState extends ChangeNotifier {
     _currentPort = null;
     _isAtSea = true;
 
-    // 恢复时间流逝（离港后时间继续流动）
-    _dayNightSystem.resume();
+    // 切换音乐
     MusicSystem().playState('cruising');
 
     // 获取航行距离（节）
@@ -836,12 +850,12 @@ class GameState extends ChangeNotifier {
             
             // 检查是否触发战斗（在航行10%-90%之间随机触发）
             if (!_isInCombat && _travelProgress > 0.1 && _travelProgress < 0.9) {
-              // 每10%进度检查一次
-              final progressStep = (_travelProgress * 10).floor();
+              // 每20%进度检查一次
+              final progressStep = (_travelProgress * 5).floor();
               final previousProgress = _travelProgress - (dtGameHours * currentSpeed / _totalTravelDistance);
-              final lastProgressStep = (previousProgress * 10).floor();
+              final lastProgressStep = (previousProgress * 5).floor();
               
-              // 如果跨越了10%的进度点，检查是否触发战斗
+              // 如果跨越了20%的进度点，检查是否触发战斗
               if (progressStep != lastProgressStep && progressStep > 0) {
                 _triggerCombat();
               }
@@ -913,8 +927,8 @@ class GameState extends ChangeNotifier {
     // 播放港口音乐
     MusicSystem().playState('port');
 
-    // 暂停时间流逝（停靠港口）
-    _dayNightSystem.pause();
+    // 显示到港提示
+    GuidanceSystem.instance.showNotification('已到达 ${port.name}');
 
     notifyListeners();
 
@@ -946,42 +960,96 @@ class GameState extends ChangeNotifier {
 
   /// 确保主岛在港口列表中
   void _ensureHomeIslandInPorts() {
-    // 1. 查找或创建主岛基本属性
-    final homePort = Port(
-      id: 'home_island',
-      name: '我的岛屿',
-      backgroundImage: _homeIsland.appearance,
-      description: '这是你的私人岛屿，可以进行养成和存储。',
-      unlocked: true,
-      distances: {
-        'port_1': 480, // 默认到起始港较近
-      },
-      goodsConfig: {
-        // 主岛也有商人，其配置受等级影响
-        'food': PortGoodsConfig(
-          alpha: (0.05 - (_homeIsland.economyLevel * 0.005)).clamp(0.01, 0.05), 
-          s0: 500 + _homeIsland.restockSpeedLevel * 100, 
-          basePrice: 8.0
-        ),
-        'wood': PortGoodsConfig(
-          alpha: (0.04 - (_homeIsland.economyLevel * 0.005)).clamp(0.01, 0.04), 
-          s0: 500 + _homeIsland.restockSpeedLevel * 100, 
-          basePrice: 12.0
-        ),
-        'spice': PortGoodsConfig(
-          alpha: (0.08 - (_homeIsland.economyLevel * 0.01)).clamp(0.01, 0.08), 
-          s0: 300 + _homeIsland.restockSpeedLevel * 50, 
-          basePrice: 28.0
-        ),
-        'metal': PortGoodsConfig(
-          alpha: (0.05 - (_homeIsland.economyLevel * 0.005)).clamp(0.01, 0.05), 
-          s0: 500 + _homeIsland.restockSpeedLevel * 100, 
-          basePrice: 23.0
-        ),
-      },
-      merchantMoney: 1000 + _homeIsland.merchantFundsLevel * 2000,
-      initialMerchantMoney: 1000 + _homeIsland.merchantFundsLevel * 2000,
-    );
+    // 1. 尝试在 ports.json 中查找母岛
+    Port? configHome;
+    try {
+      configHome = _ports.firstWhere((p) => p.id == 'home_island');
+    } catch (_) {
+      configHome = null;
+    }
+
+    Port homePort;
+    if (configHome != null) {
+      homePort = configHome;
+
+      // 字段级回退：如果 JSON 中没有配置货物，则使用动态计算
+      if (homePort.goodsConfig.isEmpty) {
+        homePort = homePort.copyWith(goodsConfig: {
+          'food': PortGoodsConfig(
+              alpha: (0.05 - (_homeIsland.economyLevel * 0.005))
+                  .clamp(0.01, 0.05),
+              s0: 500 + _homeIsland.restockSpeedLevel * 100,
+              basePrice: 8.0),
+          'wood': PortGoodsConfig(
+              alpha: (0.04 - (_homeIsland.economyLevel * 0.005))
+                  .clamp(0.01, 0.04),
+              s0: 500 + _homeIsland.restockSpeedLevel * 100,
+              basePrice: 12.0),
+          'spice': PortGoodsConfig(
+              alpha:
+                  (0.08 - (_homeIsland.economyLevel * 0.01)).clamp(0.01, 0.08),
+              s0: 300 + _homeIsland.restockSpeedLevel * 50,
+              basePrice: 28.0),
+          'metal': PortGoodsConfig(
+              alpha: (0.05 - (_homeIsland.economyLevel * 0.005))
+                  .clamp(0.01, 0.05),
+              s0: 500 + _homeIsland.restockSpeedLevel * 100,
+              basePrice: 23.0),
+        });
+      }
+
+      // 字段级回退：如果商人初始资金未配置（或为初始默认值），则使用动态计算
+      if (homePort.initialMerchantMoney <= 1000) {
+        int dynamicFunds = 1000 + _homeIsland.merchantFundsLevel * 2000;
+        homePort = homePort.copyWith(
+          merchantMoney: dynamicFunds,
+          initialMerchantMoney: dynamicFunds,
+        );
+      }
+
+      // 字段级回退：如果背景图未配置（或为默认占位符），则使用养成等级外观
+      if (homePort.backgroundImage.isEmpty ||
+          homePort.backgroundImage == 'assets/images/buildings/village_0.png') {
+        homePort = homePort.copyWith(backgroundImage: _homeIsland.appearance);
+      }
+    } else {
+      // 查找或创建主岛基本属性（全量动态生成）
+      homePort = Port(
+        id: 'home_island',
+        name: '我的岛屿',
+        backgroundImage: _homeIsland.appearance,
+        description: '这是你的私人岛屿，可以进行养成和存储。',
+        unlocked: true,
+        distances: {
+          'port_1': 480, // 默认到起始港较近
+        },
+        goodsConfig: {
+          // 主岛也有商人，其配置受等级影响
+          'food': PortGoodsConfig(
+              alpha: (0.05 - (_homeIsland.economyLevel * 0.005))
+                  .clamp(0.01, 0.05),
+              s0: 500 + _homeIsland.restockSpeedLevel * 100,
+              basePrice: 8.0),
+          'wood': PortGoodsConfig(
+              alpha: (0.04 - (_homeIsland.economyLevel * 0.005))
+                  .clamp(0.01, 0.04),
+              s0: 500 + _homeIsland.restockSpeedLevel * 100,
+              basePrice: 12.0),
+          'spice': PortGoodsConfig(
+              alpha:
+                  (0.08 - (_homeIsland.economyLevel * 0.01)).clamp(0.01, 0.08),
+              s0: 300 + _homeIsland.restockSpeedLevel * 50,
+              basePrice: 28.0),
+          'metal': PortGoodsConfig(
+              alpha: (0.05 - (_homeIsland.economyLevel * 0.005))
+                  .clamp(0.01, 0.05),
+              s0: 500 + _homeIsland.restockSpeedLevel * 100,
+              basePrice: 23.0),
+        },
+        merchantMoney: 1000 + _homeIsland.merchantFundsLevel * 2000,
+        initialMerchantMoney: 1000 + _homeIsland.merchantFundsLevel * 2000,
+      );
+    }
 
     // 2. 建立双向距离连接
     final homeDistances = Map<String, int>.from(homePort.distances);
@@ -990,14 +1058,18 @@ class GameState extends ChangeNotifier {
       final port = _ports[i];
       if (port.id == 'home_island') continue;
 
-      // 计算该港口到主岛的距离
-      int distanceToHome = 1200; // 默认较远
-      if (port.id == 'port_1') {
-        distanceToHome = 480;
-      } else if (port.distances.containsKey('port_1')) {
-        distanceToHome = port.distances['port_1']! + 480;
+      // 如果已定义则使用现有距离，否则进行计算
+      int? distanceToHome = homeDistances[port.id];
+      if (distanceToHome == null) {
+        if (port.id == 'port_1') {
+          distanceToHome = 480;
+        } else if (port.distances.containsKey('port_1')) {
+          distanceToHome = port.distances['port_1']! + 480;
+        } else {
+          distanceToHome = 1200;
+        }
       }
-      
+
       // 更新其他港口到主岛的距离
       final newDistances = Map<String, int>.from(port.distances);
       newDistances['home_island'] = distanceToHome;
@@ -1326,6 +1398,9 @@ class GameState extends ChangeNotifier {
 
     MusicSystem().playState('combat');
 
+    // 显示战斗提示
+    GuidanceSystem.instance.showNotification('遭遇敌船！准备战斗');
+
     notifyListeners();
   }
 
@@ -1567,9 +1642,6 @@ class GameState extends ChangeNotifier {
     _isReturningFromCombat = false;
     // _isFadeOut 由调用者控制
 
-    // 暂停时间流逝（在港口）
-    _dayNightSystem.pause();
-
     notifyListeners();
   }
 
@@ -1641,9 +1713,9 @@ class GameState extends ChangeNotifier {
 
         // 检查是否触发战斗（在航行10%-90%之间随机触发）
         if (!_isInCombat && _travelProgress > 0.1 && _travelProgress < 0.9) {
-          final progressStep = (_travelProgress * 10).floor();
+          final progressStep = (_travelProgress * 5).floor();
           final previousProgress = _travelProgress - (dtGameHours * currentSpeed / _totalTravelDistance);
-          final lastProgressStep = (previousProgress * 10).floor();
+          final lastProgressStep = (previousProgress * 5).floor();
 
           if (progressStep != lastProgressStep && progressStep > 0) {
             _triggerCombat();
@@ -1672,9 +1744,9 @@ class GameState extends ChangeNotifier {
   void _triggerCombat() {
     if (_isInCombat || !_isAtSea) return;
 
-    // 随机触发战斗（每10%进度10%概率）
+    // 随机触发战斗（每20%进度5%概率）
     final random = Random();
-    if (random.nextDouble() < 0.1) {
+    if (random.nextDouble() < 0.05) {
       startCombat();
     }
   }

@@ -175,10 +175,9 @@ class _GameScreenState extends State<GameScreen> {
       // 如果正在战斗中，更新战斗系统（使用游戏时间）
       if (_gameState.isInCombat) {
         // 计算 game 时间增量（秒）
-        // timeScale = 60.0 (1现实秒 = 60游戏分钟 = 1游戏小时)
+        // 使用当前的游戏时间流逝比例（在海上航行时为 60.0，在港口时为 1.0）
         // 除以 60.0 将游戏分钟转换为游戏秒
-        final timeScale = 60.0; // DayNightSystem.timeScale
-        final dtGameSeconds = dtRealSeconds * timeScale * _gameState.dayNightSystem.timeMultiplier / 60.0;
+        final dtGameSeconds = dtRealSeconds * _gameState.currentTimeScale * _gameState.dayNightSystem.timeMultiplier / 60.0;
         _gameState.updateCombatWithDeltaTime(dtGameSeconds);
       }
     });

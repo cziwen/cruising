@@ -34,9 +34,10 @@ class DayNightSystem {
   // 夜晚持续时间（分钟）
   static const int nightDurationMinutes = 720; // 12小时
   
-  // 时间流逝速度：游戏内1小时 = 现实1秒
-  static const double timeScale = 60.0; // 1现实秒 = 60游戏分钟 = 1游戏小时
-  
+  // 时间流逝速度：航行时游戏内1小时 = 现实1秒；港口时游戏内1分钟 = 现实1秒
+  static const double cruisingTimeScale = 60.0; // 1现实秒 = 60游戏分钟 = 1游戏小时
+  static const double portTimeScale = 1.0; // 1现实秒 = 1游戏分钟
+
   // 时间流逝倍数（用于调试，默认1.0）
   double _timeMultiplier = 1.0;
   
@@ -57,15 +58,13 @@ class DayNightSystem {
     _accumulatedGameMinutes = value.toDouble();
   }
   
-  /// 获取当前时间（小时:00）
-  /// 只显示小时，分钟固定为 00
+  /// 获取当前时间（小时:分钟）
   /// 基于累积的游戏内时间计算，确保精确显示
   String get currentTime {
-    // 使用累积的游戏内时间，只计算小时
-    final totalMinutes = _accumulatedGameMinutes;
-    final hours = (totalMinutes ~/ 60).floor() % 24;
-    // 分钟固定为 00
-    return '${hours.toString().padLeft(2, '0')}:00';
+    final totalMinutes = _accumulatedGameMinutes.floor();
+    final hours = (totalMinutes ~/ 60) % 24;
+    final minutes = totalMinutes % 60;
+    return '${hours.toString().padLeft(2, '0')}:${minutes.toString().padLeft(2, '0')}';
   }
   
   /// 获取当前小时（基于累积时间）
@@ -144,17 +143,17 @@ class DayNightSystem {
   
   /// 使用 dt 增量更新游戏时间（每帧调用）
   /// [dtRealSeconds] 实际经过的秒数（从上一帧到当前帧）
+  /// [timeScale] 当前的时间比例（如 cruisingTimeScale 或 portTimeScale）
   /// 返回是否跨越了00:00（用于工资结算）
-  bool updateWithDeltaTime(double dtRealSeconds) {
+  bool updateWithDeltaTime(double dtRealSeconds, double currentTimeScale) {
     if (_isPaused) return false;
     
     // 记录更新前的状态
     final double previousAccumulated = _accumulatedGameMinutes;
     
     // 将实际时间增量转换为游戏内时间增量
-    // 1现实秒 = 1游戏小时 = 60游戏分钟
-    // 应用时间倍数
-    final dtGameMinutes = dtRealSeconds * timeScale * _timeMultiplier;
+    // 应用时间倍数和当前环境的时间比例
+    final dtGameMinutes = dtRealSeconds * currentTimeScale * _timeMultiplier;
     
     // 累积游戏内时间
     _accumulatedGameMinutes += dtGameMinutes;

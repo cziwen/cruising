@@ -687,9 +687,14 @@ class _TradeDialogState extends State<_TradeDialog> {
       itemCount: merchantGoodsList.length,
       itemBuilder: (context, index) {
         final goods = merchantGoodsList[index];
-        int actualStock = goods.id == 'gold' 
-            ? (port.merchantMoney - _getPendingMerchantStockAdjustment(goods.id)).clamp(0, double.infinity).toInt()
-            : (port.getGoodsStock(goods.id) > 0 ? port.getGoodsStock(goods.id) : (port.getGoodsConfig(goods.id)?.s0 ?? 50) - _getPendingMerchantStockAdjustment(goods.id)).clamp(0, double.infinity).toInt();
+        final portStock = port.getGoodsStock(goods.id);
+        final config = port.getGoodsConfig(goods.id);
+        final baseStock = (goods.id == 'gold')
+            ? port.merchantMoney
+            : (portStock > 0 ? portStock : (config?.s0 ?? 50));
+        int actualStock = (baseStock - _getPendingMerchantStockAdjustment(goods.id))
+            .clamp(0, double.infinity)
+            .toInt();
 
         return GoodsSlot(
           goods: goods,

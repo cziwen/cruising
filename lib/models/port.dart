@@ -178,19 +178,26 @@ class Port {
 
   factory Port.fromJson(Map<String, dynamic> json) {
     return Port(
-      id: json['id'] as String,
-      name: json['name'] as String,
-      backgroundImage: json['backgroundImage'] as String,
-      description: json['description'] as String,
+      id: json['id'] as String? ?? '',
+      name: json['name'] as String? ?? '未命名港口',
+      backgroundImage: json['backgroundImage'] as String? ?? '',
+      description: json['description'] as String? ?? '',
       unlocked: json['unlocked'] as bool? ?? true,
-      distances: json['distances'] != null ? Map<String, int>.from(json['distances'] as Map) : null,
-      goodsStock: json['goodsStock'] != null ? Map<String, int>.from(json['goodsStock'] as Map) : null,
-      priceBaseStock: json['priceBaseStock'] != null ? Map<String, int>.from(json['priceBaseStock'] as Map) : null,
-      goodsConfig: json['goodsConfig'] != null 
-        ? (json['goodsConfig'] as Map).map(
-            (key, value) => MapEntry(key as String, PortGoodsConfig.fromJson(value as Map<String, dynamic>)),
-          )
-        : null,
+      distances: json['distances'] != null
+          ? Map<String, int>.from(json['distances'] as Map)
+          : null,
+      goodsStock: json['goodsStock'] != null
+          ? Map<String, int>.from(json['goodsStock'] as Map)
+          : null,
+      priceBaseStock: json['priceBaseStock'] != null
+          ? Map<String, int>.from(json['priceBaseStock'] as Map)
+          : null,
+      goodsConfig: json['goodsConfig'] != null
+          ? (json['goodsConfig'] as Map).map(
+              (key, value) => MapEntry(key as String,
+                  PortGoodsConfig.fromJson(value as Map<String, dynamic>)),
+            )
+          : null,
       merchantMoney: json['merchantMoney'] as int? ?? 1000,
       initialMerchantMoney: json['initialMerchantMoney'] as int? ?? 1000,
     );

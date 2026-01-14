@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import '../game_state.dart';
 import '../debug_panel.dart';
@@ -5,10 +6,11 @@ import '../crew_management_dialog.dart';
 import '../main_hall_dialog.dart';
 import '../paper_button.dart';
 import '../pixel_progress_bar.dart';
+import '../../systems/music_system.dart';
 import 'status_bar.dart';
 
 /// UI层 - 界面元素（按钮、菜单、信息显示等）
-class UILayer extends StatelessWidget {
+class UILayer extends StatefulWidget {
   final GameState gameState;
   final VoidCallback? onTradePressed;
   final VoidCallback? onPortSelectPressed;
@@ -31,6 +33,61 @@ class UILayer extends StatelessWidget {
   });
 
   @override
+  State<UILayer> createState() => _UILayerState();
+}
+
+class _FloatingText {
+  final String text;
+  final Offset position;
+  final DateTime startTime;
+  static const duration = Duration(milliseconds: 1500);
+
+  _FloatingText(this.text, this.position) : startTime = DateTime.now();
+
+  double get opacity {
+    final elapsed = DateTime.now().difference(startTime);
+    if (elapsed >= duration) return 0.0;
+    return 1.0 - (elapsed.inMilliseconds / duration.inMilliseconds);
+  }
+
+  double get yOffset {
+    final elapsed = DateTime.now().difference(startTime);
+    // 向上飘动 100 像素
+    return -100.0 * (elapsed.inMilliseconds / duration.inMilliseconds);
+  }
+
+  bool get isExpired => DateTime.now().difference(startTime) >= duration;
+}
+
+class _UILayerState extends State<UILayer> {
+  final List<_FloatingText> _floatingTexts = [];
+  Timer? _animationTimer;
+
+  @override
+  void dispose() {
+    _animationTimer?.cancel();
+    super.dispose();
+  }
+
+  void _addFloatingText(String text, Offset position) {
+    setState(() {
+      _floatingTexts.add(_FloatingText(text, position));
+    });
+
+    // 如果还没有计时器，则启动一个
+    if (_animationTimer == null || !_animationTimer!.isActive) {
+      _animationTimer = Timer.periodic(const Duration(milliseconds: 16), (timer) {
+        setState(() {
+          _floatingTexts.removeWhere((item) => item.isExpired);
+          if (_floatingTexts.isEmpty) {
+            timer.cancel();
+          }
+        });
+      });
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
     final screenSize = MediaQuery.of(context).size;
     final centerX = screenSize.width / 2;
@@ -44,7 +101,7 @@ class UILayer extends StatelessWidget {
     return Stack(
       children: [
         // 顶部航行进度条（仅在海上航行时显示）
-        if (gameState.isAtSea)
+        if (widget.gameState.isAtSea)
           Positioned(
             top: 0,
             left: 180,  // 左侧留出更多空间，避免与左上角时间显示冲突
@@ -57,17 +114,17 @@ class UILayer extends StatelessWidget {
           bottom: 0,
           left: 0,
           right: 0,
-          child: StatusBar(gameState: gameState),
+          child: StatusBar(gameState: widget.gameState),
         ),
         
         // 岛屿周围的交互按钮（仅在非过渡且不在海上时显示）
-        if (!gameState.isTransitioning && !gameState.isAtSea && gameState.currentPort != null) ...[
+        if (!widget.gameState.isTransitioning && !widget.gameState.isAtSea && widget.gameState.currentPort != null) ...[
           // 税收提示 - 岛屿正上方 (仅限主岛)
-          if (gameState.currentPort!.id == 'home_island' && gameState.homeIsland.accumulatedTax > 0)
+          if (widget.gameState.currentPort!.id == 'home_island' && widget.gameState.homeIsland.accumulatedTax > 0)
             Positioned(
               left: islandCenterX - 60,
               top: islandCenterY - 230,
-              child: _buildTaxButton(),
+              child: _buildTaxButton(islandCenterX - 60, islandCenterY - 230),
             ),
 
           // 市场按钮 - 岛屿左侧
@@ -76,13 +133,13 @@ class UILayer extends StatelessWidget {
             top: islandCenterY - 50,
             child: _buildIslandButton(
               '市场',
-              onMarketPressed ?? onTradePressed,
+              widget.onMarketPressed ?? widget.onTradePressed,
               Colors.blue,
             ),
           ),
           
           // 大厅按钮 (仅限主岛)
-          if (gameState.currentPort!.id == 'home_island') ...[
+          if (widget.gameState.currentPort!.id == 'home_island') ...[
             // 大厅按钮 - 岛屿左下方
             Positioned(
               left: islandCenterX - 250,
@@ -101,7 +158,7 @@ class UILayer extends StatelessWidget {
             top: islandCenterY - 150,
             child: _buildIslandButton(
               '港口酒馆',
-              onCrewMarketPressed,
+              widget.onCrewMarketPressed,
               Colors.purple,
             ),
           ),
@@ -111,7 +168,7 @@ class UILayer extends StatelessWidget {
             top: islandCenterY - 150,
             child: _buildIslandButton(
               '设置',
-              onSettingsPressed,
+              widget.onSettingsPressed,
               Colors.blueGrey,
             ),
           ),
@@ -121,7 +178,7 @@ class UILayer extends StatelessWidget {
             top: islandCenterY - 50,
             child: _buildIslandButton(
               '船厂',
-              onShipyardPressed ?? onUpgradePressed,
+              widget.onShipyardPressed ?? widget.onUpgradePressed,
               Colors.orange,
             ),
           ),
@@ -138,15 +195,42 @@ class UILayer extends StatelessWidget {
         ],
         
         // 选择目的地按钮 - 右下角（仅在非过渡且不在海上时显示）
-        if (!gameState.isTransitioning && !gameState.isAtSea)
+        if (!widget.gameState.isTransitioning && !widget.gameState.isAtSea)
           Positioned(
             bottom: 80,
             right: 16,
             child: _buildDestinationButton(),
           ),
         
+        // 漂浮动画层
+        ..._floatingTexts.map((ft) => Positioned(
+              left: ft.position.dx,
+              top: ft.position.dy + ft.yOffset,
+              child: Opacity(
+                opacity: ft.opacity,
+                child: Material(
+                  color: Colors.transparent,
+                  child: Text(
+                    ft.text,
+                    style: const TextStyle(
+                      color: Colors.amber,
+                      fontSize: 24,
+                      fontWeight: FontWeight.bold,
+                      shadows: [
+                        Shadow(
+                          blurRadius: 4,
+                          color: Colors.black,
+                          offset: Offset(2, 2),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            )),
+
         // 调试面板
-        DebugPanel(gameState: gameState),
+        DebugPanel(gameState: widget.gameState),
       ],
     );
   }
@@ -175,7 +259,7 @@ class UILayer extends StatelessWidget {
     return PaperButton(
       label: '选择目的地',
       icon: const Icon(Icons.map, color: Color(0xFF4E342E), size: 20),
-      onPressed: onPortSelectPressed,
+      onPressed: widget.onPortSelectPressed,
       style: PaperButtonStyle.green,
       width: 120,
       height: 48,
@@ -187,7 +271,7 @@ class UILayer extends StatelessWidget {
     showDialog(
       context: context,
       builder: (context) => CrewManagementDialog(
-        gameState: gameState,
+        gameState: widget.gameState,
       ),
     );
   }
@@ -197,16 +281,23 @@ class UILayer extends StatelessWidget {
     showDialog(
       context: context,
       builder: (context) => MainHallDialog(
-        gameState: gameState,
+        gameState: widget.gameState,
         initialTab: initialTab,
       ),
     );
   }
 
   /// 构建税收提示按钮
-  Widget _buildTaxButton() {
+  Widget _buildTaxButton(double x, double y) {
     return GestureDetector(
-      onTap: () => gameState.collectTax(),
+      onTap: () {
+        final amount = widget.gameState.homeIsland.accumulatedTax;
+        if (amount > 0) {
+          MusicSystem().playSFX('button_press');
+          _addFloatingText('+$amount 💰', Offset(x + 20, y));
+          widget.gameState.collectTax();
+        }
+      },
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         decoration: BoxDecoration(
@@ -226,7 +317,7 @@ class UILayer extends StatelessWidget {
             const Text('💰', style: TextStyle(fontSize: 20)),
             const SizedBox(width: 8),
             Text(
-              '${gameState.homeIsland.accumulatedTax}',
+              '${widget.gameState.homeIsland.accumulatedTax}',
               style: const TextStyle(
                 color: Colors.brown,
                 fontWeight: FontWeight.bold,
@@ -241,8 +332,8 @@ class UILayer extends StatelessWidget {
 
   /// 构建航行进度条
   Widget _buildTravelProgressBar() {
-    final remainingHours = gameState.remainingTravelHours;
-    final destinationName = gameState.destinationPort?.name ?? '目的地';
+    final remainingHours = widget.gameState.remainingTravelHours;
+    final destinationName = widget.gameState.destinationPort?.name ?? '目的地';
     
     // 将小时数转换为"X天Y小时"格式
     final days = remainingHours ~/ 24;
@@ -285,7 +376,7 @@ class UILayer extends StatelessWidget {
           const SizedBox(height: 8),
           // 进度条
           PixelProgressBar(
-            value: gameState.travelProgress,
+            value: widget.gameState.travelProgress,
             width: double.infinity,
             height: 32, // 背景板高度
           ),

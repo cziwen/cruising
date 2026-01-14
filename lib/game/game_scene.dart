@@ -7,6 +7,7 @@ import 'layers/foreground_wave_layer.dart';
 import 'layers/ui_layer.dart';
 import 'layers/time_display.dart';
 import 'layers/screen_effect_layer.dart';
+import 'layers/notification_overlay.dart';
 
 /// 游戏场景 - 单场景游戏视图（4层渲染）
 class GameScene extends StatelessWidget {
@@ -66,6 +67,9 @@ class GameScene extends StatelessWidget {
         
         // Layer 3.5: 时间显示（左上角）
         TimeDisplay(gameState: gameState),
+
+        // Layer 4: 提示系统覆盖层（最顶层）
+        const NotificationOverlay(),
       ],
     );
   }
