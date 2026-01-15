@@ -1150,15 +1150,23 @@ class GameState extends ChangeNotifier {
     final inventoryQuantity = getInventoryQuantity(goodsId);
     if (inventoryQuantity < quantity) return false;
 
+    // 获取当前货物的均价
+    final sourceItem = _inventory.firstWhere((item) => item.goodsId == goodsId);
+    final currentAveragePrice = sourceItem.averagePurchasePrice;
+
     if (removeFromInventory(goodsId, quantity)) {
       final existingItemIndex = _homeIsland.warehouseInventory.indexWhere(
         (item) => item.goodsId == goodsId,
       );
 
       if (existingItemIndex != -1) {
-        _homeIsland.warehouseInventory[existingItemIndex].add(quantity);
+        _homeIsland.warehouseInventory[existingItemIndex].add(quantity, currentAveragePrice);
       } else {
-        _homeIsland.warehouseInventory.add(ShipInventoryItem(goodsId: goodsId, quantity: quantity));
+        _homeIsland.warehouseInventory.add(ShipInventoryItem(
+          goodsId: goodsId,
+          quantity: quantity,
+          averagePurchasePrice: currentAveragePrice,
+        ));
       }
       notifyListeners();
       return true;
@@ -1171,13 +1179,17 @@ class GameState extends ChangeNotifier {
     final warehouseQuantity = getWarehouseQuantity(goodsId);
     if (warehouseQuantity < quantity) return false;
 
+    // 获取仓库中货物的均价
+    final warehouseItem = _homeIsland.warehouseInventory.firstWhere((item) => item.goodsId == goodsId);
+    final currentAveragePrice = warehouseItem.averagePurchasePrice;
+
     // 检查船只载货空间
     if (_getGoodsById == null) return false;
     final goods = _getGoodsById!(goodsId);
     final weight = quantity * goods.weight;
     if (!_ship.hasEnoughCargo(_inventory, weight, _getGoodsById!)) return false;
 
-    if (addToInventory(goodsId, quantity)) {
+    if (addToInventory(goodsId, quantity, purchasePrice: currentAveragePrice)) {
       final itemIndex = _homeIsland.warehouseInventory.indexWhere((item) => item.goodsId == goodsId);
       if (itemIndex != -1) {
         _homeIsland.warehouseInventory[itemIndex].remove(quantity);
@@ -1211,10 +1223,12 @@ class GameState extends ChangeNotifier {
   /// [goodsId] 商品ID
   /// [quantity] 数量
   /// [getGoodsById] 可选：获取商品信息的函数，如果不提供则使用内部设置的函数
+  /// [purchasePrice] 可选：本次购买的单价，用于计算持有均价
   bool addToInventory(
     String goodsId,
     int quantity, {
     Goods Function(String goodsId)? getGoodsById,
+    double? purchasePrice,
   }) {
     // 使用传入的getGoodsById或内部设置的函数
     final getGoods = getGoodsById ?? _getGoodsById;
@@ -1232,16 +1246,18 @@ class GameState extends ChangeNotifier {
       }
     }
 
-    final existingItem = _inventory.firstWhere(
-      (item) => item.goodsId == goodsId,
-      orElse: () => ShipInventoryItem(goodsId: goodsId),
-    );
+    final existingItemIndex = _inventory.indexWhere((item) => item.goodsId == goodsId);
 
-    if (!_inventory.contains(existingItem)) {
-      _inventory.add(existingItem);
+    if (existingItemIndex != -1) {
+      _inventory[existingItemIndex].add(quantity, purchasePrice);
+    } else {
+      _inventory.add(ShipInventoryItem(
+        goodsId: goodsId,
+        quantity: quantity,
+        averagePurchasePrice: purchasePrice ?? 0.0,
+      ));
     }
 
-    existingItem.add(quantity);
     notifyListeners();
     return true;
   }

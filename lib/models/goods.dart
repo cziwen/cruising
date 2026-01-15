@@ -56,24 +56,35 @@ class PortGoodsPrice {
 class ShipInventoryItem {
   final String goodsId;
   int quantity;
+  double averagePurchasePrice;
 
   ShipInventoryItem({
     required this.goodsId,
     this.quantity = 0,
+    this.averagePurchasePrice = 0.0,
   });
 
-  void add(int amount) {
+  void add(int amount, [double? price]) {
+    if (price != null && price > 0) {
+      // recalculate average purchase price:
+      // newAverage = (oldAverage * oldQuantity + newPrice * newQuantity) / (oldQuantity + newQuantity)
+      averagePurchasePrice = (averagePurchasePrice * quantity + price * amount) / (quantity + amount);
+    }
     quantity += amount;
   }
 
   void remove(int amount) {
     quantity = (quantity - amount).clamp(0, double.infinity).toInt();
+    if (quantity == 0) {
+      averagePurchasePrice = 0.0;
+    }
   }
 
   Map<String, dynamic> toJson() {
     return {
       'goodsId': goodsId,
       'quantity': quantity,
+      'averagePurchasePrice': averagePurchasePrice,
     };
   }
 
@@ -81,6 +92,7 @@ class ShipInventoryItem {
     return ShipInventoryItem(
       goodsId: json['goodsId'] as String,
       quantity: json['quantity'] as int,
+      averagePurchasePrice: (json['averagePurchasePrice'] as num?)?.toDouble() ?? 0.0,
     );
   }
 }

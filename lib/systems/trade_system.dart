@@ -266,6 +266,55 @@ class TradeSystem {
     return totalPrice;
   }
 
+  /// 计算增量出售价格（每个商品的价格基于前一个商品出售后的库存）
+  /// [portId] 港口ID
+  /// [goodsId] 商品ID
+  /// [quantity] 出售数量
+  /// [pendingStockAdjustment] pending物品对库存的调整（要增加到库存中的数量）
+  /// 返回出售指定数量商品的总价，每个商品的价格基于前一个商品出售后的库存计算
+  double calculateIncrementalSellPrice(String portId, String goodsId, int quantity, {int pendingStockAdjustment = 0}) {
+    // 金币特殊处理：总价 = quantity（1:1）
+    if (goodsId == 'gold') {
+      return quantity.toDouble();
+    }
+
+    // 获取港口信息
+    final port = gameState.ports.firstWhere(
+      (p) => p.id == portId,
+      orElse: () => throw Exception('Port not found: $portId'),
+    );
+
+    // 获取港口对该商品的配置（alpha 和 s0）
+    final config = port.getGoodsConfig(goodsId);
+    if (config == null) {
+      throw Exception('Goods config not found for port $portId, goods $goodsId');
+    }
+
+    // 获取价格基准库存（用于价格计算，每7天更新一次）
+    final priceBaseS = port.getPriceBaseStock(goodsId);
+    final S0 = config.s0;
+    // 出售时，库存增加，考虑pending物品对库存的影响
+    int currentStock = ((priceBaseS > 0 ? priceBaseS : S0) + pendingStockAdjustment).toInt();
+
+    // 获取商品参数
+    final P0 = config.basePrice;
+    final alpha = config.alpha;
+
+    // 计算增量总价：每个商品的价格基于前一个商品出售后的库存
+    double totalPrice = 0.0;
+    for (int i = 0; i < quantity; i++) {
+      // 计算当前库存下的商人出售价：P_sell = P₀ · e^(-α((currentStock - S₀)/100))
+      final merchantSellPrice = P0 * exp(-alpha * ((currentStock - S0) / 100));
+      // 计算商人的收购价（玩家出售价）：P_buy = P_sell * (1 - α)²
+      final playerSellPrice = merchantSellPrice * (1 - alpha) * (1 - alpha);
+      totalPrice += playerSellPrice;
+      // 增加库存（为下一个商品计算）
+      currentStock++;
+    }
+
+    return totalPrice;
+  }
+
   /// 购买商品
   bool buyGoods(String goodsId, int quantity) {
     if (gameState.currentPort == null) return false;
@@ -448,7 +497,9 @@ class TradeSystem {
         final updatedPort = gameState.ports.firstWhere((p) => p.id == portId);
         gameState.updatePortMerchantMoney(portId, updatedPort.merchantMoney - item.quantity);
       } else {
-        if (gameState.addToInventory(item.goodsId, item.quantity, getGoodsById: _getGoods)) {
+        // 计算本次买入的平均单价
+        final purchasePrice = item.totalPrice / item.quantity;
+        if (gameState.addToInventory(item.goodsId, item.quantity, getGoodsById: _getGoods, purchasePrice: purchasePrice)) {
           // 获取最新的port对象
           final updatedPort = gameState.ports.firstWhere((p) => p.id == portId);
           // 使用实际库存（goodsStock），确保库存不会为负
@@ -889,7 +940,27 @@ class _TradeDialogState extends State<_TradeDialog> {
     
     double addPrice = isBuying 
         ? widget.tradeSystem.calculateIncrementalBuyPrice(portId, goodsId, _selectedQuantity, pendingStockAdjustment: existingPendingQuantity)
-        : widget.tradeSystem.getPortGoodsPrice(portId, goodsId, pendingStockAdjustment: existingPendingQuantity).sellPrice * _selectedQuantity;
+        : widget.tradeSystem.calculateIncrementalSellPrice(portId, goodsId, _selectedQuantity, pendingStockAdjustment: existingPendingQuantity);
+
+    // 计算本次选中的平均单价
+    double currentBatchAverage = _selectedQuantity > 0 ? addPrice / _selectedQuantity : 0.0;
+
+    // 获取持有均价
+    double? averagePurchasePrice;
+    if (goodsId != 'gold') {
+      try {
+        final item = widget.tradeSystem.gameState.inventory.firstWhere((item) => item.goodsId == goodsId);
+        averagePurchasePrice = item.averagePurchasePrice;
+      } catch (_) {
+        // 如果库存没有，检查仓库（如果是母岛）
+        if (widget.tradeSystem.gameState.currentPort?.id == 'home_island') {
+          try {
+            final item = widget.tradeSystem.gameState.warehouseInventory.firstWhere((item) => item.goodsId == goodsId);
+            averagePurchasePrice = item.averagePurchasePrice;
+          } catch (_) {}
+        }
+      }
+    }
 
     return Container(
       padding: const EdgeInsets.all(12),
@@ -907,6 +978,33 @@ class _TradeDialogState extends State<_TradeDialog> {
               Text('${isBuying ? "购买" : "出售"}: ${goods.name}', style: const TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF4E342E))),
               Text('x $_selectedQuantity', style: const TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF5D4037))),
             ],
+          ),
+          if (averagePurchasePrice != null && averagePurchasePrice > 0)
+            Padding(
+              padding: const EdgeInsets.only(top: 4),
+              child: Row(
+                children: [
+                  Text(
+                    '持有均价: ${averagePurchasePrice.toStringAsFixed(1)}',
+                    style: TextStyle(fontSize: 12, color: Colors.brown[700], fontStyle: FontStyle.italic),
+                  ),
+                ],
+              ),
+            ),
+          Padding(
+            padding: const EdgeInsets.only(top: 4),
+            child: Row(
+              children: [
+                Text(
+                  '${isBuying ? "买入" : "售出"}均价: ${currentBatchAverage.toStringAsFixed(1)}',
+                  style: TextStyle(
+                    fontSize: 12, 
+                    fontWeight: FontWeight.bold, 
+                    color: isBuying ? Colors.blue[800] : Colors.green[800],
+                  ),
+                ),
+              ],
+            ),
           ),
           Slider(
             value: _selectedQuantity.toDouble(),
@@ -964,12 +1062,12 @@ class _TradeDialogState extends State<_TradeDialog> {
       final newQty = items[idx].quantity + addQuantity;
       double newTotal = isBuying 
           ? widget.tradeSystem.calculateIncrementalBuyPrice(portId, goodsId, newQty)
-          : widget.tradeSystem.getPortGoodsPrice(portId, goodsId).sellPrice * newQty;
+          : widget.tradeSystem.calculateIncrementalSellPrice(portId, goodsId, newQty);
       items[idx] = PendingTradeItem(goodsId: goodsId, quantity: newQty, isBuying: isBuying, unitPrice: 0, totalPrice: newTotal);
     } else {
       double total = isBuying 
           ? widget.tradeSystem.calculateIncrementalBuyPrice(portId, goodsId, addQuantity)
-          : widget.tradeSystem.getPortGoodsPrice(portId, goodsId).sellPrice * addQuantity;
+          : widget.tradeSystem.calculateIncrementalSellPrice(portId, goodsId, addQuantity);
       items.add(PendingTradeItem(goodsId: goodsId, quantity: addQuantity, isBuying: isBuying, unitPrice: 0, totalPrice: total));
     }
   }
