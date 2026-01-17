@@ -1,18 +1,18 @@
 import 'package:flutter/material.dart';
-import '../../systems/guidance_system.dart';
+import '../../systems/notification_system.dart';
 import 'notification_item.dart';
 
 /// 提示系统覆盖层容器
-/// 监听 GuidanceSystem 并展示所有活跃提示
+/// 监听 NotificationSystem 并展示所有活跃提示
 class NotificationOverlay extends StatelessWidget {
   const NotificationOverlay({super.key});
 
   @override
   Widget build(BuildContext context) {
     return ListenableBuilder(
-      listenable: GuidanceSystem.instance,
+      listenable: NotificationSystem.instance,
       builder: (context, child) {
-        final hints = GuidanceSystem.instance.activeHints;
+        final hints = NotificationSystem.instance.activeHints;
         
         return Stack(
           children: [
@@ -22,7 +22,7 @@ class NotificationOverlay extends StatelessWidget {
                 hint: hints[i],
                 index: i,
                 onDismissed: () {
-                  GuidanceSystem.instance.removeHint(hints[i].id);
+                  NotificationSystem.instance.removeHint(hints[i].id);
                 },
               ),
           ],

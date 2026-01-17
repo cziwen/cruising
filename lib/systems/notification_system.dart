@@ -1,21 +1,21 @@
 import 'package:flutter/foundation.dart';
-import '../models/guidance_hint.dart';
+import '../models/notification_hint.dart';
 
-/// 指引系统逻辑管理
+/// 通知系统逻辑管理
 /// 负责提示队列的维护和堆栈逻辑（最多3个提示）
-class GuidanceSystem extends ChangeNotifier {
+class NotificationSystem extends ChangeNotifier {
   // 单例模式
-  static final GuidanceSystem instance = GuidanceSystem._internal();
-  GuidanceSystem._internal();
+  static final NotificationSystem instance = NotificationSystem._internal();
+  NotificationSystem._internal();
 
-  final List<GuidanceHint> _activeHints = [];
+  final List<NotificationHint> _activeHints = [];
   
   /// 当前活跃的提示列表
-  List<GuidanceHint> get activeHints => List.unmodifiable(_activeHints);
+  List<NotificationHint> get activeHints => List.unmodifiable(_activeHints);
 
   /// 显示一个新的提示
   void showNotification(String message) {
-    final newHint = GuidanceHint(message: message);
+    final newHint = NotificationHint(message: message);
     
     // 堆栈逻辑：如果已经有3个提示，将最旧的一个标记为退出
     if (_activeHints.where((h) => !h.isExiting).length >= 3) {

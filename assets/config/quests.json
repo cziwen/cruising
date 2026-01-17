@@ -1,0 +1,115 @@
+[
+  {
+    "id": "T01_welcome",
+    "trigger": "on_new_game_start",
+    "highlight": null,
+    "text": "船长，先赚到第一桶金！跟着提示点就行。",
+    "complete_when": "tap_anywhere",
+    "is_mandatory": true
+  },
+  {
+    "id": "T02_open_market",
+    "trigger": "after(T01_welcome)",
+    "highlight": "ui.marketButton",
+    "text": "先打开【市场】看看现在什么便宜。",
+    "complete_when": "ui.marketPanel.opened",
+    "is_mandatory": true
+  },
+  {
+    "id": "T03a_select_food",
+    "trigger": "after(T02_open_market)",
+    "highlight": "ui.goodsRow('food')",
+    "text": "选中【食物】以准备买入。",
+    "complete_when": "ui.quantitySlider.opened",
+    "is_mandatory": true
+  },
+  {
+    "id": "T03b_confirm_quantity",
+    "trigger": "after(T03a_select_food)",
+    "highlight": "ui.quantitySlider",
+    "text": "调整滑块选择 10份，然后点击【确认】放入待交易列表。",
+    "complete_when": "!ui.quantitySlider.opened",
+    "is_mandatory": true
+  },
+  {
+    "id": "T03c_balance_trade",
+    "trigger": "after(T03b_confirm_quantity)",
+    "highlight": "ui.balanceButton",
+    "text": "点击【平衡报价】，商人会自动计算双方价值差异并用金币补足。",
+    "complete_when": "ui.tradeBalanced",
+    "is_mandatory": true
+  },
+  {
+    "id": "T03d_execute_trade",
+    "trigger": "after(T03c_balance_trade)",
+    "highlight": "ui.sellButton",
+    "text": "点击【确认交易】来最终完成买入。",
+    "complete_when": "cargo.count('food') >= 10",
+    "action": "ui.marketPanel.close",
+    "is_mandatory": true
+  },
+  {
+    "id": "T04a_open_port_list",
+    "trigger": "after(T03d_execute_trade)",
+    "highlight": "ui.portListButton",
+    "text": "点开【选择目的地】来规划下一步。",
+    "complete_when": "ui.portList.opened",
+    "is_mandatory": true
+  },
+  {
+    "id": "T04b_confirm_departure",
+    "trigger": "after(T04a_open_port_list)",
+    "highlight": "ui.portRow('port_2')",
+    "text": "点击【出发】开始前往贸易港。",
+    "complete_when": "navigation.isAtSea",
+    "is_mandatory": true
+  },
+  {
+    "id": "T05_sailing",
+    "trigger": "after(T04b_confirm_departure)",
+    "highlight": "ui.travelProgressBar",
+    "text": "航行中：距离越远，时间越久。",
+    "complete_when": "tap_anywhere",
+    "is_mandatory": true
+  },
+  {
+    "id": "T06a_open_market",
+    "trigger": "after(T05_sailing) && navigation.arrived",
+    "highlight": "ui.marketButton",
+    "text": "已到达目的地！点开【市场】准备贸易。",
+    "complete_when": "ui.marketPanel.opened",
+    "is_mandatory": true
+  },
+  {
+    "id": "T06b_sell_goods",
+    "trigger": "after(T06a_open_market)",
+    "highlight": "ui.marketPanel",
+    "text": "卖出所有【食物】，赚差价！",
+    "complete_when": "cargo.count('food') == 0",
+    "is_mandatory": true
+  },
+  {
+    "id": "T07_upgrade_ship",
+    "trigger": "after(T06b_sell_goods)",
+    "highlight": "ui.shipUpgradeButton",
+    "text": "用利润升级一次船只（推荐：载货量）。",
+    "complete_when": "ship.upgrade_count >= 1",
+    "is_mandatory": true
+  },
+  {
+    "id": "T08_home_island",
+    "trigger": "after(T07_upgrade_ship)",
+    "highlight": "ui.homeIslandButton",
+    "text": "回主岛领税收，躺着也赚钱。",
+    "complete_when": "homeIsland.opened",
+    "is_mandatory": true
+  },
+  {
+    "id": "T09_collect_tax",
+    "trigger": "after(T08_home_island)",
+    "highlight": "ui.collectTaxButton",
+    "text": "领取税收！",
+    "complete_when": "homeIsland.tax_collected_today == true",
+    "is_mandatory": true
+  }
+]

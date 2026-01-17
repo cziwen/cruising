@@ -1,13 +1,13 @@
 import 'package:uuid/uuid.dart';
 
-/// 指引提示数据模型
-class GuidanceHint {
+/// 通知提示数据模型
+class NotificationHint {
   final String id;
   final String message;
   bool isExiting;
   final DateTime createdAt;
 
-  GuidanceHint({
+  NotificationHint({
     String? id,
     required this.message,
     this.isExiting = false,
@@ -17,7 +17,7 @@ class GuidanceHint {
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-      other is GuidanceHint && runtimeType == other.runtimeType && id == other.id;
+      other is NotificationHint && runtimeType == other.runtimeType && id == other.id;
 
   @override
   int get hashCode => id.hashCode;

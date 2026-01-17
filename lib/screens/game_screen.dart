@@ -13,6 +13,8 @@ import '../systems/music_system.dart';
 import '../game/shipyard_dialog.dart';
 import '../game/settings_dialog.dart';
 import '../utils/game_config_loader.dart';
+import '../systems/quest_system.dart';
+// 移除 unused imports
 
 class GameScreen extends StatefulWidget {
   final Map<String, dynamic>? initialSaveData;
@@ -142,6 +144,12 @@ class _GameScreenState extends State<GameScreen> {
     
     _gameState.setGetGoodsById((goodsId) => _tradeSystem.getGoods(goodsId));
     
+    // 初始化任务系统
+    QuestSystem.instance.initialize(_gameState);
+    
+    // 监听任务系统的动作
+    QuestSystem.instance.addListener(_handleQuestAction);
+    
     if (widget.initialSaveData != null) {
       _gameState.initialize([]); // Initialize with empty to setup basic structure if needed, or rely on loadFromJson
       _gameState.loadFromJson(widget.initialSaveData!);
@@ -184,6 +192,20 @@ class _GameScreenState extends State<GameScreen> {
     
     // 启动游戏循环 Ticker
     _gameLoopTicker!.start();
+  }
+
+  void _handleQuestAction() {
+    final action = QuestSystem.instance.pendingAction;
+    if (action == null) return;
+
+    if (action == "ui.marketPanel.close") {
+      // 如果当前弹窗是市场面板，则关闭它
+      if (mounted) {
+        Navigator.of(context).popUntil((route) => route.isFirst);
+      }
+    }
+    
+    QuestSystem.instance.clearPendingAction();
   }
 
   void _initializeGame() {
@@ -275,6 +297,7 @@ class _GameScreenState extends State<GameScreen> {
 
   @override
   void dispose() {
+    QuestSystem.instance.removeListener(_handleQuestAction);
     _gameLoopTicker?.stop();
     _gameLoopTicker = null;
     _gameState.dispose();
@@ -284,15 +307,19 @@ class _GameScreenState extends State<GameScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: GameScene(
-        gameState: _gameState,
-        onTradePressed: _handleTradePressed,
-        onPortSelectPressed: _handlePortSelectPressed,
-        onUpgradePressed: _handleUpgradePressed,
-        onMarketPressed: _handleMarketPressed,
-        onCrewMarketPressed: _handleCrewMarketPressed,
-        onShipyardPressed: _handleShipyardPressed,
-        onSettingsPressed: _handleSettingsPressed,
+      body: Stack(
+        children: [
+          GameScene(
+            gameState: _gameState,
+            onTradePressed: _handleTradePressed,
+            onPortSelectPressed: _handlePortSelectPressed,
+            onUpgradePressed: _handleUpgradePressed,
+            onMarketPressed: _handleMarketPressed,
+            onCrewMarketPressed: _handleCrewMarketPressed,
+            onShipyardPressed: _handleShipyardPressed,
+            onSettingsPressed: _handleSettingsPressed,
+          ),
+        ],
       ),
     );
   }

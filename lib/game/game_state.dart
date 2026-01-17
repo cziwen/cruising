@@ -13,7 +13,7 @@ import '../systems/day_night_system.dart';
 import '../systems/trade_system.dart';
 import '../systems/save_system.dart';
 import '../systems/music_system.dart';
-import '../systems/guidance_system.dart';
+import '../systems/notification_system.dart';
 import '../utils/game_config_loader.dart';
 
 /// 天气状况枚举
@@ -144,6 +144,14 @@ class GameState extends ChangeNotifier {
   bool _isReturningFromCombat = false; // 是否正在从战斗位置归位
   bool _isFadeOut = false; // 是否正在渐变黑屏
   Port? _previousPortBeforeCombat; // 战斗前的港口（用于失败重生）
+
+  // 任务/教程系统追踪
+  bool _isMarketOpened = false;
+  bool _isPortListOpened = false;
+  bool _isQuantitySliderOpened = false;
+  bool _isTradeBalanced = false;
+  int _shipUpgradeCount = 0;
+  bool _taxCollectedToday = false;
 
   // 最近离队的船员名单（用于向玩家展示提示）
   final List<String> _departingCrewNames = [];
@@ -371,6 +379,7 @@ class GameState extends ChangeNotifier {
     // 检查是否跨越00:00（工资结算、价格更新和酒馆刷新）
     if (crossedMidnight) {
       _processSalaryPayment();
+      _taxCollectedToday = false;
       
       // 检查是否需要更新港口价格（每7天更新一次）
       final currentDay = _dayNightSystem.currentDay;
@@ -424,9 +433,9 @@ class GameState extends ChangeNotifier {
     }
 
     if (unpaidNames.isEmpty) {
-      GuidanceSystem.instance.showNotification('已支付今日船员工资 (共 $totalPaid 💰)');
+      NotificationSystem.instance.showNotification('已支付今日船员工资 (共 $totalPaid 💰)');
     } else {
-      GuidanceSystem.instance.showNotification('金币不足！${unpaidNames.join("、")} 等船员未收到工资，士气下降');
+      NotificationSystem.instance.showNotification('金币不足！${unpaidNames.join("、")} 等船员未收到工资，士气下降');
     }
 
     notifyListeners();
@@ -728,6 +737,47 @@ class GameState extends ChangeNotifier {
   bool get isReturningFromCombat => _isReturningFromCombat;
   bool get isFadeOut => _isFadeOut;
 
+  // 任务系统相关 getter
+  bool get isMarketOpened => _isMarketOpened;
+  bool get isPortListOpened => _isPortListOpened;
+  bool get isQuantitySliderOpened => _isQuantitySliderOpened;
+  bool get isTradeBalanced => _isTradeBalanced;
+  int get shipUpgradeCount => _shipUpgradeCount;
+  bool get taxCollectedToday => _taxCollectedToday;
+
+  void setMarketOpened(bool opened) {
+    if (_isMarketOpened != opened) {
+      _isMarketOpened = opened;
+      notifyListeners();
+    }
+  }
+
+  void setPortListOpened(bool opened) {
+    if (_isPortListOpened != opened) {
+      _isPortListOpened = opened;
+      notifyListeners();
+    }
+  }
+
+  void setQuantitySliderOpened(bool opened) {
+    if (_isQuantitySliderOpened != opened) {
+      _isQuantitySliderOpened = opened;
+      notifyListeners();
+    }
+  }
+
+  void setTradeBalanced(bool balanced) {
+    if (_isTradeBalanced != balanced) {
+      _isTradeBalanced = balanced;
+      notifyListeners();
+    }
+  }
+
+  void resetDailyTutorialFlags() {
+    _taxCollectedToday = false;
+    notifyListeners();
+  }
+
   /// 开始航行到目标港口
   Future<void> startTravelToPort(String portId) async {
     final port = _ports.firstWhere(
@@ -928,7 +978,7 @@ class GameState extends ChangeNotifier {
     MusicSystem().playState('port');
 
     // 显示到港提示
-    GuidanceSystem.instance.showNotification('已到达 ${port.name}');
+    NotificationSystem.instance.showNotification('已到达 ${port.name}');
 
     notifyListeners();
 
@@ -954,6 +1004,7 @@ class GameState extends ChangeNotifier {
     if (_homeIsland.accumulatedTax > 0) {
       addGold(_homeIsland.accumulatedTax);
       _homeIsland.accumulatedTax = 0;
+      _taxCollectedToday = true;
       notifyListeners();
     }
   }
@@ -1302,6 +1353,7 @@ class GameState extends ChangeNotifier {
   bool upgradeCargoCapacity(int amount, int cost) {
     if (spendGold(cost)) {
       _ship.upgradeMaxCargo(amount);
+      _shipUpgradeCount++;
       notifyListeners();
       return true;
     }
@@ -1312,6 +1364,7 @@ class GameState extends ChangeNotifier {
   bool upgradeDurability(int amount, int cost) {
     if (spendGold(cost)) {
       _ship.upgradeMaxDurability(amount);
+      _shipUpgradeCount++;
       notifyListeners();
       return true;
     }
@@ -1415,7 +1468,7 @@ class GameState extends ChangeNotifier {
     MusicSystem().playState('combat');
 
     // 显示战斗提示
-    GuidanceSystem.instance.showNotification('遭遇敌船！准备战斗');
+    NotificationSystem.instance.showNotification('遭遇敌船！准备战斗');
 
     notifyListeners();
   }

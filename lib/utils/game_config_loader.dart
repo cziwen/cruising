@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import '../models/goods.dart';
 import '../models/port.dart';
+import '../models/quest.dart';
 
 /// 游戏配置加载器，用于从 JSON 文件中读取基础配置信息
 class GameConfigLoader {
@@ -12,6 +13,7 @@ class GameConfigLoader {
 
   List<Goods>? _goodsList;
   List<Port>? _portsList;
+  List<Quest>? _questsList;
   Map<String, dynamic>? _crewConfig;
   Map<String, dynamic>? _musicConfig;
   Map<String, dynamic>? _sfxConfig;
@@ -65,6 +67,15 @@ class GameConfigLoader {
     return _portsList!;
   }
 
+  /// 获取所有任务列表
+  List<Quest> get questsList {
+    if (_questsList == null) {
+      debugPrint('⚠ Warning: Accessing questsList before it is loaded.');
+      return [];
+    }
+    return _questsList!;
+  }
+
   /// 加载所有配置文件
   Future<void> loadConfig() async {
     if (_isLoading) return;
@@ -75,6 +86,7 @@ class GameConfigLoader {
       await Future.wait([
         _loadGoodsConfig(),
         _loadPortsConfig(),
+        _loadQuestsConfig(),
         _loadCrewConfig(),
         _loadMusicConfig(),
         _loadSfxConfig(),
@@ -104,6 +116,17 @@ class GameConfigLoader {
     } catch (e) {
       debugPrint('✗ Error loading ports config: $e');
       _portsList = []; // 发生错误时给一个空列表
+    }
+  }
+
+  Future<void> _loadQuestsConfig() async {
+    try {
+      final String response = await rootBundle.loadString('assets/config/quests.json');
+      final List<dynamic> data = json.decode(response);
+      _questsList = data.map((json) => Quest.fromJson(json)).toList();
+    } catch (e) {
+      debugPrint('✗ Error loading quests config: $e');
+      _questsList = [];
     }
   }
 

@@ -1,13 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 import 'package:window_manager/window_manager.dart';
+import 'package:provider/provider.dart';
 import 'screens/main_menu_screen.dart';
 import 'screens/loading_screen.dart';
 import 'screens/game_screen.dart';
 import 'game/scale_wrapper.dart';
+import 'game/layers/quest_overlay.dart';
 import 'utils/game_config_loader.dart';
 import 'systems/window_controller.dart';
 import 'systems/tray_controller.dart';
+import 'systems/quest_system.dart';
 
 void main(List<String> args) async {
   // 检查是否通过命令行参数以壁纸模式启动
@@ -54,7 +57,12 @@ void main(List<String> args) async {
     });
   }
 
-  runApp(MainApp(isWallpaperMode: isWallpaperMode));
+  runApp(
+    ChangeNotifierProvider.value(
+      value: QuestSystem.instance,
+      child: MainApp(isWallpaperMode: isWallpaperMode),
+    ),
+  );
 }
 
 class MainApp extends StatelessWidget {
@@ -84,7 +92,12 @@ class MainApp extends StatelessWidget {
               backgroundColor: isWallpaper ? Colors.transparent : Colors.black,
               // 始终保持比例，修复无边框模式下的布局溢出
               maintainAspectRatio: true,
-              child: child!,
+              child: Stack(
+                children: [
+                  child!,
+                  const QuestOverlay(),
+                ],
+              ),
             );
           },
           home: LoadingScreen(

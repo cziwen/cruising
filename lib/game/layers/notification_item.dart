@@ -1,11 +1,11 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
-import '../../models/guidance_hint.dart';
+import '../../models/notification_hint.dart';
 import '../frame_animation_widget.dart';
 
 /// 单个提示项组件
 class NotificationItem extends StatefulWidget {
-  final GuidanceHint hint;
+  final NotificationHint hint;
   final int index;
   final VoidCallback onDismissed;
 

@@ -7,6 +7,7 @@ import '../main_hall_dialog.dart';
 import '../paper_button.dart';
 import '../pixel_progress_bar.dart';
 import '../../systems/music_system.dart';
+import '../../systems/quest_system.dart';
 import 'status_bar.dart';
 
 /// UI层 - 界面元素（按钮、菜单、信息显示等）
@@ -63,6 +64,27 @@ class _UILayerState extends State<UILayer> {
   final List<_FloatingText> _floatingTexts = [];
   Timer? _animationTimer;
 
+  // 任务系统高亮 Key
+  final GlobalKey _marketKey = GlobalKey();
+  final GlobalKey _shipyardKey = GlobalKey();
+  final GlobalKey _portListKey = GlobalKey();
+  final GlobalKey _taxKey = GlobalKey();
+  final GlobalKey _progressBarKey = GlobalKey();
+
+  @override
+  void initState() {
+    super.initState();
+    // 注册 Key 到任务系统
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final qs = QuestSystem.instance;
+      qs.registerKey('ui.marketButton', _marketKey);
+      qs.registerKey('ui.shipUpgradeButton', _shipyardKey);
+      qs.registerKey('ui.portListButton', _portListKey);
+      qs.registerKey('ui.collectTaxButton', _taxKey);
+      qs.registerKey('ui.travelProgressBar', _progressBarKey);
+    });
+  }
+
   @override
   void dispose() {
     _animationTimer?.cancel();
@@ -103,6 +125,7 @@ class _UILayerState extends State<UILayer> {
         // 顶部航行进度条（仅在海上航行时显示）
         if (widget.gameState.isAtSea)
           Positioned(
+            key: _progressBarKey,
             top: 0,
             left: 180,  // 左侧留出更多空间，避免与左上角时间显示冲突
             right: 16,  // 右侧留出边距
@@ -124,17 +147,23 @@ class _UILayerState extends State<UILayer> {
             Positioned(
               left: islandCenterX - 60,
               top: islandCenterY - 230,
-              child: _buildTaxButton(islandCenterX - 60, islandCenterY - 230),
+              child: Container(
+                key: _taxKey,
+                child: _buildTaxButton(islandCenterX - 60, islandCenterY - 230),
+              ),
             ),
 
           // 市场按钮 - 岛屿左侧
           Positioned(
             left: islandCenterX - 250,
             top: islandCenterY - 50,
-            child: _buildIslandButton(
-              '市场',
-              widget.onMarketPressed ?? widget.onTradePressed,
-              Colors.blue,
+            child: Container(
+              key: _marketKey,
+              child: _buildIslandButton(
+                '市场',
+                widget.onMarketPressed ?? widget.onTradePressed,
+                Colors.blue,
+              ),
             ),
           ),
           
@@ -176,10 +205,13 @@ class _UILayerState extends State<UILayer> {
           Positioned(
             left: islandCenterX + 150,
             top: islandCenterY - 50,
-            child: _buildIslandButton(
-              '船厂',
-              widget.onShipyardPressed ?? widget.onUpgradePressed,
-              Colors.orange,
+            child: Container(
+              key: _shipyardKey,
+              child: _buildIslandButton(
+                '船厂',
+                widget.onShipyardPressed ?? widget.onUpgradePressed,
+                Colors.orange,
+              ),
             ),
           ),
           // 船员管理按钮 - 岛屿右下方（船只旁边）
@@ -256,13 +288,16 @@ class _UILayerState extends State<UILayer> {
 
   /// 构建选择目的地按钮
   Widget _buildDestinationButton() {
-    return PaperButton(
-      label: '选择目的地',
-      icon: const Icon(Icons.map, color: Color(0xFF4E342E), size: 20),
-      onPressed: widget.onPortSelectPressed,
-      style: PaperButtonStyle.green,
-      width: 120,
-      height: 48,
+    return Container(
+      key: _portListKey,
+      child: PaperButton(
+        label: '选择目的地',
+        icon: const Icon(Icons.map, color: Color(0xFF4E342E), size: 20),
+        onPressed: widget.onPortSelectPressed,
+        style: PaperButtonStyle.green,
+        width: 120,
+        height: 48,
+      ),
     );
   }
 
