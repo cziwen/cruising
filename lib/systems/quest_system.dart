@@ -16,7 +16,7 @@ class QuestSystem extends ChangeNotifier {
   Quest? _activeQuest;
   String? _pendingAction;
 
-  // UI 高亮注册
+  // UI 高亮注册表：存储 ID 到 GlobalKey 的映射
   final Map<String, GlobalKey> _registeredKeys = {};
 
   Quest? get activeQuest => _activeQuest;
@@ -34,14 +34,27 @@ class QuestSystem extends ChangeNotifier {
     if (_registeredKeys[id] == key) return;
     _registeredKeys[id] = key;
     
-    // 确保不在 build 阶段直接调用 notifyListeners
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      notifyListeners();
-    });
+    // 任务系统不主动触发通知，由 QuestOverlay 在需要时获取
+    // 这样可以避免由于频繁注册导致的 build 冲突
   }
 
-  /// 获取已注册的 Key
-  GlobalKey? getKey(String id) => _registeredKeys[id];
+  /// 获取指定 ID 关联的 Key
+  GlobalKey? getKey(String? id) {
+    if (id == null) return null;
+    return _registeredKeys[id];
+  }
+
+  /// 注销指定 ID 的 Key，必须是同一个 key 实例才执行注销
+  void unregisterKey(String id, GlobalKey key) {
+    if (_registeredKeys[id] == key) {
+      _registeredKeys.remove(id);
+    }
+  }
+
+  /// 清除所有注册的 Key
+  void clearRegisteredKeys() {
+    _registeredKeys.clear();
+  }
 
   /// 初始化系统
   void initialize(GameState gameState) {
@@ -69,6 +82,7 @@ class QuestSystem extends ChangeNotifier {
         completeQuest(_activeQuest!.id);
       }
     } else {
+      // 如果没有活跃任务，尝试触发新的
       _checkTriggers();
     }
   }
@@ -137,10 +151,17 @@ class QuestSystem extends ChangeNotifier {
       _completedQuestIds.add(id);
       _activeQuest = null;
       
+      // 立即寻找下一个满足触发条件的任务，合并通知以减少延迟和 flickering
+      for (final quest in _allQuests) {
+        if (_completedQuestIds.contains(quest.id)) continue;
+        if (_shouldTrigger(quest)) {
+          _activeQuest = quest;
+          break;
+        }
+      }
+      
       WidgetsBinding.instance.addPostFrameCallback((_) {
         notifyListeners();
-        // 任务完成后立即检查下一个触发
-        _checkTriggers();
       });
     }
   }
@@ -246,5 +267,53 @@ class QuestSystem extends ChangeNotifier {
   void dispose() {
     _gameState?.removeListener(_onGameStateChanged);
     super.dispose();
+  }
+}
+
+/// 任务目标高亮包装器 - 自动管理 GlobalKey 及其在任务系统中的注册
+class QuestTarget extends StatefulWidget {
+  final String id;
+  final Widget child;
+
+  const QuestTarget({
+    super.key,
+    required this.id,
+    required this.child,
+  });
+
+  @override
+  State<QuestTarget> createState() => _QuestTargetState();
+}
+
+class _QuestTargetState extends State<QuestTarget> {
+  final GlobalKey _myKey = GlobalKey();
+
+  @override
+  void initState() {
+    super.initState();
+    QuestSystem.instance.registerKey(widget.id, _myKey);
+  }
+
+  @override
+  void didUpdateWidget(QuestTarget oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.id != widget.id) {
+      QuestSystem.instance.unregisterKey(oldWidget.id, _myKey);
+      QuestSystem.instance.registerKey(widget.id, _myKey);
+    }
+  }
+
+  @override
+  void dispose() {
+    QuestSystem.instance.unregisterKey(widget.id, _myKey);
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      key: _myKey,
+      child: widget.child,
+    );
   }
 }

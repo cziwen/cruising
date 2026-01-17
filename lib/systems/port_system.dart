@@ -43,6 +43,7 @@ class _PortSelectDialog extends StatefulWidget {
 }
 
 class _PortSelectDialogState extends State<_PortSelectDialog> {
+
   @override
   void initState() {
     super.initState();
@@ -54,6 +55,7 @@ class _PortSelectDialogState extends State<_PortSelectDialog> {
   @override
   void dispose() {
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      // 移除 mounted 检查，确保状态重置
       widget.portSystem.gameState.setPortListOpened(false);
     });
     super.dispose();
@@ -102,83 +104,87 @@ class _PortSelectDialogState extends State<_PortSelectDialog> {
                 final port = availablePorts[index];
                 final isCurrentPort = port.id == currentPort?.id;
 
-                final GlobalKey? itemKey;
-                if (port.id == 'home_island') {
-                  itemKey = GlobalKey();
-                  QuestSystem.instance.registerKey('ui.homeIslandButton', itemKey);
-                } else if (port.id == 'port_2') {
-                  itemKey = GlobalKey();
-                  QuestSystem.instance.registerKey('ui.portRow(\'port_2\')', itemKey);
-                } else {
-                  itemKey = null;
-                }
-
-                final GlobalKey? actionKey;
-                if (port.id == 'port_2') {
-                  actionKey = GlobalKey();
-                  QuestSystem.instance.registerKey('ui.portDepartButton(\'port_2\')', actionKey);
-                } else {
-                  actionKey = null;
-                }
+                // 准备高亮 ID
+                final rowKeyId = 'ui.portRow(\'${port.id}\')';
+                final actionKeyId = 'ui.portDepartButton(\'${port.id}\')';
                 
-                return Container(
-                  key: itemKey,
-                  child: Card(
-                    elevation: 0,
-                    margin: const EdgeInsets.symmetric(vertical: 4),
-                    color: isCurrentPort 
-                        ? const Color(0xFFD7CCC8).withValues(alpha: 0.5) 
-                        : const Color(0xFFD7CCC8).withValues(alpha: 0.2),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8),
-                      side: BorderSide(
-                        color: isCurrentPort ? const Color(0xFF5D4037) : const Color(0xFF8D6E63).withValues(alpha: 0.3),
-                      ),
-                    ),
-                    child: ListTile(
-                      leading: Icon(
-                        Icons.location_on, 
-                        color: isCurrentPort ? const Color(0xFF5D4037) : const Color(0xFF8D6E63),
-                      ),
-                      title: Text(
-                        port.name,
-                        style: const TextStyle(color: Color(0xFF4E342E), fontWeight: FontWeight.bold),
-                      ),
-                      subtitle: Text(
-                        port.description,
-                        style: const TextStyle(color: Color(0xFF5D4037), fontSize: 12),
-                      ),
-                      trailing: isCurrentPort
-                          ? const Text(
-                              '当前港口',
-                              style: TextStyle(
-                                color: Color(0xFF5D4037),
-                                fontWeight: FontWeight.bold,
-                              ),
-                            )
-                          : Container(
-                              key: actionKey,
-                              child: PaperButton(
-                                onPressed: () async {
-                                  final navigator = Navigator.of(context);
-                                  navigator.pop();
-                                  Future.microtask(() async {
-                                    try {
-                                      await widget.portSystem.gameState.startTravelToPort(port.id);
-                                    } catch (e) {
-                                      debugPrint('航行失败: $e');
-                                    }
-                                  });
-                                },
-                                label: '出发',
-                                style: PaperButtonStyle.brown,
-                                width: 80,
-                                height: 32,
-                              ),
-                            ),
+                // 主岛特殊处理（向下兼容旧 ID）
+                final isHomeIslandRow = port.id == 'home_island';
+                
+                Widget content = Card(
+                  elevation: 0,
+                  margin: const EdgeInsets.symmetric(vertical: 4),
+                  color: isCurrentPort 
+                      ? const Color(0xFFD7CCC8).withValues(alpha: 0.5) 
+                      : const Color(0xFFD7CCC8).withValues(alpha: 0.2),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                    side: BorderSide(
+                      color: isCurrentPort ? const Color(0xFF5D4037) : const Color(0xFF8D6E63).withValues(alpha: 0.3),
                     ),
                   ),
+                  child: ListTile(
+                    leading: Icon(
+                      Icons.location_on, 
+                      color: isCurrentPort ? const Color(0xFF5D4037) : const Color(0xFF8D6E63),
+                    ),
+                    title: Text(
+                      port.name,
+                      style: const TextStyle(color: Color(0xFF4E342E), fontWeight: FontWeight.bold),
+                    ),
+                    subtitle: Text(
+                      port.description,
+                      style: const TextStyle(color: Color(0xFF5D4037), fontSize: 12),
+                    ),
+                    trailing: isCurrentPort
+                        ? const Text(
+                            '当前港口',
+                            style: TextStyle(
+                              color: Color(0xFF5D4037),
+                              fontWeight: FontWeight.bold,
+                            ),
+                          )
+                        : QuestTarget(
+                            id: actionKeyId,
+                            child: PaperButton(
+                              onPressed: () async {
+                                final navigator = Navigator.of(context);
+                                navigator.pop();
+                                Future.microtask(() async {
+                                  try {
+                                    await widget.portSystem.gameState.startTravelToPort(port.id);
+                                  } catch (e) {
+                                    debugPrint('航行失败: $e');
+                                  }
+                                });
+                              },
+                              label: '出发',
+                              style: PaperButtonStyle.brown,
+                              width: 80,
+                              height: 32,
+                            ),
+                          ),
+                  ),
                 );
+
+                // 包装整行为 QuestTarget
+                if (isHomeIslandRow) {
+                  // 主岛行同时支持两个 ID
+                  content = QuestTarget(
+                    id: 'ui.homeIslandButton',
+                    child: QuestTarget(
+                      id: rowKeyId,
+                      child: content,
+                    ),
+                  );
+                } else {
+                  content = QuestTarget(
+                    id: rowKeyId,
+                    child: content,
+                  );
+                }
+
+                return content;
               },
             ),
           ),

@@ -36,6 +36,7 @@ class _PaperDialogState extends State<PaperDialog> {
       backgroundColor: Colors.transparent,
       elevation: 0,
       child: Container(
+        key: widget.key, // 将 Key 绑定到内部 Container
         width: widget.width,
         height: widget.height,
         decoration: BoxDecoration(

@@ -3,21 +3,37 @@
     "id": "T01_welcome",
     "trigger": "on_new_game_start",
     "highlight": null,
-    "text": "船长，先赚到第一桶金！跟着提示点就行。",
+    "text": "船长，欢迎来到你的新生活！在这个世界上，财富就在海浪之间。",
+    "complete_when": "tap_anywhere",
+    "is_mandatory": true
+  },
+  {
+    "id": "T01b_intro",
+    "trigger": "after(T01_welcome)",
+    "highlight": null,
+    "text": "我们需要先赚到第一桶金。通常的做法是在物产丰富的港口低价买入，再到稀缺的地方高价卖出。",
     "complete_when": "tap_anywhere",
     "is_mandatory": true
   },
   {
     "id": "T02_open_market",
-    "trigger": "after(T01_welcome)",
+    "trigger": "after(T01b_intro)",
     "highlight": "ui.marketButton",
-    "text": "先打开【市场】看看现在什么便宜。",
+    "text": "先打开【市场】看看这里现在什么便宜。",
     "complete_when": "ui.marketPanel.opened",
     "is_mandatory": true
   },
   {
-    "id": "T03a_select_food",
+    "id": "T02b_market_tip",
     "trigger": "after(T02_open_market)",
+    "highlight": null,
+    "text": "看，左侧是商人的货物。每种货物的价格都在波动，现在【食物】看起来是个不错的选择。",
+    "complete_when": "tap_anywhere",
+    "is_mandatory": true
+  },
+  {
+    "id": "T03a_select_food",
+    "trigger": "after(T02b_market_tip)",
     "highlight": "ui.goodsRow('food')",
     "text": "选中【食物】以准备买入。",
     "complete_when": "ui.quantitySlider.opened",
@@ -49,8 +65,16 @@
     "is_mandatory": true
   },
   {
-    "id": "T04a_open_port_list",
+    "id": "T03e_trade_success",
     "trigger": "after(T03d_execute_trade)",
+    "highlight": null,
+    "text": "干得漂亮！货物已经入库了。现在我们需要找一个需要这些食物的地方把它卖掉。",
+    "complete_when": "tap_anywhere",
+    "is_mandatory": true
+  },
+  {
+    "id": "T04a_open_port_list",
+    "trigger": "after(T03e_trade_success)",
     "highlight": "ui.portListButton",
     "text": "点开【选择目的地】来规划下一步。",
     "complete_when": "ui.portList.opened",
@@ -60,7 +84,7 @@
     "id": "T04b_confirm_departure",
     "trigger": "after(T04a_open_port_list)",
     "highlight": "ui.portRow('port_2')",
-    "text": "点击【出发】开始前往贸易港。",
+    "text": "【贸易港】距离不远，且对食物有不错的需求。点击【出发】！",
     "complete_when": "navigation.isAtSea",
     "is_mandatory": true
   },
@@ -68,31 +92,72 @@
     "id": "T05_sailing",
     "trigger": "after(T04b_confirm_departure)",
     "highlight": "ui.travelProgressBar",
-    "text": "航行中：距离越远，时间越久。",
+    "text": "航行中... 记得关注顶部的进度条。距离越远，航行的时间也就越久。",
+    "complete_when": "tap_anywhere",
+    "is_mandatory": true
+  },
+  {
+    "id": "T05b_arrival",
+    "trigger": "after(T05_sailing) && navigation.arrived",
+    "highlight": null,
+    "text": "我们到了！这里的商人正急需新鲜的补给。",
     "complete_when": "tap_anywhere",
     "is_mandatory": true
   },
   {
     "id": "T06a_open_market",
-    "trigger": "after(T05_sailing) && navigation.arrived",
+    "trigger": "after(T05b_arrival)",
     "highlight": "ui.marketButton",
-    "text": "已到达目的地！点开【市场】准备贸易。",
+    "text": "点开【市场】准备卖出我们的战利品。",
     "complete_when": "ui.marketPanel.opened",
     "is_mandatory": true
   },
   {
-    "id": "T06b_sell_goods",
+    "id": "T06b_select_food",
     "trigger": "after(T06a_open_market)",
-    "highlight": "ui.marketPanel",
-    "text": "卖出所有【食物】，赚差价！",
+    "highlight": "ui.playerGoodsRow('food')",
+    "text": "在右侧【你的库存】中选中【食物】以准备卖出。",
+    "complete_when": "ui.quantitySlider.opened",
+    "is_mandatory": true
+  },
+  {
+    "id": "T06c_sell_goods",
+    "trigger": "after(T06b_select_food)",
+    "highlight": "ui.quantitySlider",
+    "text": "调整滑块选择所有【食物】然后点击【确认】。",
+    "complete_when": "!ui.quantitySlider.opened",
+    "is_mandatory": true
+  },
+  {
+    "id": "T06d_balance_trade",
+    "trigger": "after(T06c_sell_goods)",
+    "highlight": "ui.balanceButton",
+    "text": "再次点击【平衡报价】，看看你能赚到多少金币。",
+    "complete_when": "ui.tradeBalanced",
+    "is_mandatory": true
+  },
+  {
+    "id": "T06e_execute_trade",
+    "trigger": "after(T06d_balance_trade)",
+    "highlight": "ui.sellButton",
+    "text": "点击【确认交易】来大赚一笔！",
     "complete_when": "cargo.count('food') == 0",
+    "action": "ui.marketPanel.close",
+    "is_mandatory": true
+  },
+  {
+    "id": "T06f_profit_intro",
+    "trigger": "after(T06e_execute_trade)",
+    "highlight": null,
+    "text": "这就是贸易的魅力。现在你手里有钱了，是时候让我们的船变得更强大。",
+    "complete_when": "tap_anywhere",
     "is_mandatory": true
   },
   {
     "id": "T07_upgrade_ship",
-    "trigger": "after(T06b_sell_goods)",
+    "trigger": "after(T06f_profit_intro)",
     "highlight": "ui.shipUpgradeButton",
-    "text": "用利润升级一次船只（推荐：载货量）。",
+    "text": "用利润去船厂升级一次船只。我推荐增加载货量，这样下次能带更多货。",
     "complete_when": "ship.upgrade_count >= 1",
     "is_mandatory": true
   },
@@ -100,7 +165,7 @@
     "id": "T08_home_island",
     "trigger": "after(T07_upgrade_ship)",
     "highlight": "ui.homeIslandButton",
-    "text": "回主岛领税收，躺着也赚钱。",
+    "text": "别忘了，你还有一座属于自己的岛屿。那里也会为你产生收益。",
     "complete_when": "homeIsland.opened",
     "is_mandatory": true
   },
@@ -108,8 +173,16 @@
     "id": "T09_collect_tax",
     "trigger": "after(T08_home_island)",
     "highlight": "ui.collectTaxButton",
-    "text": "领取税收！",
+    "text": "点击税收气泡，领取属于你的领地税收！",
     "complete_when": "homeIsland.tax_collected_today == true",
+    "is_mandatory": true
+  },
+  {
+    "id": "T10_tutorial_complete",
+    "trigger": "after(T09_collect_tax)",
+    "highlight": null,
+    "text": "新手引导结束了。现在，这片大海是属于你的了，船长！尽情去航行吧。",
+    "complete_when": "tap_anywhere",
     "is_mandatory": true
   }
 ]

@@ -64,25 +64,9 @@ class _UILayerState extends State<UILayer> {
   final List<_FloatingText> _floatingTexts = [];
   Timer? _animationTimer;
 
-  // 任务系统高亮 Key
-  final GlobalKey _marketKey = GlobalKey();
-  final GlobalKey _shipyardKey = GlobalKey();
-  final GlobalKey _portListKey = GlobalKey();
-  final GlobalKey _taxKey = GlobalKey();
-  final GlobalKey _progressBarKey = GlobalKey();
-
   @override
   void initState() {
     super.initState();
-    // 注册 Key 到任务系统
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      final qs = QuestSystem.instance;
-      qs.registerKey('ui.marketButton', _marketKey);
-      qs.registerKey('ui.shipUpgradeButton', _shipyardKey);
-      qs.registerKey('ui.portListButton', _portListKey);
-      qs.registerKey('ui.collectTaxButton', _taxKey);
-      qs.registerKey('ui.travelProgressBar', _progressBarKey);
-    });
   }
 
   @override
@@ -125,11 +109,13 @@ class _UILayerState extends State<UILayer> {
         // 顶部航行进度条（仅在海上航行时显示）
         if (widget.gameState.isAtSea)
           Positioned(
-            key: _progressBarKey,
             top: 0,
             left: 180,  // 左侧留出更多空间，避免与左上角时间显示冲突
             right: 16,  // 右侧留出边距
-            child: _buildTravelProgressBar(),
+            child: QuestTarget(
+              id: 'ui.travelProgressBar',
+              child: _buildTravelProgressBar(),
+            ),
           ),
         
         // 底部状态栏（新设计）
@@ -147,8 +133,8 @@ class _UILayerState extends State<UILayer> {
             Positioned(
               left: islandCenterX - 60,
               top: islandCenterY - 230,
-              child: Container(
-                key: _taxKey,
+              child: QuestTarget(
+                id: 'ui.collectTaxButton',
                 child: _buildTaxButton(islandCenterX - 60, islandCenterY - 230),
               ),
             ),
@@ -157,8 +143,8 @@ class _UILayerState extends State<UILayer> {
           Positioned(
             left: islandCenterX - 250,
             top: islandCenterY - 50,
-            child: Container(
-              key: _marketKey,
+            child: QuestTarget(
+              id: 'ui.marketButton',
               child: _buildIslandButton(
                 '市场',
                 widget.onMarketPressed ?? widget.onTradePressed,
@@ -205,8 +191,8 @@ class _UILayerState extends State<UILayer> {
           Positioned(
             left: islandCenterX + 150,
             top: islandCenterY - 50,
-            child: Container(
-              key: _shipyardKey,
+            child: QuestTarget(
+              id: 'ui.shipUpgradeButton',
               child: _buildIslandButton(
                 '船厂',
                 widget.onShipyardPressed ?? widget.onUpgradePressed,
@@ -288,8 +274,8 @@ class _UILayerState extends State<UILayer> {
 
   /// 构建选择目的地按钮
   Widget _buildDestinationButton() {
-    return Container(
-      key: _portListKey,
+    return QuestTarget(
+      id: 'ui.portListButton',
       child: PaperButton(
         label: '选择目的地',
         icon: const Icon(Icons.map, color: Color(0xFF4E342E), size: 20),

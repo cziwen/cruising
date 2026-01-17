@@ -537,9 +537,6 @@ class _TradeDialog extends StatefulWidget {
 
 class _TradeDialogState extends State<_TradeDialog> {
   late final PendingTrade _pendingTrade;
-  final GlobalKey _confirmButtonKey = GlobalKey();
-  final GlobalKey _balanceButtonKey = GlobalKey();
-  final Map<String, GlobalKey> _itemKeys = {};
   
   // 当前选中的货物（用于显示滑块）
   String? _selectedMerchantGoodsId; // 商人库存中选中的货物
@@ -552,22 +549,27 @@ class _TradeDialogState extends State<_TradeDialog> {
     _pendingTrade = PendingTrade(tradeSystem: widget.tradeSystem);
     // 通知任务系统市场已打开
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      widget.tradeSystem.gameState.setMarketOpened(true);
-      QuestSystem.instance.registerKey('ui.sellButton', _confirmButtonKey);
-      QuestSystem.instance.registerKey('ui.balanceButton', _balanceButtonKey);
+      final gs = widget.tradeSystem.gameState;
+      gs.setMarketOpened(true);
+      gs.setTradeBalanced(false); // 强制重置，确保教学开始时处于“未平衡”状态
     });
   }
 
   @override
   void dispose() {
     // 通知任务系统市场已关闭
+    // 注意：在这里不检查 mounted，因为 dispose 时已经不再 mounted，
+    // 但我们需要确保长生命周期的 gameState 状态得到重置。
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (widget.tradeSystem.gameState.isMarketOpened) {
-        widget.tradeSystem.gameState.setMarketOpened(false);
+      final gs = widget.tradeSystem.gameState;
+      if (gs.isMarketOpened) {
+        gs.setMarketOpened(false);
       }
-      if (widget.tradeSystem.gameState.isTradeBalanced) {
-        widget.tradeSystem.gameState.setTradeBalanced(false);
+      if (gs.isTradeBalanced) {
+        gs.setTradeBalanced(false);
       }
+      // 同步关闭滑块状态
+      gs.setQuantitySliderOpened(false);
     });
     super.dispose();
   }
@@ -591,15 +593,10 @@ class _TradeDialogState extends State<_TradeDialog> {
     final favor = _pendingTrade.calculateTradeFavor();
     final isAcceptable = _pendingTrade.isTradeAcceptable();
 
-    // 更新平衡状态到 GameState (用于任务系统)
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted) {
-        gameState.setTradeBalanced(favor <= 0.0);
-      }
-    });
-
-    return PaperDialog(
-      assetPath: 'assets/paper_ui/Sprites/Book Desk/7.png',
+    return QuestTarget(
+      id: 'ui.marketPanel',
+      child: PaperDialog(
+        assetPath: 'assets/paper_ui/Sprites/Book Desk/7.png',
       width: 1000,
       height: 800,
       child: Column(
@@ -706,8 +703,8 @@ class _TradeDialogState extends State<_TradeDialog> {
 
           // 平衡报价按钮
           Center(
-            child: Container(
-              key: _balanceButtonKey,
+            child: QuestTarget(
+              id: 'ui.balanceButton',
               child: PaperButton(
                 onPressed: _canBalanceTrade() ? () => _balanceTrade() : null,
                 label: '平衡报价',
@@ -726,8 +723,8 @@ class _TradeDialogState extends State<_TradeDialog> {
 
           // 确认按钮
           Center(
-            child: Container(
-              key: _confirmButtonKey,
+            child: QuestTarget(
+              id: 'ui.sellButton',
               child: PaperButton(
                 onPressed: (_pendingTrade.itemsToReceive.isNotEmpty ||
                             _pendingTrade.itemsToGive.isNotEmpty) &&
@@ -748,7 +745,7 @@ class _TradeDialogState extends State<_TradeDialog> {
           ),
         ],
       ),
-    );
+    ));
   }
 
   Widget _buildMerchantInventory(List<Goods> goodsList, Port port) {
@@ -784,14 +781,12 @@ class _TradeDialogState extends State<_TradeDialog> {
             .clamp(0, double.infinity)
             .toInt();
 
-        // 为特定物品注册 Key (用于教程高亮)
-        final keyId = 'ui.goodsRow(\'${goods.id}\')';
-        final slotKey = _itemKeys.putIfAbsent(keyId, () => GlobalKey());
-        QuestSystem.instance.registerKey(keyId, slotKey);
+    // 为特定物品分配 ID (由 QuestTarget 自动处理 Key)
+    final keyId = 'ui.goodsRow(\'${goods.id}\')';
 
-        return Container(
-          key: slotKey,
-          child: GoodsSlot(
+    return QuestTarget(
+      id: keyId,
+      child: GoodsSlot(
             goods: goods,
             quantity: actualStock,
             isSelected: _selectedMerchantGoodsId == goods.id,
@@ -831,19 +826,25 @@ class _TradeDialogState extends State<_TradeDialog> {
         final goods = playerGoodsList[index];
         int qty = (goods.id == 'gold' ? gameState.gold : gameState.getInventoryQuantity(goods.id)) - _getPendingPlayerStockAdjustment(goods.id);
 
-        return GoodsSlot(
-          goods: goods,
-          quantity: qty,
-          isSelected: _selectedPlayerGoodsId == goods.id,
-          onTap: () => setState(() {
-            final newId = _selectedPlayerGoodsId == goods.id ? null : goods.id;
-            _selectedPlayerGoodsId = newId;
-            _selectedMerchantGoodsId = null;
-            _selectedQuantity = 1;
+    // 为玩家物品分配 ID (由 QuestTarget 自动处理 Key)
+    final keyId = 'ui.playerGoodsRow(\'${goods.id}\')';
 
-            // 同步状态到任务系统
-            widget.tradeSystem.gameState.setQuantitySliderOpened(newId != null);
-          }),
+    return QuestTarget(
+      id: keyId,
+      child: GoodsSlot(
+            goods: goods,
+            quantity: qty,
+            isSelected: _selectedPlayerGoodsId == goods.id,
+            onTap: () => setState(() {
+              final newId = _selectedPlayerGoodsId == goods.id ? null : goods.id;
+              _selectedPlayerGoodsId = newId;
+              _selectedMerchantGoodsId = null;
+              _selectedQuantity = 1;
+
+              // 同步状态到任务系统
+              widget.tradeSystem.gameState.setQuantitySliderOpened(newId != null);
+            }),
+          ),
         );
       },
     );
@@ -914,7 +915,11 @@ class _TradeDialogState extends State<_TradeDialog> {
                   goods: goods,
                   quantity: item.quantity,
                   isLarge: false,
-                  onRemove: () => setState(() => items.removeAt(index)),
+                  onRemove: () => setState(() {
+                    items.removeAt(index);
+                    // 移除物品后，标记为需要重新平衡
+                    widget.tradeSystem.gameState.setTradeBalanced(false);
+                  }),
                 );
               },
             ),
@@ -988,12 +993,6 @@ class _TradeDialogState extends State<_TradeDialog> {
   Widget _buildSliderPanel(String goodsId, int maxQuantity, bool isBuying, String portId) {
     if (maxQuantity <= 0) return const SizedBox.shrink();
     
-    // 注册滑块和确认按钮的 Key 到任务系统
-    final sliderKey = _itemKeys.putIfAbsent('ui.quantitySlider', () => GlobalKey());
-    final confirmQtyKey = _itemKeys.putIfAbsent('ui.confirmQuantityButton', () => GlobalKey());
-    QuestSystem.instance.registerKey('ui.quantitySlider', sliderKey);
-    QuestSystem.instance.registerKey('ui.confirmQuantityButton', confirmQtyKey);
-
     final goods = widget.tradeSystem.getGoodsList().firstWhere((g) => g.id == goodsId);
     final existingPendingQuantity = isBuying ? _getPendingMerchantStockAdjustment(goodsId) : _getPendingPlayerStockAdjustment(goodsId);
     final availableMaxQuantity = (maxQuantity - existingPendingQuantity).clamp(1, maxQuantity);
@@ -1022,98 +1021,100 @@ class _TradeDialogState extends State<_TradeDialog> {
       }
     }
 
-    return Container(
-      key: _itemKeys.putIfAbsent('ui.quantitySlider', () => GlobalKey()),
-      padding: const EdgeInsets.all(12),
-      margin: const EdgeInsets.only(top: 8),
-      decoration: BoxDecoration(
-        color: const Color(0xFFD7CCC8).withValues(alpha: 0.8),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: const Color(0xFF8D6E63), width: 2),
-      ),
-      child: Column(
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text('${isBuying ? "购买" : "出售"}: ${goods.name}', style: const TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF4E342E))),
-              Text('x $_selectedQuantity', style: const TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF5D4037))),
-            ],
-          ),
-          if (averagePurchasePrice != null && averagePurchasePrice > 0)
+    return QuestTarget(
+      id: 'ui.quantitySlider',
+      child: Container(
+        padding: const EdgeInsets.all(12),
+        margin: const EdgeInsets.only(top: 8),
+        decoration: BoxDecoration(
+          color: const Color(0xFFD7CCC8).withValues(alpha: 0.8),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: const Color(0xFF8D6E63), width: 2),
+        ),
+        child: Column(
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text('${isBuying ? "购买" : "出售"}: ${goods.name}', style: const TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF4E342E))),
+                Text('x $_selectedQuantity', style: const TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF5D4037))),
+              ],
+            ),
+            if (averagePurchasePrice != null && averagePurchasePrice > 0)
+              Padding(
+                padding: const EdgeInsets.only(top: 4),
+                child: Row(
+                  children: [
+                    Text(
+                      '持有均价: ${averagePurchasePrice.toStringAsFixed(1)}',
+                      style: TextStyle(fontSize: 12, color: Colors.brown[700], fontStyle: FontStyle.italic),
+                    ),
+                  ],
+                ),
+              ),
             Padding(
               padding: const EdgeInsets.only(top: 4),
               child: Row(
                 children: [
                   Text(
-                    '持有均价: ${averagePurchasePrice.toStringAsFixed(1)}',
-                    style: TextStyle(fontSize: 12, color: Colors.brown[700], fontStyle: FontStyle.italic),
-                  ),
-                ],
-              ),
-            ),
-          Padding(
-            padding: const EdgeInsets.only(top: 4),
-            child: Row(
-              children: [
-                Text(
-                  '${isBuying ? "买入" : "售出"}均价: ${currentBatchAverage.toStringAsFixed(1)}',
-                  style: TextStyle(
-                    fontSize: 12, 
-                    fontWeight: FontWeight.bold, 
-                    color: isBuying ? Colors.blue[800] : Colors.green[800],
-                  ),
-                ),
-              ],
-            ),
-          ),
-          Slider(
-            value: _selectedQuantity.toDouble(),
-            min: 1,
-            max: availableMaxQuantity.toDouble(),
-            divisions: availableMaxQuantity > 1 ? availableMaxQuantity - 1 : 1,
-            activeColor: const Color(0xFF5D4037),
-            inactiveColor: const Color(0xFF8D6E63).withValues(alpha: 0.3),
-            onChanged: (v) => setState(() => _selectedQuantity = v.round()),
-          ),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text('估值: ${addPrice.toStringAsFixed(1)}', style: const TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF4E342E))),
-              Row(
-                children: [
-                  PaperButton(
-                    onPressed: () => setState(() {
-                      _selectedMerchantGoodsId = _selectedPlayerGoodsId = null;
-                      widget.tradeSystem.gameState.setQuantitySliderOpened(false);
-                    }),
-                    label: '取消',
-                    style: PaperButtonStyle.brown,
-                    width: 80,
-                    height: 32,
-                  ),
-                  const SizedBox(width: 8),
-                  Container(
-                    key: _itemKeys.putIfAbsent('ui.confirmQuantityButton', () => GlobalKey()),
-                    child: PaperButton(
-                      onPressed: () {
-                        _addToPending(goodsId, _selectedQuantity, isBuying, portId);
-                        setState(() {
-                          _selectedMerchantGoodsId = _selectedPlayerGoodsId = null;
-                          widget.tradeSystem.gameState.setQuantitySliderOpened(false);
-                        });
-                      },
-                      label: '确认',
-                      style: PaperButtonStyle.brown,
-                      width: 80,
-                      height: 32,
+                    '${isBuying ? "买入" : "售出"}均价: ${currentBatchAverage.toStringAsFixed(1)}',
+                    style: TextStyle(
+                      fontSize: 12, 
+                      fontWeight: FontWeight.bold, 
+                      color: isBuying ? Colors.blue[800] : Colors.green[800],
                     ),
                   ),
                 ],
               ),
-            ],
-          ),
-        ],
+            ),
+            Slider(
+              value: _selectedQuantity.toDouble(),
+              min: 1,
+              max: availableMaxQuantity.toDouble(),
+              divisions: availableMaxQuantity > 1 ? availableMaxQuantity - 1 : 1,
+              activeColor: const Color(0xFF5D4037),
+              inactiveColor: const Color(0xFF8D6E63).withValues(alpha: 0.3),
+              onChanged: (v) => setState(() => _selectedQuantity = v.round()),
+            ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text('估值: ${addPrice.toStringAsFixed(1)}', style: const TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF4E342E))),
+                Row(
+                  children: [
+                    PaperButton(
+                      onPressed: () => setState(() {
+                        _selectedMerchantGoodsId = _selectedPlayerGoodsId = null;
+                        widget.tradeSystem.gameState.setQuantitySliderOpened(false);
+                      }),
+                      label: '取消',
+                      style: PaperButtonStyle.brown,
+                      width: 80,
+                      height: 32,
+                    ),
+                    const SizedBox(width: 8),
+                    QuestTarget(
+                      id: 'ui.confirmQuantityButton',
+                      child: PaperButton(
+                        onPressed: () {
+                          _addToPending(goodsId, _selectedQuantity, isBuying, portId);
+                          setState(() {
+                            _selectedMerchantGoodsId = _selectedPlayerGoodsId = null;
+                            widget.tradeSystem.gameState.setQuantitySliderOpened(false);
+                          });
+                        },
+                        label: '确认',
+                        style: PaperButtonStyle.brown,
+                        width: 80,
+                        height: 32,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -1140,12 +1141,16 @@ class _TradeDialogState extends State<_TradeDialog> {
           : widget.tradeSystem.calculateIncrementalSellPrice(portId, goodsId, addQuantity);
       items.add(PendingTradeItem(goodsId: goodsId, quantity: addQuantity, isBuying: isBuying, unitPrice: 0, totalPrice: total));
     }
+    // 添加新物品后，必然需要重新平衡
+    widget.tradeSystem.gameState.setTradeBalanced(false);
   }
 
   void _executeTrade() {
     final result = widget.tradeSystem.executePendingTrade(_pendingTrade);
     if (result == null) {
       setState(() {});
+      // 交易成功后，标记为不再平衡（因为列表已空，直到下一次操作）
+      widget.tradeSystem.gameState.setTradeBalanced(false);
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('交易成功！'), backgroundColor: Colors.green));
     } else {
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('交易失败: $result'), backgroundColor: Colors.red));
@@ -1301,6 +1306,8 @@ class _TradeDialogState extends State<_TradeDialog> {
           }
         }
       }
+      // 显式标记为已平衡
+      widget.tradeSystem.gameState.setTradeBalanced(true);
     });
   }
 }

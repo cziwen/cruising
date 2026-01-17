@@ -44,8 +44,9 @@ class QuestOverlay extends StatelessWidget {
 
   /// 计算高亮区域的位置和大小
   Rect? _getHighlightRect(BuildContext context, Quest quest, QuestSystem qs) {
-    if (quest.highlight == null) return null;
-    final key = qs.getKey(quest.highlight!);
+    if (quest.highlight == null || quest.highlight == 'none') return null;
+    
+    final key = qs.getKey(quest.highlight);
     if (key == null || key.currentContext == null) return null;
 
     final RenderBox? renderBox = key.currentContext!.findRenderObject() as RenderBox?;
@@ -63,6 +64,10 @@ class QuestOverlay extends StatelessWidget {
   }
 
   Widget _buildBackground(BuildContext context, Quest quest, Rect? highlightRect) {
+    if (quest.highlight == 'none') {
+      return const SizedBox.shrink();
+    }
+
     if (quest.highlight == null) {
       return IgnorePointer(
         child: Container(
