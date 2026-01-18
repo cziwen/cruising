@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'game_state.dart';
 import '../models/ship.dart';
 import '../systems/ship_system.dart';
+import '../systems/quest_system.dart';
 import 'paper_dialog.dart';
 import 'paper_button.dart';
 
@@ -28,6 +29,11 @@ class _ShipyardDialogState extends State<ShipyardDialog>
   void initState() {
     super.initState();
 
+    // 通知任务系统：船厂已打开
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      widget.gameState.setShipyardOpened(true);
+    });
+
     // 船只呼吸动画
     _breathingController = AnimationController(
       duration: const Duration(seconds: 2),
@@ -45,6 +51,8 @@ class _ShipyardDialogState extends State<ShipyardDialog>
 
   @override
   void dispose() {
+    // 通知任务系统：船厂已关闭
+    widget.gameState.setShipyardOpened(false);
     _breathingController.dispose();
     super.dispose();
   }
@@ -347,9 +355,11 @@ class _ShipyardDialogState extends State<ShipyardDialog>
 
     final level = _shipSystem.getUpgradeLevel(ship, type);
 
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-      decoration: BoxDecoration(
+    return QuestTarget(
+      id: type == UpgradeType.cargo ? 'ui.shipyard.upgradeCargoButton' : 'ui.shipyard.upgradeButton_${type.name}',
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+        decoration: BoxDecoration(
         color: Colors.transparent,
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
@@ -419,13 +429,14 @@ class _ShipyardDialogState extends State<ShipyardDialog>
             textStyle: TextStyle(
               fontWeight: FontWeight.bold,
               fontSize: 13,
-              color: canAfford ? const Color(0xFF4E342E) : Colors.red[800],
-            ),
+            color: canAfford ? const Color(0xFF4E342E) : Colors.red[800],
           ),
-        ],
-      ),
-    );
-  }
+        ),
+      ],
+    ),
+  ),
+);
+}
 }
 
 

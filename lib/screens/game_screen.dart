@@ -145,7 +145,7 @@ class _GameScreenState extends State<GameScreen> {
     _gameState.setGetGoodsById((goodsId) => _tradeSystem.getGoods(goodsId));
     
     // 初始化任务系统
-    QuestSystem.instance.initialize(_gameState);
+    QuestSystem.instance.initialize(_gameState, isNewGame: widget.initialSaveData == null);
     
     // 监听任务系统的动作
     QuestSystem.instance.addListener(_handleQuestAction);
@@ -198,8 +198,8 @@ class _GameScreenState extends State<GameScreen> {
     final action = QuestSystem.instance.pendingAction;
     if (action == null) return;
 
-    if (action == "ui.marketPanel.close") {
-      // 如果当前弹窗是市场面板，则关闭它
+    if (action == "ui.marketPanel.close" || action == "ui.shipyard.close") {
+      // 如果当前弹窗是对应面板，则关闭它
       if (mounted) {
         Navigator.of(context).popUntil((route) => route.isFirst);
       }

@@ -116,43 +116,46 @@ class QuestOverlay extends StatelessWidget {
       left: 20,
       right: 20,
       child: Center(
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-          decoration: BoxDecoration(
-            color: const Color(0xFFF5E6CA).withValues(alpha: 0.95), // 纸张颜色
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: const Color(0xFF8D6E63), width: 3),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.4),
-                blurRadius: 10,
-                offset: const Offset(0, 5),
-              ),
-            ],
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(
-                quest.text,
-                style: const TextStyle(
-                  color: Color(0xFF4E342E),
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                ),
-                textAlign: TextAlign.center,
-              ),
-              if (quest.completeWhen == 'tap_anywhere') ...[
-                const SizedBox(height: 12),
-                const Text(
-                  '-- 点击任意处继续 --',
-                  style: TextStyle(
-                    color: Color(0xFF8D6E63),
-                    fontSize: 14,
-                  ),
+        child: Material(
+          type: MaterialType.transparency,
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+            decoration: BoxDecoration(
+              color: const Color(0xFFF5E6CA).withValues(alpha: 0.95), // 纸张颜色
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: const Color(0xFF8D6E63), width: 3),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.4),
+                  blurRadius: 10,
+                  offset: const Offset(0, 5),
                 ),
               ],
-            ],
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  quest.text,
+                  style: const TextStyle(
+                    color: Color(0xFF4E342E),
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+                if (quest.completeWhen == 'tap_anywhere') ...[
+                  const SizedBox(height: 12),
+                  const Text(
+                    '-- 点击任意处继续 --',
+                    style: TextStyle(
+                      color: Color(0xFF8D6E63),
+                      fontSize: 14,
+                    ),
+                  ),
+                ],
+              ],
+            ),
           ),
         ),
       ),

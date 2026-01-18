@@ -207,7 +207,7 @@ class ShipSystem {
     ship.appearance = 'assets/images/ships/Player_ship_$appearanceLevel.png';
     
     // 通知更新
-    gameState.notifyUpdate();
+    gameState.incrementShipUpgradeCount();
     return null; // 成功
   }
 }

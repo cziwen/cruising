@@ -154,24 +154,65 @@
     "is_mandatory": true
   },
   {
-    "id": "T07_upgrade_ship",
+    "id": "T07a_open_shipyard",
     "trigger": "after(T06f_profit_intro)",
     "highlight": "ui.shipUpgradeButton",
-    "text": "用利润去船厂升级一次船只。我推荐增加载货量，这样下次能带更多货。",
-    "complete_when": "ship.upgrade_count >= 1",
+    "text": "用利润去船厂升级一次船只。点击【船厂】按钮进入。",
+    "complete_when": "ui.shipyard.opened",
     "is_mandatory": true
   },
   {
-    "id": "T08_home_island",
-    "trigger": "after(T07_upgrade_ship)",
-    "highlight": "ui.homeIslandButton",
+    "id": "T07b_upgrade_ship",
+    "trigger": "after(T07a_open_shipyard)",
+    "highlight": "ui.shipyard.upgradeCargoButton",
+    "text": "点击【升级】增加载货量，这样下次能带更多货。",
+    "complete_when": "ship.cargo_level >= 1",
+    "is_mandatory": true
+  },
+  {
+    "id": "T07c_close_shipyard",
+    "trigger": "after(T07b_upgrade_ship)",
+    "highlight": null,
+    "text": "恭喜你船长，这样下次能带更多货来交易了。",
+    "complete_when": "tap_anywhere",
+    "is_mandatory": true
+  },
+  {
+    "id": "T08a_home_island_intro",
+    "trigger": "after(T07c_close_shipyard)",
+    "highlight": null,
     "text": "别忘了，你还有一座属于自己的岛屿。那里也会为你产生收益。",
-    "complete_when": "homeIsland.opened",
+    "complete_when": "tap_anywhere",
+    "action": "ui.shipyard.close",
+    "is_mandatory": true
+  },
+  {
+    "id": "T08b_open_port_list",
+    "trigger": "after(T08a_home_island_intro)",
+    "highlight": "ui.portListButton",
+    "text": "点开【选择目的地】准备回家。",
+    "complete_when": "ui.portList.opened",
+    "is_mandatory": true
+  },
+  {
+    "id": "T08c_go_home",
+    "trigger": "after(T08b_open_port_list)",
+    "highlight": "ui.homeIslandButton",
+    "text": "选择【我的岛屿】并点击【出发】。",
+    "complete_when": "navigation.isAtSea",
+    "is_mandatory": true
+  },
+  {
+    "id": "T08d_home_arrival_tip",
+    "trigger": "after(T08c_go_home) && homeIsland.opened",
+    "highlight": null,
+    "text": "我们回到了家乡。看，领地上的税收已经积攒不少了。",
+    "complete_when": "tap_anywhere",
     "is_mandatory": true
   },
   {
     "id": "T09_collect_tax",
-    "trigger": "after(T08_home_island)",
+    "trigger": "after(T08d_home_arrival_tip)",
     "highlight": "ui.collectTaxButton",
     "text": "点击税收气泡，领取属于你的领地税收！",
     "complete_when": "homeIsland.tax_collected_today == true",

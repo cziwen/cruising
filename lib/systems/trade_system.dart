@@ -852,16 +852,17 @@ class _TradeDialogState extends State<_TradeDialog> {
 
   Widget _buildValueDisplay() {
     return Container(
-      padding: const EdgeInsets.all(12),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       decoration: BoxDecoration(
         color: const Color(0xFFD7CCC8).withValues(alpha: 0.5),
         borderRadius: BorderRadius.circular(12),
         border: Border.all(color: const Color(0xFF8D6E63)),
       ),
       child: Column(
+        mainAxisSize: MainAxisSize.min,
         children: [
           _buildValueRow('玩家获得', _pendingTrade.playerReceivedValue, Colors.green[800]!),
-          const Divider(color: Color(0xFF8D6E63)),
+          const Divider(height: 8, thickness: 1, color: Color(0xFF8D6E63)),
           _buildValueRow('玩家支付', _pendingTrade.playerGivenValue, Colors.blue[800]!),
         ],
       ),
@@ -882,7 +883,7 @@ class _TradeDialogState extends State<_TradeDialog> {
     return Row(
       children: [
         Expanded(child: _buildPendingColumn('换入', _pendingTrade.itemsToReceive, true)),
-        const VerticalDivider(color: Color(0xFF8D6E63)),
+        const VerticalDivider(width: 8, thickness: 1, color: Color(0xFF8D6E63)),
         Expanded(child: _buildPendingColumn('换出', _pendingTrade.itemsToGive, false)),
       ],
     );
@@ -892,7 +893,7 @@ class _TradeDialogState extends State<_TradeDialog> {
     return Column(
       children: [
         Text(title, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Color(0xFF5D4037))),
-        const SizedBox(height: 8),
+        const SizedBox(height: 4),
         if (items.isEmpty)
           Container(
             height: 80,
@@ -907,19 +908,25 @@ class _TradeDialogState extends State<_TradeDialog> {
         else
           Expanded(
             child: ListView.builder(
+              padding: EdgeInsets.zero,
               itemCount: items.length,
               itemBuilder: (context, index) {
                 final item = items[index];
                 final goods = widget.tradeSystem.getGoods(item.goodsId);
-                return GoodsSlot(
-                  goods: goods,
-                  quantity: item.quantity,
-                  isLarge: false,
-                  onRemove: () => setState(() {
-                    items.removeAt(index);
-                    // 移除物品后，标记为需要重新平衡
-                    widget.tradeSystem.gameState.setTradeBalanced(false);
-                  }),
+                return Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 4),
+                  child: Center(
+                    child: GoodsSlot(
+                      goods: goods,
+                      quantity: item.quantity,
+                      isLarge: false,
+                      onRemove: () => setState(() {
+                        items.removeAt(index);
+                        // 移除物品后，标记为需要重新平衡
+                        widget.tradeSystem.gameState.setTradeBalanced(false);
+                      }),
+                    ),
+                  ),
                 );
               },
             ),
@@ -1354,17 +1361,34 @@ class GoodsSlot extends StatelessWidget {
             : Stack(
                 children: [
                   Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        if (goods!.imagePath != null)
-                          Image.asset(goods!.imagePath!, width: size * 0.5, height: size * 0.5, fit: BoxFit.contain)
-                        else
-                          Icon(goods!.id == 'gold' ? Icons.monetization_on : Icons.category, size: size * 0.5, color: const Color(0xFF8D6E63)),
-                        const SizedBox(height: 2),
-                        Text(goods!.name, style: TextStyle(fontSize: fontSize, fontWeight: FontWeight.bold, color: const Color(0xFF4E342E)), textAlign: TextAlign.center, overflow: TextOverflow.ellipsis),
-                        Text('x$quantity', style: TextStyle(fontSize: fontSize - 2, color: const Color(0xFF5D4037))),
-                      ],
+                    child: FittedBox(
+                      fit: BoxFit.scaleDown,
+                      child: Padding(
+                        padding: const EdgeInsets.all(2.0),
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            if (goods!.imagePath != null)
+                              Image.asset(goods!.imagePath!, width: size * 0.45, height: size * 0.45, fit: BoxFit.contain)
+                            else
+                              Icon(goods!.id == 'gold' ? Icons.monetization_on : Icons.category, size: size * 0.45, color: const Color(0xFF8D6E63)),
+                            const SizedBox(height: 1),
+                            Text(
+                              goods!.name,
+                              style: TextStyle(fontSize: fontSize, fontWeight: FontWeight.bold, color: const Color(0xFF4E342E)),
+                              textAlign: TextAlign.center,
+                              overflow: TextOverflow.ellipsis,
+                              maxLines: 1,
+                            ),
+                            Text(
+                              'x$quantity',
+                              style: TextStyle(fontSize: fontSize - 2, color: const Color(0xFF5D4037)),
+                              maxLines: 1,
+                            ),
+                          ],
+                        ),
+                      ),
                     ),
                   ),
                   if (onRemove != null)

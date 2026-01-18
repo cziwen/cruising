@@ -14,6 +14,7 @@ import '../systems/trade_system.dart';
 import '../systems/save_system.dart';
 import '../systems/music_system.dart';
 import '../systems/notification_system.dart';
+import '../systems/quest_system.dart';
 import '../utils/game_config_loader.dart';
 
 /// 天气状况枚举
@@ -148,6 +149,7 @@ class GameState extends ChangeNotifier {
   // 任务/教程系统追踪
   bool _isMarketOpened = false;
   bool _isPortListOpened = false;
+  bool _isShipyardOpened = false;
   bool _isQuantitySliderOpened = false;
   bool _isTradeBalanced = false;
   int _shipUpgradeCount = 0;
@@ -740,6 +742,7 @@ class GameState extends ChangeNotifier {
   // 任务系统相关 getter
   bool get isMarketOpened => _isMarketOpened;
   bool get isPortListOpened => _isPortListOpened;
+  bool get isShipyardOpened => _isShipyardOpened;
   bool get isQuantitySliderOpened => _isQuantitySliderOpened;
   bool get isTradeBalanced => _isTradeBalanced;
   int get shipUpgradeCount => _shipUpgradeCount;
@@ -759,6 +762,13 @@ class GameState extends ChangeNotifier {
     }
   }
 
+  void setShipyardOpened(bool opened) {
+    if (_isShipyardOpened != opened) {
+      _isShipyardOpened = opened;
+      notifyListeners();
+    }
+  }
+
   void setQuantitySliderOpened(bool opened) {
     if (_isQuantitySliderOpened != opened) {
       _isQuantitySliderOpened = opened;
@@ -771,6 +781,11 @@ class GameState extends ChangeNotifier {
       _isTradeBalanced = balanced;
       notifyListeners();
     }
+  }
+
+  void incrementShipUpgradeCount() {
+    _shipUpgradeCount++;
+    notifyListeners();
   }
 
   void resetDailyTutorialFlags() {
@@ -1849,6 +1864,8 @@ class GameState extends ChangeNotifier {
       'lastTavernRefreshDay': _lastTavernRefreshDay,
       'homeIsland': _homeIsland.toJson(),
       'lastTaxHour': _lastTaxHour,
+      'completedQuestIds': QuestSystem.instance.completedQuestIds,
+      'activeQuestId': QuestSystem.instance.activeQuest?.id,
     };
   }
 
@@ -1870,6 +1887,11 @@ class GameState extends ChangeNotifier {
     }
     _lastTavernRefreshDay = (json['lastTavernRefreshDay'] as int?) ?? -1;
     _lastTaxHour = (json['lastTaxHour'] as int?) ?? -1;
+    
+    // 恢复任务系统进度
+    final completedQuestIds = (json['completedQuestIds'] as List?)?.cast<String>() ?? [];
+    final activeQuestId = json['activeQuestId'] as String?;
+    QuestSystem.instance.loadProgress(completedQuestIds, activeQuestId);
 
     // 2. 恢复酒馆船员
     _availableTavernCrew.clear();

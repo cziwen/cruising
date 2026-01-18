@@ -15,6 +15,7 @@ class QuestSystem extends ChangeNotifier {
   final List<String> _completedQuestIds = [];
   Quest? _activeQuest;
   String? _pendingAction;
+  bool _isNewGame = false;
 
   // UI 高亮注册表：存储 ID 到 GlobalKey 的映射
   final Map<String, GlobalKey> _registeredKeys = {};
@@ -57,8 +58,9 @@ class QuestSystem extends ChangeNotifier {
   }
 
   /// 初始化系统
-  void initialize(GameState gameState) {
+  void initialize(GameState gameState, {bool isNewGame = false}) {
     _gameState = gameState;
+    _isNewGame = isNewGame;
     _allQuests.clear();
     _allQuests.addAll(GameConfigLoader().questsList);
     _completedQuestIds.clear();
@@ -71,6 +73,28 @@ class QuestSystem extends ChangeNotifier {
     _checkTriggers();
     
     // 确保不在 build 阶段直接调用 notifyListeners
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      notifyListeners();
+    });
+  }
+
+  /// 加载任务进度
+  void loadProgress(List<String> completedIds, String? activeId) {
+    _isNewGame = false;
+    _completedQuestIds.clear();
+    _completedQuestIds.addAll(completedIds);
+    _activeQuest = null;
+    if (activeId != null) {
+      try {
+        _activeQuest = _allQuests.firstWhere((q) => q.id == activeId);
+      } catch (_) {
+        _activeQuest = null;
+      }
+    }
+    
+    // 加载进度后重新检查触发器（以防 activeQuest 为空时需要触发新任务）
+    _checkTriggers();
+    
     WidgetsBinding.instance.addPostFrameCallback((_) {
       notifyListeners();
     });
@@ -125,7 +149,7 @@ class QuestSystem extends ChangeNotifier {
 
   bool _evaluateTriggerPart(String part) {
     if (part == 'on_new_game_start') {
-      return _completedQuestIds.isEmpty && _activeQuest == null;
+      return _isNewGame && _completedQuestIds.isEmpty && _activeQuest == null;
     }
     
     if (part.startsWith('after(')) {
@@ -193,6 +217,9 @@ class QuestSystem extends ChangeNotifier {
     if (condition == "ui.portList.opened") {
       return gs.isPortListOpened;
     }
+    if (condition == "ui.shipyard.opened") {
+      return gs.isShipyardOpened;
+    }
 
     // 3. 货物数量 cargo.count('Fish') >= 10
     if (condition.startsWith("cargo.count(")) {
@@ -217,9 +244,23 @@ class QuestSystem extends ChangeNotifier {
       return gs.isAtSea;
     }
 
-    // 6. 船只升级 ship.upgrade_count >= 1
+    // 6. 船只升级
     if (condition == "ship.upgrade_count >= 1") {
       return gs.shipUpgradeCount >= 1;
+    }
+    if (condition == "ship.cargo_level >= 1") {
+      // 这里的逻辑需要与 ShipSystem 中的 initialMaxCargo 和 cargoUpgradeAmount 保持一致
+      // 初始 100，每级 100
+      final cargoLevel = ((gs.ship.cargoCapacity - 100) / 100).round();
+      return cargoLevel >= 1;
+    }
+    if (condition == "ship.level >= 1") {
+      // 这里的逻辑需要与 ShipSystem.getShipLevel 保持一致
+      final cargoLevel = ((gs.ship.cargoCapacity - 100) / 100).round();
+      final hullLevel = ((gs.ship.maxDurability - 200) / 50).round();
+      final crewLevel = gs.ship.maxCrewMemberCount - 5;
+      final minLevel = [cargoLevel, hullLevel, crewLevel].reduce((a, b) => a < b ? a : b);
+      return minLevel >= 1;
     }
 
     // 7. 主岛打开 homeIsland.opened
