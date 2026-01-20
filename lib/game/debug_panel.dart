@@ -2,6 +2,7 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'game_state.dart';
 import '../systems/save_system.dart';
+import '../systems/quest_system.dart';
 
 /// 调试面板组件
 class DebugPanel extends StatefulWidget {
@@ -294,7 +295,27 @@ class _DebugPanelState extends State<DebugPanel>
                   ],
 
                   // 全局调试功能（删除存档）- 仅在主菜单显示（gameState 为 null）
-                  if (widget.gameState == null)
+                  if (widget.gameState == null) ...[
+                    // 跳过新手教程开关
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        const Text(
+                          '跳过新手教程',
+                          style: TextStyle(color: Colors.white, fontSize: 12),
+                        ),
+                        Switch(
+                          value: QuestSystem.shouldSkipTutorial,
+                          onChanged: (value) {
+                            setState(() {
+                              QuestSystem.shouldSkipTutorial = value;
+                            });
+                          },
+                          activeThumbColor: Colors.orange,
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 8),
                     SizedBox(
                       width: double.infinity,
                       child: ElevatedButton(
@@ -337,6 +358,7 @@ class _DebugPanelState extends State<DebugPanel>
                         ),
                       ),
                     ),
+                  ],
                 ],
               ),
             ),

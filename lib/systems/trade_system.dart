@@ -755,7 +755,15 @@ class _TradeDialogState extends State<_TradeDialog> {
         actualStock = (port.merchantMoney - _getPendingMerchantStockAdjustment(goods.id)).clamp(0, double.infinity).toInt();
       } else {
         final portStock = port.getGoodsStock(goods.id);
+        final hasSpecificConfig = port.goodsConfig.containsKey(goods.id);
+        
+        // 过滤逻辑：如果没有特定配置，且库存为 0，则不显示
+        if (!hasSpecificConfig && portStock <= 0) {
+          return false;
+        }
+
         final config = port.getGoodsConfig(goods.id);
+        // 如果库存为0，但有配置，则显示 s0
         final baseStock = portStock > 0 ? portStock : (config?.s0 ?? 50);
         actualStock = (baseStock - _getPendingMerchantStockAdjustment(goods.id)).clamp(0, double.infinity).toInt();
       }

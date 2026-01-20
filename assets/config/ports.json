@@ -1,8 +1,19 @@
 [
   {
+    "id": "base",
+    "name": "基础配置",
+    "description": "全局货物的默认基础配置，用于 fallback。",
+    "goodsConfig": {
+      "food": { "alpha": 0.15, "s0": 500, "basePrice": 10.0 },
+      "wood": { "alpha": 0.12, "s0": 400, "basePrice": 15.0 },
+      "spice": { "alpha": 0.35, "s0": 200, "basePrice": 30.0 },
+      "metal": { "alpha": 0.25, "s0": 300, "basePrice": 25.0 }
+    }
+  },
+  {
     "id": "home_island",
     "name": "我的岛屿",
-    "description": "这是你的私人领地，一切传奇开始的地方。这里物资丰富，价格稳定，是你最坚实的后盾。",
+    "description": "你的私人领地，一切传奇开始的地方。这里物资丰富，价格稳定，是你最坚实的后盾。",
     "goodsConfig": {
       "food": { "alpha": 0.08, "s0": 200, "basePrice": 6.0 },
       "wood": { "alpha": 0.09, "s0": 200, "basePrice": 10.0 },
@@ -63,6 +74,17 @@
       "wood": { "alpha": 0.24, "s0": 600, "basePrice": 17.0 },
       "spice": { "alpha": 0.3, "s0": 3000, "basePrice": 22.0 },
       "metal": { "alpha": 0.4, "s0": 500, "basePrice": 30.0 }
+    },
+    "merchantMoney": 15000,
+    "initialMerchantMoney": 15000
+  },
+  {
+    "id": "port_test",
+    "name": "测试港",
+    "backgroundImage": "assets/images/buildings/stone_castle.png",
+    "description": "测试港口",
+    "unlocked": true,
+    "goodsConfig": {
     },
     "merchantMoney": 15000,
     "initialMerchantMoney": 15000

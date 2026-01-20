@@ -112,7 +112,21 @@ class GameConfigLoader {
     try {
       final String response = await rootBundle.loadString('assets/config/ports.json');
       final List<dynamic> data = json.decode(response);
-      _portsList = data.map((json) => Port.fromJson(json)).toList();
+      
+      // 1. 查找并解析 base 配置
+      final baseEntry = data.firstWhere((item) => item['id'] == 'base', orElse: () => null);
+      if (baseEntry != null && baseEntry['goodsConfig'] != null) {
+        Port.baseGoodsConfig = (baseEntry['goodsConfig'] as Map).map(
+          (key, value) => MapEntry(key as String,
+              PortGoodsConfig.fromJson(value as Map<String, dynamic>)),
+        );
+      }
+
+      // 2. 加载普通港口，排除 base 条目
+      _portsList = data
+          .where((item) => item['id'] != 'base')
+          .map((json) => Port.fromJson(json))
+          .toList();
     } catch (e) {
       debugPrint('✗ Error loading ports config: $e');
       _portsList = []; // 发生错误时给一个空列表

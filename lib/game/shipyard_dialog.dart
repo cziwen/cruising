@@ -52,7 +52,10 @@ class _ShipyardDialogState extends State<ShipyardDialog>
   @override
   void dispose() {
     // 通知任务系统：船厂已关闭
-    widget.gameState.setShipyardOpened(false);
+    // 使用 addPostFrameCallback 避免在 unmount 期间触发 setState
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      widget.gameState.setShipyardOpened(false);
+    });
     _breathingController.dispose();
     super.dispose();
   }

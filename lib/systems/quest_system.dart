@@ -17,6 +17,9 @@ class QuestSystem extends ChangeNotifier {
   String? _pendingAction;
   bool _isNewGame = false;
 
+  /// 是否跳过新手教程（调试选项，由主菜单控制）
+  static bool shouldSkipTutorial = false;
+
   // UI 高亮注册表：存储 ID 到 GlobalKey 的映射
   final Map<String, GlobalKey> _registeredKeys = {};
 
@@ -58,13 +61,22 @@ class QuestSystem extends ChangeNotifier {
   }
 
   /// 初始化系统
-  void initialize(GameState gameState, {bool isNewGame = false}) {
+  void initialize(GameState gameState, {bool isNewGame = false, bool skipTutorial = false}) {
     _gameState = gameState;
     _isNewGame = isNewGame;
     _allQuests.clear();
     _allQuests.addAll(GameConfigLoader().questsList);
     _completedQuestIds.clear();
     _activeQuest = null;
+
+    if (_isNewGame && skipTutorial) {
+      // 跳过教程：将所有以 'T' 开头的任务标记为已完成
+      for (final quest in _allQuests) {
+        if (quest.id.startsWith('T')) {
+          _completedQuestIds.add(quest.id);
+        }
+      }
+    }
     
     // 监听游戏状态变化
     _gameState?.addListener(_onGameStateChanged);

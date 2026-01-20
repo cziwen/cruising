@@ -10,6 +10,18 @@ class PortGoodsConfig {
     required this.basePrice,
   });
 
+  PortGoodsConfig copyWith({
+    double? alpha,
+    int? s0,
+    double? basePrice,
+  }) {
+    return PortGoodsConfig(
+      alpha: alpha ?? this.alpha,
+      s0: s0 ?? this.s0,
+      basePrice: basePrice ?? this.basePrice,
+    );
+  }
+
   Map<String, dynamic> toJson() {
     return {
       'alpha': alpha,
@@ -29,6 +41,9 @@ class PortGoodsConfig {
 
 /// 港口数据模型
 class Port {
+  /// 全局基础货物配置，从 ports.json 的 "base" 条目加载
+  static Map<String, PortGoodsConfig> baseGoodsConfig = {};
+
   final String id;
   final String name;
   final String backgroundImage;
@@ -88,8 +103,13 @@ class Port {
   }
 
   /// 获取指定商品的配置（alpha 和 s0）
+  /// 优先使用港口特定的配置，如果缺失则回退到静态的 baseGoodsConfig
+  /// 如果使用回退配置，s0 将被设为 0（代表该港口初始不产出该货物）
   PortGoodsConfig? getGoodsConfig(String goodsId) {
-    return goodsConfig[goodsId];
+    if (goodsConfig.containsKey(goodsId)) {
+      return goodsConfig[goodsId];
+    }
+    return baseGoodsConfig[goodsId]?.copyWith(s0: 0);
   }
 
   /// 设置指定商品的配置（返回新的 Port 实例）

@@ -144,8 +144,15 @@ class _GameScreenState extends State<GameScreen> {
     
     _gameState.setGetGoodsById((goodsId) => _tradeSystem.getGoods(goodsId));
     
+    // 添加 GameState 监听器
+    _gameState.addListener(_onGameStateChanged);
+    
     // 初始化任务系统
-    QuestSystem.instance.initialize(_gameState, isNewGame: widget.initialSaveData == null);
+    QuestSystem.instance.initialize(
+      _gameState, 
+      isNewGame: widget.initialSaveData == null,
+      skipTutorial: QuestSystem.shouldSkipTutorial,
+    );
     
     // 监听任务系统的动作
     QuestSystem.instance.addListener(_handleQuestAction);
@@ -208,6 +215,35 @@ class _GameScreenState extends State<GameScreen> {
     QuestSystem.instance.clearPendingAction();
   }
 
+  void _onGameStateChanged() {
+    if (!mounted) return;
+
+    if (_gameState.departingCrewNames.isNotEmpty) {
+      final names = _gameState.departingCrewNames.join('、');
+      // 先清理，避免重复触发（listener 可能被多次调用）
+      _gameState.clearDepartingCrewNames();
+      
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('船员 $names 因为得不到报酬，已经在港口悄悄离开了...'),
+          backgroundColor: Colors.redAccent,
+          duration: const Duration(seconds: 5),
+          behavior: SnackBarBehavior.floating,
+          margin: const EdgeInsets.only(bottom: 100, left: 20, right: 20),
+        ),
+      );
+    }
+
+    // 安全地调用 setState
+    if (SchedulerBinding.instance.schedulerPhase == SchedulerPhase.persistentCallbacks) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) setState(() {});
+      });
+    } else {
+      setState(() {});
+    }
+  }
+
   void _initializeGame() {
     final configLoader = GameConfigLoader();
     final ports = configLoader.portsList;
@@ -217,25 +253,6 @@ class _GameScreenState extends State<GameScreen> {
     
     // 初始化港口商品库存（使用配置的 s0 值）
     _gameState.initializePortGoodsStock();
-    
-    _gameState.addListener(() {
-      if (_gameState.departingCrewNames.isNotEmpty) {
-        final names = _gameState.departingCrewNames.join('、');
-        // 先清理，避免重复触发（listener 可能被多次调用）
-        _gameState.clearDepartingCrewNames();
-        
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('船员 $names 因为得不到报酬，已经在港口悄悄离开了...'),
-            backgroundColor: Colors.redAccent,
-            duration: const Duration(seconds: 5),
-            behavior: SnackBarBehavior.floating,
-            margin: const EdgeInsets.only(bottom: 100, left: 20, right: 20),
-          ),
-        );
-      }
-      setState(() {});
-    });
   }
 
   void _handleTradePressed() {
@@ -300,6 +317,7 @@ class _GameScreenState extends State<GameScreen> {
     QuestSystem.instance.removeListener(_handleQuestAction);
     _gameLoopTicker?.stop();
     _gameLoopTicker = null;
+    _gameState.removeListener(_onGameStateChanged);
     _gameState.dispose();
     super.dispose();
   }
