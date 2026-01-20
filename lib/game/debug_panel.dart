@@ -129,7 +129,7 @@ class _DebugPanelState extends State<DebugPanel>
                   const SizedBox(height: 8),
                   
                   // 游戏内调试功能
-                  if (widget.gameState != null) ...[
+                  if (widget.gameState != null && !widget.gameState!.isMenuMode) ...[
                     // 跳过航行动画开关
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -294,8 +294,8 @@ class _DebugPanelState extends State<DebugPanel>
                     const Divider(color: Colors.white24),
                   ],
 
-                  // 全局调试功能（删除存档）- 仅在主菜单显示（gameState 为 null）
-                  if (widget.gameState == null) ...[
+                  // 全局调试功能（删除存档）- 在主菜单显示（gameState 为 null 或处于菜单模式）
+                  if (widget.gameState == null || widget.gameState!.isMenuMode) ...[
                     // 跳过新手教程开关
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,

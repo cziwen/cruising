@@ -11,8 +11,8 @@ class CelestialLayer extends StatelessWidget {
   const CelestialLayer({
     super.key,
     required this.gameState,
-    this.sunImagePath = 'assets/images/pixel-sun-icon.png',
-    this.moonImagePath = 'assets/images/moon-in-pixel-art.png',
+    this.sunImagePath = 'assets/images/onsky/sun.png',
+    this.moonImagePath = 'assets/images/onsky/moon.png',
   });
 
   @override

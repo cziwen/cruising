@@ -349,7 +349,11 @@ class _GameScreenState extends State<GameScreen> {
       _initializeGame();
     });
     
-    QuestSystem.instance.initialize(_gameState, isNewGame: true);
+    QuestSystem.instance.initialize(
+      _gameState, 
+      isNewGame: true,
+      skipTutorial: QuestSystem.shouldSkipTutorial,
+    );
     MusicSystem().playState('port');
 
     // 更新当前背景存档 ID
