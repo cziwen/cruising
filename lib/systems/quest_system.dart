@@ -90,6 +90,22 @@ class QuestSystem extends ChangeNotifier {
     });
   }
 
+  /// 重置系统状态（用于返回主菜单）
+  void reset() {
+    _gameState?.removeListener(_onGameStateChanged);
+    _gameState = null;
+    _allQuests.clear();
+    _completedQuestIds.clear();
+    _activeQuest = null;
+    _pendingAction = null;
+    _isNewGame = false;
+    _registeredKeys.clear();
+    
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      notifyListeners();
+    });
+  }
+
   /// 加载任务进度
   void loadProgress(List<String> completedIds, String? activeId) {
     _isNewGame = false;

@@ -123,6 +123,9 @@ class GameState extends ChangeNotifier {
   // 税收结算跟踪
   int _lastTaxHour = -1;
 
+  // 是否处于菜单模式（暂停游戏时间流逝，仅保留动画）
+  bool isMenuMode = false;
+
   // 进度更新 Ticker（用于每帧更新航行进度）
   Ticker? _progressTicker;
   
@@ -344,6 +347,12 @@ class GameState extends ChangeNotifier {
     // swayTime 始终增加，用于模拟海浪左右晃动
     _swayTime += dtRealSeconds;
     
+    // 如果处于菜单模式，跳过后续所有游戏逻辑更新（仅保留基础动画）
+    if (isMenuMode) {
+      notifyListeners();
+      return;
+    }
+
     // totalSailingOffset 仅在航行且不在战斗时增加，用于驱动背景滚动
     if (_isAtSea && !_isInCombat) {
       // 基础滚动速度与当前航速正相关

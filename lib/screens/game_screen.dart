@@ -2,24 +2,33 @@ import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
+import 'dart:io' show exit;
 import 'package:audioplayers/audioplayers.dart';
 import '../game/game_state.dart';
 import '../game/game_scene.dart';
+import '../game/debug_panel.dart';
 import '../game/tavern_dialog.dart';
 import '../game/pixel_progress_bar.dart';
+import '../game/main_menu_overlay.dart';
 import '../systems/trade_system.dart';
 import '../systems/port_system.dart';
 import '../systems/music_system.dart';
+import '../systems/save_system.dart';
 import '../game/shipyard_dialog.dart';
 import '../game/settings_dialog.dart';
 import '../utils/game_config_loader.dart';
 import '../systems/quest_system.dart';
-// 移除 unused imports
+import 'save_load_screen.dart';
 
 class GameScreen extends StatefulWidget {
   final Map<String, dynamic>? initialSaveData;
+  final bool showMainMenuInitially;
 
-  const GameScreen({super.key, this.initialSaveData});
+  const GameScreen({
+    super.key, 
+    this.initialSaveData,
+    this.showMainMenuInitially = false,
+  });
 
   /// 预加载游戏资源（图片、音频等）
   /// 返回一个 Future，可以传递给 LoadingScreen.waitFor 来等待加载完成
@@ -134,10 +143,20 @@ class _GameScreenState extends State<GameScreen> {
   late PortSystem _portSystem;
   Ticker? _gameLoopTicker;
   DateTime? _lastFrameTime;
+  
+  bool _isShowingMainMenu = false;
+  bool _canContinue = false;
+  
+  // 过渡动画相关状态
+  bool _isTransitioningToGame = false;
+  bool _showCoverOverlay = false;
+  int? _currentBackgroundSaveId; // 当前背景对应的存档 ID，-1 表示新游戏场景
 
   @override
   void initState() {
     super.initState();
+    _isShowingMainMenu = widget.showMainMenuInitially;
+    _isTransitioningToGame = widget.showMainMenuInitially; // 初始化为 true 以配合 AnimatedOpacity 实现淡入
     _gameState = GameState();
     _tradeSystem = TradeSystem(_gameState);
     _portSystem = PortSystem(_gameState);
@@ -146,23 +165,31 @@ class _GameScreenState extends State<GameScreen> {
     
     // 添加 GameState 监听器
     _gameState.addListener(_onGameStateChanged);
-    
-    // 初始化任务系统
-    QuestSystem.instance.initialize(
-      _gameState, 
-      isNewGame: widget.initialSaveData == null,
-      skipTutorial: QuestSystem.shouldSkipTutorial,
-    );
+    _gameState.isMenuMode = _isShowingMainMenu;
     
     // 监听任务系统的动作
     QuestSystem.instance.addListener(_handleQuestAction);
     
-    if (widget.initialSaveData != null) {
-      _gameState.initialize([]); // Initialize with empty to setup basic structure if needed, or rely on loadFromJson
-      _gameState.loadFromJson(widget.initialSaveData!);
+    // 初始化游戏状态逻辑（如果是主菜单模式，尝试加载最近存档作为背景）
+    _initGameState();
+
+    if (_isShowingMainMenu) {
+      MusicSystem().playState('main_menu');
+      // 延迟一帧让菜单按钮淡入
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) {
+          setState(() {
+            _isTransitioningToGame = false;
+          });
+        }
+      });
     } else {
-      // 初始化游戏
-      _initializeGame();
+      // 如果不是从菜单开始，立即初始化任务系统
+      QuestSystem.instance.initialize(
+        _gameState, 
+        isNewGame: widget.initialSaveData == null,
+        skipTutorial: QuestSystem.shouldSkipTutorial,
+      );
     }
     
     // 使用 Ticker 统一更新所有时间系统（每帧更新）
@@ -255,6 +282,246 @@ class _GameScreenState extends State<GameScreen> {
     _gameState.initializePortGoodsStock();
   }
 
+  Future<void> _initGameState() async {
+    // 1. 如果提供了初始存档数据（如从存档管理界面跳转），直接加载
+    if (widget.initialSaveData != null) {
+      _gameState.initialize([]); 
+      _gameState.loadFromJson(widget.initialSaveData!);
+      _gameState.isMenuMode = _isShowingMainMenu;
+      _checkCanContinue();
+      return;
+    }
+
+    // 2. 如果是主菜单模式，尝试加载最近的存档作为背景场景
+    if (_isShowingMainMenu) {
+      final slots = await SaveManager.getSaveSlots();
+      if (slots.isNotEmpty) {
+        slots.sort((a, b) => b.timestamp.compareTo(a.timestamp));
+        final latestSlot = slots.first;
+        try {
+          final gameData = await SaveManager.loadGame(latestSlot.id);
+          if (mounted) {
+            setState(() {
+              _gameState.loadFromJson(gameData);
+              _gameState.isMenuMode = true;
+              _canContinue = true;
+              _currentBackgroundSaveId = latestSlot.id;
+            });
+          }
+          return;
+        } catch (e) {
+          debugPrint('Failed to load latest save for background: $e');
+        }
+      }
+    }
+
+    // 3. 默认回退：初始化新游戏场景
+    _initializeGame();
+    _gameState.isMenuMode = _isShowingMainMenu;
+    _currentBackgroundSaveId = -1; // 表示新游戏场景
+    _checkCanContinue();
+  }
+
+  Future<void> _checkCanContinue() async {
+    final slots = await SaveManager.getSaveSlots();
+    if (mounted) {
+      setState(() {
+        _canContinue = slots.isNotEmpty;
+      });
+    }
+  }
+
+  Future<void> _handleNewGame() async {
+    setState(() {
+      _isTransitioningToGame = true;
+      // 如果当前背景不是新游戏场景 (-1)，则显示遮罩
+      if (_currentBackgroundSaveId != -1) {
+        _showCoverOverlay = true;
+      }
+    });
+
+    // 等待按钮淡出和遮罩淡入
+    await Future.delayed(const Duration(milliseconds: 500));
+
+    setState(() {
+      _gameState.isMenuMode = false;
+      // 重新初始化游戏状态
+      _initializeGame();
+    });
+    
+    QuestSystem.instance.initialize(_gameState, isNewGame: true);
+    MusicSystem().playState('port');
+
+    // 更新当前背景存档 ID
+    _currentBackgroundSaveId = -1;
+
+    // 等待背景切换渲染
+    await Future.delayed(const Duration(milliseconds: 100));
+
+    setState(() {
+      _isShowingMainMenu = false;
+      _isTransitioningToGame = false;
+      _showCoverOverlay = false;
+    });
+  }
+
+  Future<void> _handleContinueGame() async {
+    try {
+      final slots = await SaveManager.getSaveSlots();
+      if (slots.isEmpty) return;
+
+      slots.sort((a, b) => b.timestamp.compareTo(a.timestamp));
+      final latestSlot = slots.first;
+      
+      setState(() {
+        _isTransitioningToGame = true;
+        // 如果目标存档 ID 与当前背景存档 ID 不一致，则显示遮罩
+        if (_currentBackgroundSaveId != latestSlot.id) {
+          _showCoverOverlay = true;
+        }
+      });
+
+      // 等待按钮淡出和遮罩淡入
+      await Future.delayed(const Duration(milliseconds: 500));
+
+      final gameData = await SaveManager.loadGame(latestSlot.id);
+      
+      if (mounted) {
+        setState(() {
+          _gameState.isMenuMode = false;
+          _gameState.loadFromJson(gameData);
+        });
+        QuestSystem.instance.initialize(_gameState, isNewGame: false);
+        MusicSystem().playState(_gameState.isAtSea ? 'cruising' : 'port');
+        
+        // 更新当前背景存档 ID
+        _currentBackgroundSaveId = latestSlot.id;
+      }
+
+      // 等待背景切换渲染
+      await Future.delayed(const Duration(milliseconds: 100));
+
+      setState(() {
+        _isShowingMainMenu = false;
+        _isTransitioningToGame = false;
+        _showCoverOverlay = false;
+      });
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('读取存档失败: $e')),
+        );
+        setState(() {
+          _isTransitioningToGame = false;
+          _showCoverOverlay = false;
+        });
+      }
+    }
+  }
+
+  void _handleLoadGame() {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context) => SaveLoadScreen(
+          mode: SaveLoadMode.load,
+          onLoadConfirmed: (gameData) async {
+            setState(() {
+              _isTransitioningToGame = true;
+              // 从存档列表加载时，通常很难判断是否与当前背景一致
+              // 为了保险起见，始终显示遮罩
+              _showCoverOverlay = true;
+            });
+
+            // 等待按钮淡出和遮罩淡入
+            await Future.delayed(const Duration(milliseconds: 500));
+
+            setState(() {
+              _gameState.isMenuMode = false;
+              _gameState.loadFromJson(gameData);
+            });
+            QuestSystem.instance.initialize(_gameState, isNewGame: false);
+            MusicSystem().playState(_gameState.isAtSea ? 'cruising' : 'port');
+
+            // 更新当前背景存档 ID（在异步操作中，通常最近加载的就是最新的）
+            final slots = await SaveManager.getSaveSlots();
+            if (slots.isNotEmpty) {
+              slots.sort((a, b) => b.timestamp.compareTo(a.timestamp));
+              _currentBackgroundSaveId = slots.first.id;
+            }
+
+            // 等待背景切换渲染
+            await Future.delayed(const Duration(milliseconds: 100));
+
+            setState(() {
+              _isShowingMainMenu = false;
+              _isTransitioningToGame = false;
+              _showCoverOverlay = false;
+            });
+          },
+        ),
+      ),
+    );
+  }
+
+  Future<void> _handleReturnToMainMenu() async {
+    // 1. 关闭设置对话框
+    Navigator.of(context).pop();
+
+    // 检查最新存档 ID
+    final slots = await SaveManager.getSaveSlots();
+    int latestId = -1;
+    if (slots.isNotEmpty) {
+      slots.sort((a, b) => b.timestamp.compareTo(a.timestamp));
+      latestId = slots.first.id;
+    }
+
+    // 如果目标背景（最新存档）与当前正显示的背景（存档 ID）一致，则不需要封面遮罩
+    final bool needsCover = latestId != _currentBackgroundSaveId;
+
+    setState(() {
+      if (needsCover) {
+        _showCoverOverlay = true;
+      }
+      _isTransitioningToGame = true; // 菜单按钮初始透明
+      _isShowingMainMenu = true; // 立即标记为菜单模式
+    });
+
+    // 2. 如果需要遮罩，等待淡入动画
+    if (needsCover) {
+      await Future.delayed(const Duration(milliseconds: 500));
+    }
+
+    // 3. 重置逻辑状态
+    QuestSystem.instance.reset();
+    
+    // 4. 更新动态背景（即使 ID 一致，也调用一下确保状态完全同步）
+    await _initGameState();
+
+    setState(() {
+      _gameState.isMenuMode = true;
+      _isTransitioningToGame = false; // 让菜单按钮淡入
+    });
+
+    // 5. 如果有遮罩，淡出它
+    if (needsCover) {
+      await Future.delayed(const Duration(milliseconds: 100));
+      setState(() {
+        _showCoverOverlay = false;
+      });
+    }
+    
+    MusicSystem().playState('main_menu');
+  }
+
+  void _handleExitGame() {
+    if (!kIsWeb && (defaultTargetPlatform == TargetPlatform.windows || 
+        defaultTargetPlatform == TargetPlatform.linux)) {
+      exit(0);
+    } else {
+      SystemNavigator.pop();
+    }
+  }
+
   void _handleTradePressed() {
     TradeSystem.showTradeDialog(context, _tradeSystem);
   }
@@ -305,10 +572,13 @@ class _GameScreenState extends State<GameScreen> {
     );
   }
 
-  void _handleSettingsPressed() {
+  void _handleSettingsPressed({bool fromMainMenu = false}) {
     showDialog(
       context: context,
-      builder: (context) => SettingsDialog(gameState: _gameState),
+      builder: (context) => SettingsDialog(
+        gameState: fromMainMenu ? null : _gameState,
+        onReturnToMainMenu: fromMainMenu ? null : _handleReturnToMainMenu,
+      ),
     );
   }
 
@@ -329,6 +599,7 @@ class _GameScreenState extends State<GameScreen> {
         children: [
           GameScene(
             gameState: _gameState,
+            showUI: !_isShowingMainMenu,
             onTradePressed: _handleTradePressed,
             onPortSelectPressed: _handlePortSelectPressed,
             onUpgradePressed: _handleUpgradePressed,
@@ -337,6 +608,41 @@ class _GameScreenState extends State<GameScreen> {
             onShipyardPressed: _handleShipyardPressed,
             onSettingsPressed: _handleSettingsPressed,
           ),
+          
+          // 封面遮罩层 - 用于遮挡背景切换时的视觉跳变
+          IgnorePointer(
+            ignoring: !_showCoverOverlay,
+            child: AnimatedOpacity(
+              opacity: _showCoverOverlay ? 1.0 : 0.0,
+              duration: const Duration(milliseconds: 500),
+              child: Image.asset(
+                'assets/images/painting/Cover_0.png',
+                fit: BoxFit.cover,
+                width: double.infinity,
+                height: double.infinity,
+              ),
+            ),
+          ),
+
+          if (_isShowingMainMenu)
+            AnimatedOpacity(
+              opacity: _isTransitioningToGame ? 0.0 : 1.0,
+              duration: const Duration(milliseconds: 500),
+              child: Container(
+                color: Colors.black.withOpacity(0.3),
+                child: MainMenuOverlay(
+                  onNewGame: _handleNewGame,
+                  onContinueGame: _handleContinueGame,
+                  onLoadGame: _handleLoadGame,
+                  onSettings: () => _handleSettingsPressed(fromMainMenu: true),
+                  onExit: _handleExitGame,
+                  canContinue: _canContinue,
+                ),
+              ),
+            ),
+          
+          // 调试面板 - 始终位于最顶层，支持在菜单模式下操作
+          DebugPanel(gameState: _gameState),
         ],
       ),
     );

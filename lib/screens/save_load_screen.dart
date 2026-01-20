@@ -13,11 +13,13 @@ enum SaveLoadMode {
 class SaveLoadScreen extends StatefulWidget {
   final SaveLoadMode mode;
   final GameState? gameState; // Only required for save mode
+  final Function(Map<String, dynamic>)? onLoadConfirmed;
 
   const SaveLoadScreen({
     super.key,
     required this.mode,
     this.gameState,
+    this.onLoadConfirmed,
   });
 
   @override
@@ -88,13 +90,18 @@ class _SaveLoadScreenState extends State<SaveLoadScreen> {
     try {
       final gameData = await SaveManager.loadGame(slotId);
       if (mounted) {
-        // Navigate to GameScreen with loaded data
-        Navigator.of(context).pushAndRemoveUntil(
-          MaterialPageRoute(
-            builder: (context) => GameScreen(initialSaveData: gameData),
-          ),
-          (route) => false, // Remove all previous routes
-        );
+        if (widget.onLoadConfirmed != null) {
+          widget.onLoadConfirmed!(gameData);
+          Navigator.of(context).pop();
+        } else {
+          // Navigate to GameScreen with loaded data
+          Navigator.of(context).pushAndRemoveUntil(
+            MaterialPageRoute(
+              builder: (context) => GameScreen(initialSaveData: gameData),
+            ),
+            (route) => false, // Remove all previous routes
+          );
+        }
       }
     } catch (e) {
       if (mounted) {

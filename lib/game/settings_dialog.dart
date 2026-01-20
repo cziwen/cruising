@@ -3,20 +3,22 @@ import 'package:flutter/material.dart';
 import 'package:window_manager/window_manager.dart';
 import 'game_state.dart';
 import '../screens/save_load_screen.dart';
-import '../screens/loading_screen.dart';
-import '../screens/main_menu_screen.dart';
+import '../screens/game_screen.dart';
 import 'paper_dialog.dart';
 import 'paper_button.dart';
 import '../systems/music_system.dart';
 import '../systems/window_controller.dart';
+import '../systems/quest_system.dart';
 
 /// 设置对话框
 class SettingsDialog extends StatefulWidget {
   final GameState? gameState; // 如果提供，则显示游戏内选项（保存/读取/返回主菜单）
+  final VoidCallback? onReturnToMainMenu;
 
   const SettingsDialog({
     super.key,
     this.gameState,
+    this.onReturnToMainMenu,
   });
 
   @override
@@ -333,14 +335,19 @@ class _SettingsDialogState extends State<SettingsDialog> {
                 PaperButton(
                   label: '确定',
                   onPressed: () {
-                    Navigator.of(context).pop();
-                    Navigator.of(context).pushReplacement(
-                      MaterialPageRoute(
-                        builder: (context) => const LoadingScreen(
-                          nextScreen: MainMenuScreen(),
+                    if (widget.onReturnToMainMenu != null) {
+                      widget.onReturnToMainMenu!();
+                    } else {
+                      QuestSystem.instance.reset();
+                      Navigator.of(context).pop();
+                      Navigator.of(context).pushReplacement(
+                        MaterialPageRoute(
+                          builder: (context) => const GameScreen(
+                            showMainMenuInitially: true,
+                          ),
                         ),
-                      ),
-                    );
+                      );
+                    }
                   },
                   style: PaperButtonStyle.red,
                   width: 80,

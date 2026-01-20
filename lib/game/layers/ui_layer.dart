@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import '../game_state.dart';
-import '../debug_panel.dart';
 import '../crew_management_dialog.dart';
 import '../main_hall_dialog.dart';
 import '../paper_button.dart';
@@ -126,99 +125,11 @@ class _UILayerState extends State<UILayer> {
           child: StatusBar(gameState: widget.gameState),
         ),
         
-        // 岛屿周围的交互按钮（仅在非过渡且不在海上时显示）
-        if (!widget.gameState.isTransitioning && !widget.gameState.isAtSea && widget.gameState.currentPort != null) ...[
-          // 税收提示 - 岛屿正上方 (仅限主岛)
-          if (widget.gameState.currentPort!.id == 'home_island' && widget.gameState.homeIsland.accumulatedTax > 0)
-            Positioned(
-              left: islandCenterX - 60,
-              top: islandCenterY - 230,
-              child: QuestTarget(
-                id: 'ui.collectTaxButton',
-                child: _buildTaxButton(islandCenterX - 60, islandCenterY - 230),
-              ),
-            ),
-
-          // 市场按钮 - 岛屿左侧
-          Positioned(
-            left: islandCenterX - 250,
-            top: islandCenterY - 50,
-            child: QuestTarget(
-              id: 'ui.marketButton',
-              child: _buildIslandButton(
-                '市场',
-                widget.onMarketPressed ?? widget.onTradePressed,
-                Colors.blue,
-              ),
-            ),
-          ),
-          
-          // 大厅按钮 (仅限主岛)
-          if (widget.gameState.currentPort!.id == 'home_island') ...[
-            // 大厅按钮 - 岛屿左下方
-            Positioned(
-              left: islandCenterX - 250,
-              top: islandCenterY + 80,
-              child: _buildIslandButton(
-                '大厅',
-                () => _showMainHall(context, 0),
-                Colors.indigo,
-              ),
-            ),
-          ],
-
-          // 港口酒馆按钮 - 岛屿左上方
-          Positioned(
-            left: islandCenterX - 220,
-            top: islandCenterY - 150,
-            child: _buildIslandButton(
-              '港口酒馆',
-              widget.onCrewMarketPressed,
-              Colors.purple,
-            ),
-          ),
-          // 设置按钮 - 岛屿右上方 (与酒馆对称)
-          Positioned(
-            left: islandCenterX + 220,
-            top: islandCenterY - 150,
-            child: _buildIslandButton(
-              '设置',
-              widget.onSettingsPressed,
-              Colors.blueGrey,
-            ),
-          ),
-          // 船厂按钮 - 岛屿右侧（代替升级）
-          Positioned(
-            left: islandCenterX + 150,
-            top: islandCenterY - 50,
-            child: QuestTarget(
-              id: 'ui.shipUpgradeButton',
-              child: _buildIslandButton(
-                '船厂',
-                widget.onShipyardPressed ?? widget.onUpgradePressed,
-                Colors.orange,
-              ),
-            ),
-          ),
-          // 船员管理按钮 - 岛屿右下方（船只旁边）
-          Positioned(
-            left: islandCenterX + 120,
-            top: islandCenterY + 80,
-            child: _buildIslandButton(
-              '船员管理',
-              () => _showCrewManagement(context),
-              Colors.teal,
-            ),
-          ),
-        ],
+        // 岛屿周围的交互按钮
+        ..._buildIslandButtons(islandCenterX, islandCenterY),
         
-        // 选择目的地按钮 - 右下角（仅在非过渡且不在海上时显示）
-        if (!widget.gameState.isTransitioning && !widget.gameState.isAtSea)
-          Positioned(
-            bottom: 80,
-            right: 16,
-            child: _buildDestinationButton(),
-          ),
+        // 选择目的地按钮 - 右下角
+        _buildDestinationButtonAnimated(),
         
         // 漂浮动画层
         ..._floatingTexts.map((ft) => Positioned(
@@ -247,9 +158,128 @@ class _UILayerState extends State<UILayer> {
               ),
             )),
 
-        // 调试面板
-        DebugPanel(gameState: widget.gameState),
+        // 调试面板 (已移动到 GameScreen 顶层 Stack)
       ],
+    );
+  }
+
+  /// 构建带动画的岛屿交互按钮
+  List<Widget> _buildIslandButtons(double islandCenterX, double islandCenterY) {
+    final showButtons = !widget.gameState.isTransitioning && 
+                        !widget.gameState.isAtSea && 
+                        widget.gameState.currentPort != null;
+    
+    return [
+      // 使用 AnimatedOpacity 包裹所有岛屿按钮
+      IgnorePointer(
+        ignoring: !showButtons,
+        child: AnimatedOpacity(
+          opacity: showButtons ? 1.0 : 0.0,
+          duration: const Duration(milliseconds: 500),
+          child: Stack(
+            children: [
+              // 税收提示 - 岛屿正上方 (仅限主岛)
+              if (widget.gameState.currentPort?.id == 'home_island' && widget.gameState.homeIsland.accumulatedTax > 0)
+                Positioned(
+                  left: islandCenterX - 60,
+                  top: islandCenterY - 230,
+                  child: QuestTarget(
+                    id: 'ui.collectTaxButton',
+                    child: _buildTaxButton(islandCenterX - 60, islandCenterY - 230),
+                  ),
+                ),
+
+              // 市场按钮 - 岛屿左侧
+              Positioned(
+                left: islandCenterX - 250,
+                top: islandCenterY - 50,
+                child: QuestTarget(
+                  id: 'ui.marketButton',
+                  child: _buildIslandButton(
+                    '市场',
+                    widget.onMarketPressed ?? widget.onTradePressed,
+                    Colors.blue,
+                  ),
+                ),
+              ),
+              
+              // 大厅按钮 (仅限主岛)
+              if (widget.gameState.currentPort?.id == 'home_island')
+                Positioned(
+                  left: islandCenterX - 250,
+                  top: islandCenterY + 80,
+                  child: _buildIslandButton(
+                    '大厅',
+                    () => _showMainHall(context, 0),
+                    Colors.indigo,
+                  ),
+                ),
+
+              // 港口酒馆按钮 - 岛屿左上方
+              Positioned(
+                left: islandCenterX - 220,
+                top: islandCenterY - 150,
+                child: _buildIslandButton(
+                  '港口酒馆',
+                  widget.onCrewMarketPressed,
+                  Colors.purple,
+                ),
+              ),
+              // 设置按钮 - 岛屿右上方 (与酒馆对称)
+              Positioned(
+                left: islandCenterX + 220,
+                top: islandCenterY - 150,
+                child: _buildIslandButton(
+                  '设置',
+                  widget.onSettingsPressed,
+                  Colors.blueGrey,
+                ),
+              ),
+              // 船厂按钮 - 岛屿右侧（代替升级）
+              Positioned(
+                left: islandCenterX + 150,
+                top: islandCenterY - 50,
+                child: QuestTarget(
+                  id: 'ui.shipUpgradeButton',
+                  child: _buildIslandButton(
+                    '船厂',
+                    widget.onShipyardPressed ?? widget.onUpgradePressed,
+                    Colors.orange,
+                  ),
+                ),
+              ),
+              // 船员管理按钮 - 岛屿右下方（船只旁边）
+              Positioned(
+                left: islandCenterX + 120,
+                top: islandCenterY + 80,
+                child: _buildIslandButton(
+                  '船员管理',
+                  () => _showCrewManagement(context),
+                  Colors.teal,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    ];
+  }
+
+  /// 构建带动画的选择目的地按钮
+  Widget _buildDestinationButtonAnimated() {
+    final showButton = !widget.gameState.isTransitioning && !widget.gameState.isAtSea;
+    
+    return Positioned(
+      bottom: 80,
+      right: 16,
+      child: IgnorePointer(
+        ignoring: !showButton,
+        child: AnimatedOpacity(
+          opacity: showButton ? 1.0 : 0.0,
+          duration: const Duration(milliseconds: 500),
+          child: _buildDestinationButton(),
+        ),
+      ),
     );
   }
 

@@ -12,6 +12,7 @@ import 'layers/notification_overlay.dart';
 /// 游戏场景 - 单场景游戏视图（4层渲染）
 class GameScene extends StatelessWidget {
   final GameState gameState;
+  final bool showUI;
   final VoidCallback? onTradePressed;
   final VoidCallback? onPortSelectPressed;
   final VoidCallback? onUpgradePressed;
@@ -23,6 +24,7 @@ class GameScene extends StatelessWidget {
   const GameScene({
     super.key,
     required this.gameState,
+    this.showUI = true,
     this.onTradePressed,
     this.onPortSelectPressed,
     this.onUpgradePressed,
@@ -53,20 +55,30 @@ class GameScene extends StatelessWidget {
         // Layer 2.5: 屏幕效果层（黑屏等）
         ScreenEffectLayer(gameState: gameState),
 
-        // Layer 3: UI层
-        UILayer(
-          gameState: gameState,
-          onTradePressed: onTradePressed,
-          onPortSelectPressed: onPortSelectPressed,
-          onUpgradePressed: onUpgradePressed,
-          onMarketPressed: onMarketPressed,
-          onCrewMarketPressed: onCrewMarketPressed,
-          onShipyardPressed: onShipyardPressed,
-          onSettingsPressed: onSettingsPressed,
+        // Layer 3: UI层 & 时间显示
+        IgnorePointer(
+          ignoring: !showUI,
+          child: AnimatedOpacity(
+            opacity: showUI ? 1.0 : 0.0,
+            duration: const Duration(milliseconds: 500),
+            child: Stack(
+              children: [
+                UILayer(
+                  gameState: gameState,
+                  onTradePressed: onTradePressed,
+                  onPortSelectPressed: onPortSelectPressed,
+                  onUpgradePressed: onUpgradePressed,
+                  onMarketPressed: onMarketPressed,
+                  onCrewMarketPressed: onCrewMarketPressed,
+                  onShipyardPressed: onShipyardPressed,
+                  onSettingsPressed: onSettingsPressed,
+                ),
+                // Layer 3.5: 时间显示（左上角）
+                TimeDisplay(gameState: gameState),
+              ],
+            ),
+          ),
         ),
-        
-        // Layer 3.5: 时间显示（左上角）
-        TimeDisplay(gameState: gameState),
 
         // Layer 4: 提示系统覆盖层（最顶层）
         const NotificationOverlay(),
