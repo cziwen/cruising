@@ -127,28 +127,58 @@ class TradeSystem {
 
   TradeSystem(this.gameState);
 
+  /// 计算双曲正切函数 tanh(x)
+  /// 使用公式：tanh(x) = (exp(x) - exp(-x)) / (exp(x) + exp(-x))
+  static double tanh(double x) {
+    if (x > 20) return 1.0;
+    if (x < -20) return -1.0;
+    final e2x = exp(2 * x);
+    return (e2x - 1) / (e2x + 1);
+  }
+
   /// 计算补货增量
   /// [merchantMoney] 商人资金（m）
   /// [currentStock] 当前库存（sT）
   /// [expectedStock] 期望库存（s0）
+  /// [restockingAggressiveness] 补货激进程度（小于0.5通常看作保守）
   /// 返回补货增量（delta），正数表示增加库存，负数表示减少库存
-  static int calculateRestockingDelta(int merchantMoney, int currentStock, int expectedStock) {
-    if (currentStock > expectedStock) {
-      // 库存过多，减少库存
-      // delta = -ceil(2 * ln(1+m) * (sT - s0))
-      final value = 2 * log(1 + merchantMoney) * (currentStock - expectedStock);
-      final delta = -value.ceil();
-      return delta;
-    } else if (currentStock < expectedStock) {
-      // 库存不足，增加库存
-      // delta = ceil(ln(1+m) * (s0 - sT))
-      final value = log(1 + merchantMoney) * (expectedStock - currentStock);
-      final delta = value.ceil();
-      return delta;
-    } else {
-      // 库存正好，不变化
+  /// 公式：delta = -sign(S_t - S_0) * (ln(|S_t - S_0|) * ln(1 + m) * tanh(|S_t - S_0|))^(1 + restockingAggressiveness)
+  /// 当 S_t > S_0 时，delta < 0（减少库存）；当 S_t < S_0 时，delta > 0（增加库存）
+  static int calculateRestockingDelta(
+    int merchantMoney,
+    int currentStock,
+    int expectedStock,
+    double restockingAggressiveness,
+  ) {
+    if (currentStock == expectedStock) {
       return 0;
     }
+
+    final diff = currentStock - expectedStock;
+    final absDiff = diff.abs();
+
+    // 避免 ln(0) 的情况（虽然上面已经检查了相等，但为了安全起见）
+    if (absDiff == 0) {
+      return 0;
+    }
+
+    final lnAbsDiff = log(absDiff);
+    final lnMoney = log(1 + merchantMoney);
+    final tanhAbsDiff = TradeSystem.tanh(absDiff.toDouble());
+
+    final base = lnAbsDiff * lnMoney * tanhAbsDiff;
+    final power = 1 + restockingAggressiveness;
+    final result = pow(base, power);
+
+    // 使用 sign 函数确定方向
+    // 当 S_t > S_0 时，需要减少库存（delta 为负）
+    // 当 S_t < S_0 时，需要增加库存（delta 为正）
+    // diff = S_t - S_0，所以当 diff > 0 时应该返回负数，当 diff < 0 时应该返回正数
+    // 因此使用 -diff.sign
+    final sign = -diff.sign; // 取反以确保正确的方向
+    final delta = (sign * result).round();
+
+    return delta;
   }
 
   /// 获取商品列表
@@ -192,12 +222,12 @@ class TradeSystem {
       throw Exception('Goods config not found for port $portId, goods $goodsId');
     }
     
-    // 获取价格基准库存（用于价格计算，每7天更新一次）
-    final priceBaseS = port.getPriceBaseStock(goodsId);
+    // 获取实际库存（用于价格计算，每次交易后立即更新）
+    final actualStockValue = port.getGoodsStock(goodsId);
     final S0 = config.s0; // 正常库存基准
-    // 如果价格基准库存为0，使用 s0 作为默认值
+    // 如果实际库存为0，使用 s0 作为默认值
     // 考虑pending物品对库存的影响
-    final actualStock = ((priceBaseS > 0 ? priceBaseS : S0) - pendingStockAdjustment).clamp(0, double.infinity).toInt();
+    final actualStock = ((actualStockValue > 0 ? actualStockValue : S0) - pendingStockAdjustment).clamp(0, double.infinity).toInt();
     
     // 获取商品参数
     final P0 = config.basePrice; // 基础价格从港口配置获取
@@ -242,12 +272,12 @@ class TradeSystem {
       throw Exception('Goods config not found for port $portId, goods $goodsId');
     }
 
-    // 获取价格基准库存（用于价格计算，每7天更新一次）
-    final priceBaseS = port.getPriceBaseStock(goodsId);
+    // 获取实际库存（用于价格计算，每次交易后立即更新）
+    final actualStockValue = port.getGoodsStock(goodsId);
     final S0 = config.s0; // 正常库存基准
-    // 如果价格基准库存为0，使用 s0 作为默认值
+    // 如果实际库存为0，使用 s0 作为默认值
     // 考虑pending物品对库存的影响
-    int currentStock = ((priceBaseS > 0 ? priceBaseS : S0) - pendingStockAdjustment).clamp(0, double.infinity).toInt();
+    int currentStock = ((actualStockValue > 0 ? actualStockValue : S0) - pendingStockAdjustment).clamp(0, double.infinity).toInt();
 
     // 获取商品参数
     final P0 = config.basePrice; // 基础价格从港口配置获取
@@ -291,11 +321,12 @@ class TradeSystem {
       throw Exception('Goods config not found for port $portId, goods $goodsId');
     }
 
-    // 获取价格基准库存（用于价格计算，每7天更新一次）
-    final priceBaseS = port.getPriceBaseStock(goodsId);
+    // 获取实际库存（用于价格计算，每次交易后立即更新）
+    final actualStockValue = port.getGoodsStock(goodsId);
     final S0 = config.s0;
     // 出售时，库存增加，考虑pending物品对库存的影响
-    int currentStock = ((priceBaseS > 0 ? priceBaseS : S0) + pendingStockAdjustment).toInt();
+    // 如果实际库存为0，使用 s0 作为默认值
+    int currentStock = ((actualStockValue > 0 ? actualStockValue : S0) + pendingStockAdjustment).toInt();
 
     // 获取商品参数
     final P0 = config.basePrice;
@@ -755,17 +786,9 @@ class _TradeDialogState extends State<_TradeDialog> {
         actualStock = (port.merchantMoney - _getPendingMerchantStockAdjustment(goods.id)).clamp(0, double.infinity).toInt();
       } else {
         final portStock = port.getGoodsStock(goods.id);
-        final hasSpecificConfig = port.goodsConfig.containsKey(goods.id);
         
-        // 过滤逻辑：如果没有特定配置，且库存为 0，则不显示
-        if (!hasSpecificConfig && portStock <= 0) {
-          return false;
-        }
-
-        final config = port.getGoodsConfig(goods.id);
-        // 如果库存为0，但有配置，则显示 s0
-        final baseStock = portStock > 0 ? portStock : (config?.s0 ?? 50);
-        actualStock = (baseStock - _getPendingMerchantStockAdjustment(goods.id)).clamp(0, double.infinity).toInt();
+        // 库存为0时不显示（无论是否有配置）
+        actualStock = (portStock - _getPendingMerchantStockAdjustment(goods.id)).clamp(0, double.infinity).toInt();
       }
       return actualStock > 0;
     }).toList();
@@ -781,10 +804,10 @@ class _TradeDialogState extends State<_TradeDialog> {
       itemBuilder: (context, index) {
         final goods = merchantGoodsList[index];
         final portStock = port.getGoodsStock(goods.id);
-        final config = port.getGoodsConfig(goods.id);
+        // 使用实际库存，不显示s0（避免用户误以为库存被补货）
         final baseStock = (goods.id == 'gold')
             ? port.merchantMoney
-            : (portStock > 0 ? portStock : (config?.s0 ?? 50));
+            : portStock;
         int actualStock = (baseStock - _getPendingMerchantStockAdjustment(goods.id))
             .clamp(0, double.infinity)
             .toInt();
@@ -969,9 +992,8 @@ class _TradeDialogState extends State<_TradeDialog> {
     if (goodsId == 'gold') {
       return port.merchantMoney;
     } else {
-      final portStock = port.getGoodsStock(goodsId);
-      final config = port.getGoodsConfig(goodsId);
-      return portStock > 0 ? portStock : (config?.s0 ?? 50);
+      // 返回实际库存，不返回s0（避免用户误以为库存被补货）
+      return port.getGoodsStock(goodsId);
     }
   }
 

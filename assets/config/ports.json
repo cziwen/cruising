@@ -14,6 +14,7 @@
     "id": "home_island",
     "name": "我的岛屿",
     "description": "你的私人领地，一切传奇开始的地方。这里物资丰富，价格稳定，是你最坚实的后盾。",
+    "restockingAggressiveness": 0.2,
     "goodsConfig": {
       "food": { "alpha": 0.08, "s0": 200, "basePrice": 6.0 },
       "wood": { "alpha": 0.09, "s0": 200, "basePrice": 10.0 },
@@ -31,6 +32,7 @@
       "port_2": 960,
       "port_3": 1920
     },
+    "restockingAggressiveness": 0.3,
     "goodsConfig": {
       "food": { "alpha": 0.2, "s0": 500, "basePrice": 10.0 },
       "wood": { "alpha": 0.16, "s0": 500, "basePrice": 15.0 },
@@ -50,6 +52,7 @@
       "port_1": 960,
       "port_3": 1080
     },
+    "restockingAggressiveness": 0.4,
     "goodsConfig": {
       "food": { "alpha": 0.24, "s0": 600, "basePrice": 14.0 },
       "wood": { "alpha": 0.2, "s0": 400, "basePrice": 18.0 },
@@ -69,6 +72,7 @@
       "port_1": 1920,
       "port_2": 1080
     },
+    "restockingAggressiveness": 0.3,
     "goodsConfig": {
       "food": { "alpha": 0.32, "s0": 550, "basePrice": 12.0 },
       "wood": { "alpha": 0.24, "s0": 600, "basePrice": 17.0 },
@@ -86,6 +90,7 @@
     "unlocked": true,
     "goodsConfig": {
     },
+    "restockingAggressiveness": 1,
     "merchantMoney": 15000,
     "initialMerchantMoney": 15000
   }

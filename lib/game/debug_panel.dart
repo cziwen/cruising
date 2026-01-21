@@ -190,14 +190,32 @@ class _DebugPanelState extends State<DebugPanel>
                         Slider(
                           value: widget.gameState!.timeMultiplier,
                           min: 0.1,
-                          max: 10.0,
-                          divisions: 99, // 0.1的步进
+                          max: 100.0,
+                          divisions: 199, // 0.5的步进
                           label: '${widget.gameState!.timeMultiplier.toStringAsFixed(1)}x',
                           onChanged: (value) {
                             widget.gameState!.setTimeMultiplier(value);
                           },
                           activeColor: Colors.orange,
                           inactiveColor: Colors.grey,
+                        ),
+                        const SizedBox(height: 4),
+                        SizedBox(
+                          width: double.infinity,
+                          child: OutlinedButton(
+                            onPressed: () {
+                              widget.gameState!.setTimeMultiplier(1.0);
+                            },
+                            style: OutlinedButton.styleFrom(
+                              foregroundColor: Colors.orange,
+                              side: const BorderSide(color: Colors.orange, width: 1),
+                              padding: const EdgeInsets.symmetric(vertical: 4),
+                            ),
+                            child: const Text(
+                              '重置为1.0x',
+                              style: TextStyle(fontSize: 10),
+                            ),
+                          ),
                         ),
                       ],
                     ),

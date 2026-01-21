@@ -294,10 +294,81 @@ class GameState extends ChangeNotifier {
 
   /// 初始化游戏
   void initialize(List<Port> ports, {Port? startingPort}) {
+    // ========== 完整状态重置（防止数据串连） ==========
+    
+    // 1. 重置玩家资源
+    _gold = 1000;
+    _inventory.clear();
+    
+    // 2. 重置主岛养成
+    _homeIsland = HomeIsland();
+    
+    // 3. 重置船只状态
+    _ship.cargoCapacity = 100;
+    _ship.maxDurability = 200;
+    _ship.damagePerShot = 10;
+    _ship.durability = 200; // 确保耐久度为满
+    
+    // 4. 重置航行状态
+    _isTransitioning = false;
+    _isAtSea = false;
+    _destinationPort = null;
+    _travelProgress = 0.0;
+    _totalTravelDistance = 0;
+    _accumulatedDistance = 0.0;
+    _accumulatedGameHours = 0.0;
+    _lastProgressUpdateTime = null;
+    // 停止并清理航行相关的 Ticker 和 Completer
+    _progressTicker?.stop();
+    _progressTicker = null;
+    _travelCompleter = null;
+    
+    // 5. 重置其他状态
+    _lastTaxHour = -1;
+    _departingCrewNames.clear();
+    _isMarketOpened = false;
+    _isPortListOpened = false;
+    _isShipyardOpened = false;
+    _isQuantitySliderOpened = false;
+    _isTradeBalanced = false;
+    _shipUpgradeCount = 0;
+    _taxCollectedToday = false;
+    
+    // 6. 重置战斗相关状态
+    _isInCombat = false;
+    _isEnteringCombat = false;
+    _enemyShip = null;
+    _playerAttackTimer = 0.0;
+    _enemyAttackTimer = 0.0;
+    _playerRepairTimer = 0.0;
+    _enemyRepairTimer = 0.0;
+    _playerShipXOffset = 0.0;
+    _enemyShipXOffset = 1.0;
+    _isSinking = false;
+    _isPlayerSinking = false;
+    _isReturningFromCombat = false;
+    _isFadeOut = false;
+    _previousPortBeforeCombat = null;
+    
+    // 7. 重置动画相关状态
+    _swayTime = 0.0;
+    _totalSailingOffset = 0.0;
+    _waveAmplitudeMultiplier = 0.4;
+    _accumulatedRepairTime = 0.0;
+    
+    // 8. 重置调试加成
+    _debugRepairBonus = 0.0;
+    _debugFireRateBonus = 0.0;
+    _debugSpeedBonus = 0.0;
+    _cachedCurrentSpeed = null;
+    _cachedSpeedWeather = null;
+    
+    // ========== 初始化游戏数据 ==========
+    
     _ports.clear();
     _ports.addAll(ports);
 
-    // 确保主岛在港口列表中
+    // 确保主岛在港口列表中（必须在重置 _homeIsland 之后调用）
     _ensureHomeIslandInPorts();
 
     if (startingPort != null) {
@@ -317,8 +388,6 @@ class GameState extends ChangeNotifier {
     _dayNightSystem.reset();
     // 默认从12:00开始（正午）
     _dayNightSystem.setGameMinutes(12 * 60); // 12小时 = 720分钟
-
-    _isFadeOut = false;
 
     // 初始化价格更新跟踪
     _lastPriceUpdateDay = _dayNightSystem.currentDay;
@@ -474,31 +543,28 @@ class GameState extends ChangeNotifier {
     var currentPort = _ports[portIndex];
     final merchantMoney = currentPort.merchantMoney;
 
+    // 获取港口的补货激进程度（港口级别，所有商品共用）
+    final restockingAggressiveness = currentPort.restockingAggressiveness;
+
     // 遍历港口的所有商品配置
     for (final entry in currentPort.goodsConfig.entries) {
       final goodsId = entry.key;
       final config = entry.value;
       final s0 = config.s0; // 期望库存
       final currentStock = currentPort.getGoodsStock(goodsId);
-      final actualCurrentStock = currentStock > 0 ? currentStock : s0;
+      final actualCurrentStock = currentStock;
 
       // 计算补货增量
       final delta = TradeSystem.calculateRestockingDelta(
         merchantMoney,
         actualCurrentStock,
         s0,
+        restockingAggressiveness,
       );
 
       // 应用补货增量到实际库存
       final newStock = (actualCurrentStock + delta).clamp(0, double.infinity).toInt();
       currentPort = currentPort.setGoodsStock(goodsId, newStock);
-
-      // 同时更新价格基准库存
-      final currentPriceBaseStock = currentPort.getPriceBaseStock(goodsId);
-      final newPriceBaseStock = (currentPriceBaseStock + delta)
-          .clamp(0, double.infinity)
-          .toInt();
-      currentPort = currentPort.setPriceBaseStock(goodsId, newPriceBaseStock);
     }
     
     // 更新港口
@@ -506,7 +572,7 @@ class GameState extends ChangeNotifier {
   }
 
   /// 更新港口价格（每7天执行一次）
-  /// 先重置商人资金，然后执行补货，最后更新价格基准库存
+  /// 先重置商人资金，然后执行补货
   void _updatePortPrices() {
     for (int i = 0; i < _ports.length; i++) {
       final port = _ports[i];
@@ -516,9 +582,6 @@ class GameState extends ChangeNotifier {
       
       // 2. 执行补货逻辑（使用重置后的资金）
       _restockPortGoods(port);
-      
-      // 3. 更新所有商品的价格基准库存为当前实际库存
-      _ports[i] = _ports[i].updateAllPriceBaseStock();
     }
     notifyListeners();
   }
@@ -1446,8 +1509,6 @@ class GameState extends ChangeNotifier {
           // 如果库存为0（未初始化），使用配置的 s0 初始化
           final initialStock = currentStock > 0 ? currentStock : config.s0;
           _ports[i] = _ports[i].setGoodsStock(goodsId, initialStock);
-          // 同时初始化价格基准库存
-          _ports[i] = _ports[i].setPriceBaseStock(goodsId, initialStock);
         }
       }
       

@@ -138,7 +138,7 @@ class DayNightSystem {
   /// 设置时间流逝倍数（用于调试）
   /// [multiplier] 时间倍数，1.0为正常速度，2.0为2倍速，0.5为0.5倍速
   void setTimeMultiplier(double multiplier) {
-    _timeMultiplier = multiplier.clamp(0.1, 10.0); // 限制在0.1到10倍之间
+    _timeMultiplier = multiplier.clamp(0.1, 100.0); // 限制在0.1到100倍之间
   }
   
   /// 使用 dt 增量更新游戏时间（每帧调用）

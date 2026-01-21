@@ -53,14 +53,14 @@ class Port {
   final Map<String, int> distances;
   // 商品库存映射：商品ID -> 库存量（实际库存，交易时更新）
   final Map<String, int> goodsStock;
-  // 价格基准库存映射：商品ID -> 库存量（用于价格计算，每7天更新一次）
-  final Map<String, int> priceBaseStock;
   // 商品配置映射：商品ID -> 配置（alpha 和 s0）
   final Map<String, PortGoodsConfig> goodsConfig;
   // 商人当前资金
   final int merchantMoney;
   // 商人初始资金（每7天重置的基准值）
   final int initialMerchantMoney;
+  // 补货激进程度（小于0.5通常看作保守，大于0.5看作激进）
+  final double restockingAggressiveness;
 
   Port({
     required this.id,
@@ -70,13 +70,12 @@ class Port {
     this.unlocked = true,
     Map<String, int>? distances,
     Map<String, int>? goodsStock,
-    Map<String, int>? priceBaseStock,
     Map<String, PortGoodsConfig>? goodsConfig,
     this.merchantMoney = 1000,
     this.initialMerchantMoney = 1000,
+    this.restockingAggressiveness = 0.5, // 默认值：中等激进程度
   })  : distances = distances ?? {},
         goodsStock = goodsStock ?? {},
-        priceBaseStock = priceBaseStock ?? {},
         goodsConfig = goodsConfig ?? {};
 
   /// 获取到目标港口的航行距离（节）
@@ -119,34 +118,6 @@ class Port {
     return copyWith(goodsConfig: newGoodsConfig);
   }
 
-  /// 获取指定商品的价格基准库存（用于价格计算）
-  int getPriceBaseStock(String goodsId) {
-    return priceBaseStock[goodsId] ?? 0;
-  }
-
-  /// 设置指定商品的价格基准库存（返回新的 Port 实例）
-  /// 每7天更新时调用，将价格基准库存更新为当前实际库存
-  Port setPriceBaseStock(String goodsId, int stock) {
-    final newPriceBaseStock = Map<String, int>.from(priceBaseStock);
-    newPriceBaseStock[goodsId] = stock;
-    return copyWith(priceBaseStock: newPriceBaseStock);
-  }
-
-  /// 更新所有商品的价格基准库存为当前实际库存（每7天更新时调用）
-  Port updateAllPriceBaseStock() {
-    final newPriceBaseStock = <String, int>{};
-    for (final goodsId in goodsStock.keys) {
-      newPriceBaseStock[goodsId] = goodsStock[goodsId] ?? 0;
-    }
-    // 对于有配置但没有库存的商品，使用配置的 s0
-    for (final entry in goodsConfig.entries) {
-      if (!newPriceBaseStock.containsKey(entry.key)) {
-        newPriceBaseStock[entry.key] = entry.value.s0;
-      }
-    }
-    return copyWith(priceBaseStock: newPriceBaseStock);
-  }
-
   /// 设置商人资金（返回新的 Port 实例）
   Port setMerchantMoney(int money) {
     return copyWith(merchantMoney: money);
@@ -160,10 +131,10 @@ class Port {
     bool? unlocked,
     Map<String, int>? distances,
     Map<String, int>? goodsStock,
-    Map<String, int>? priceBaseStock,
     Map<String, PortGoodsConfig>? goodsConfig,
     int? merchantMoney,
     int? initialMerchantMoney,
+    double? restockingAggressiveness,
   }) {
     return Port(
       id: id ?? this.id,
@@ -173,10 +144,10 @@ class Port {
       unlocked: unlocked ?? this.unlocked,
       distances: distances ?? this.distances,
       goodsStock: goodsStock ?? this.goodsStock,
-      priceBaseStock: priceBaseStock ?? this.priceBaseStock,
       goodsConfig: goodsConfig ?? this.goodsConfig,
       merchantMoney: merchantMoney ?? this.merchantMoney,
       initialMerchantMoney: initialMerchantMoney ?? this.initialMerchantMoney,
+      restockingAggressiveness: restockingAggressiveness ?? this.restockingAggressiveness,
     );
   }
 
@@ -189,10 +160,10 @@ class Port {
       'unlocked': unlocked,
       'distances': distances,
       'goodsStock': goodsStock,
-      'priceBaseStock': priceBaseStock,
       'goodsConfig': goodsConfig.map((key, value) => MapEntry(key, value.toJson())),
       'merchantMoney': merchantMoney,
       'initialMerchantMoney': initialMerchantMoney,
+      'restockingAggressiveness': restockingAggressiveness,
     };
   }
 
@@ -209,9 +180,6 @@ class Port {
       goodsStock: json['goodsStock'] != null
           ? Map<String, int>.from(json['goodsStock'] as Map)
           : null,
-      priceBaseStock: json['priceBaseStock'] != null
-          ? Map<String, int>.from(json['priceBaseStock'] as Map)
-          : null,
       goodsConfig: json['goodsConfig'] != null
           ? (json['goodsConfig'] as Map).map(
               (key, value) => MapEntry(key as String,
@@ -220,6 +188,7 @@ class Port {
           : null,
       merchantMoney: json['merchantMoney'] as int? ?? 1000,
       initialMerchantMoney: json['initialMerchantMoney'] as int? ?? 1000,
+      restockingAggressiveness: (json['restockingAggressiveness'] as num?)?.toDouble() ?? 0.5, // 向后兼容：默认值0.5
     );
   }
 }
