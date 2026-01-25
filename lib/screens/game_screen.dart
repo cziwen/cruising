@@ -82,6 +82,7 @@ class GameScreen extends StatefulWidget {
             await precacheImage(AssetImage(path), context);
             return true;
           } catch (e) {
+            if (!context.mounted) return false;
             try {
               if (path.startsWith('assets/')) {
                 final alternativePath = path.replaceFirst('assets/', '');
@@ -628,13 +629,13 @@ class _GameScreenState extends State<GameScreen> {
             ),
           ),
 
-          if (_isShowingMainMenu)
-            AnimatedOpacity(
-              opacity: _isTransitioningToGame ? 0.0 : 1.0,
-              duration: const Duration(milliseconds: 500),
-              child: Container(
-                color: Colors.black.withOpacity(0.3),
-                child: MainMenuOverlay(
+      if (_isShowingMainMenu)
+        AnimatedOpacity(
+          opacity: _isTransitioningToGame ? 0.0 : 1.0,
+          duration: const Duration(milliseconds: 500),
+          child: Container(
+            color: Colors.black.withValues(alpha: 0.3),
+            child: MainMenuOverlay(
                   onNewGame: _handleNewGame,
                   onContinueGame: _handleContinueGame,
                   onLoadGame: _handleLoadGame,

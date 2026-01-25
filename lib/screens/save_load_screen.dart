@@ -171,7 +171,7 @@ class _SaveLoadScreenState extends State<SaveLoadScreen> {
           Positioned.fill(
             child: ColorFiltered(
               colorFilter: ColorFilter.mode(
-                Colors.black.withOpacity(0.5),
+                Colors.black.withValues(alpha: 0.5),
                 BlendMode.darken,
               ),
               child: Image.asset(
@@ -220,7 +220,7 @@ class _SaveLoadScreenState extends State<SaveLoadScreen> {
 
                 return Card(
                   margin: const EdgeInsets.only(bottom: 16),
-                  color: Colors.white.withOpacity(0.9),
+                  color: Colors.white.withValues(alpha: 0.9),
                   child: ListTile(
                     contentPadding: const EdgeInsets.all(16),
                     leading: Container(

@@ -119,7 +119,7 @@ class _LoadingScreenState extends State<LoadingScreen> {
                     shadows: [
                       Shadow(
                         blurRadius: 4.0,
-                        color: Colors.black.withOpacity(0.5),
+                        color: Colors.black.withValues(alpha: 0.5),
                         offset: const Offset(2.0, 2.0),
                       ),
                     ],

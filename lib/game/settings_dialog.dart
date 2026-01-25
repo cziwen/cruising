@@ -294,7 +294,7 @@ class _SettingsDialogState extends State<SettingsDialog> {
     return SwitchListTile(
       title: Text(title, style: const TextStyle(color: Color(0xFF4E342E))),
       value: value,
-      activeColor: const Color(0xFF5D4037),
+      activeThumbColor: const Color(0xFF5D4037),
       activeTrackColor: const Color(0xFFD7CCC8),
       onChanged: onChanged,
     );

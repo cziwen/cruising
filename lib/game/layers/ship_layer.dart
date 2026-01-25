@@ -369,13 +369,13 @@ class _ShipLayerState extends State<ShipLayer>
           decoration: BoxDecoration(
             color: const Color(0xFF8B4513),
             borderRadius: BorderRadius.circular(8),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(0.3),
-                blurRadius: 10,
-                offset: const Offset(0, 5),
-              ),
-            ],
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.3),
+              blurRadius: 10,
+              offset: const Offset(0, 5),
+            ),
+          ],
           ),
           child: Stack(
             children: [

@@ -156,10 +156,10 @@ class DayNightVisualUtils {
   /// 为单个颜色应用亮度调整
   static Color _applyBrightness(Color color, double brightness) {
     return Color.fromARGB(
-      color.alpha,
-      (color.red * brightness).round().clamp(0, 255),
-      (color.green * brightness).round().clamp(0, 255),
-      (color.blue * brightness).round().clamp(0, 255),
+      (color.a * 255).round(),
+      (color.r * 255 * brightness).round().clamp(0, 255),
+      (color.g * 255 * brightness).round().clamp(0, 255),
+      (color.b * 255 * brightness).round().clamp(0, 255),
     );
   }
 

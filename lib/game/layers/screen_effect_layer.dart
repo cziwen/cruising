@@ -22,7 +22,7 @@ class ScreenEffectLayer extends StatelessWidget {
           child: AnimatedContainer(
             duration: const Duration(seconds: 2),
             curve: Curves.easeInOut,
-            color: Colors.black.withOpacity(gameState.isFadeOut ? 1.0 : 0.0),
+            color: Colors.black.withValues(alpha: gameState.isFadeOut ? 1.0 : 0.0),
           ),
         );
       },
