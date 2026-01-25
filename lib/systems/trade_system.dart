@@ -236,8 +236,8 @@ class TradeSystem {
     // 计算商人的出售价（玩家购买价）：P_sell = P₀ · e^(-α((S - S₀)/100))
     final merchantSellPrice = P0 * exp(-alpha * ((actualStock - S0) / 100));
     
-    // 计算商人的收购价（玩家出售价）：P_buy = P_sell * (1 - α)²
-    final merchantBuyPrice = merchantSellPrice * (1 - alpha) * (1 - alpha);
+    // 计算商人的收购价（玩家出售价）：P_buy = P_sell * sqrt(1 - α)
+    final merchantBuyPrice = merchantSellPrice * sqrt(1 - alpha);
     
     return PortGoodsPrice(
       portId: portId,
@@ -337,8 +337,8 @@ class TradeSystem {
     for (int i = 0; i < quantity; i++) {
       // 计算当前库存下的商人出售价：P_sell = P₀ · e^(-α((currentStock - S₀)/100))
       final merchantSellPrice = P0 * exp(-alpha * ((currentStock - S0) / 100));
-      // 计算商人的收购价（玩家出售价）：P_buy = P_sell * (1 - α)²
-      final playerSellPrice = merchantSellPrice * (1 - alpha) * (1 - alpha);
+      // 计算商人的收购价（玩家出售价）：P_buy = P_sell * sqrt(1 - α)
+      final playerSellPrice = merchantSellPrice * sqrt(1 - alpha);
       totalPrice += playerSellPrice;
       // 增加库存（为下一个商品计算）
       currentStock++;
@@ -383,7 +383,7 @@ class TradeSystem {
         final currentStock = port.getGoodsStock(goodsId);
         final config = port.getGoodsConfig(goodsId);
         // 如果库存为0，使用配置 of s0 作为当前库存
-        final actualCurrentStock = currentStock > 0 ? currentStock : (config?.s0 ?? 50);
+        final actualCurrentStock = currentStock > 0 ? currentStock : (config?.s0 ?? 0);
         final newStock = (actualCurrentStock - quantity).clamp(0, double.infinity).toInt();
         gameState.updatePortGoodsStock(portId, goodsId, newStock);
         
@@ -419,7 +419,7 @@ class TradeSystem {
       final currentStock = port.getGoodsStock(goodsId);
       final config = port.getGoodsConfig(goodsId);
       // 如果库存为0，使用配置 of s0 作为当前库存
-      final actualCurrentStock = currentStock > 0 ? currentStock : (config?.s0 ?? 50);
+      final actualCurrentStock = currentStock > 0 ? currentStock : (config?.s0 ?? 0);
       final newStock = actualCurrentStock + quantity;
       gameState.updatePortGoodsStock(portId, goodsId, newStock);
       
@@ -495,7 +495,7 @@ class TradeSystem {
       } else {
         final portStock = port.getGoodsStock(item.goodsId);
         final config = port.getGoodsConfig(item.goodsId);
-        final actualStock = portStock > 0 ? portStock : (config?.s0 ?? 50);
+        final actualStock = portStock > 0 ? portStock : (config?.s0 ?? 0);
         if (actualStock < item.quantity) {
           return '${_getGoods(item.goodsId).name} 港口库存不足';
         }
@@ -786,9 +786,22 @@ class _TradeDialogState extends State<_TradeDialog> {
         actualStock = (port.merchantMoney - _getPendingMerchantStockAdjustment(goods.id)).clamp(0, double.infinity).toInt();
       } else {
         final portStock = port.getGoodsStock(goods.id);
+<<<<<<< HEAD
         
         // 库存为0时不显示（无论是否有配置）
         actualStock = (portStock - _getPendingMerchantStockAdjustment(goods.id)).clamp(0, double.infinity).toInt();
+=======
+        final config = port.getGoodsConfig(goods.id);
+        final s0 = config?.s0 ?? 0;
+        
+        // 过滤逻辑：只有当港口有库存（玩家卖来的），或者配置的基准库存 > 0（港口产出/需求）时才显示
+        if (portStock <= 0 && s0 <= 0) {
+          return false;
+        }
+
+        final baseStock = portStock > 0 ? portStock : s0;
+        actualStock = (baseStock - _getPendingMerchantStockAdjustment(goods.id)).clamp(0, double.infinity).toInt();
+>>>>>>> b5f7fbb (updated docs for game content(island, goods, tutorial.). balanced merchant's purchase price)
       }
       return actualStock > 0;
     }).toList();
@@ -807,7 +820,11 @@ class _TradeDialogState extends State<_TradeDialog> {
         // 使用实际库存，不显示s0（避免用户误以为库存被补货）
         final baseStock = (goods.id == 'gold')
             ? port.merchantMoney
+<<<<<<< HEAD
             : portStock;
+=======
+            : (portStock > 0 ? portStock : (config?.s0 ?? 0));
+>>>>>>> b5f7fbb (updated docs for game content(island, goods, tutorial.). balanced merchant's purchase price)
         int actualStock = (baseStock - _getPendingMerchantStockAdjustment(goods.id))
             .clamp(0, double.infinity)
             .toInt();
@@ -992,8 +1009,14 @@ class _TradeDialogState extends State<_TradeDialog> {
     if (goodsId == 'gold') {
       return port.merchantMoney;
     } else {
+<<<<<<< HEAD
       // 返回实际库存，不返回s0（避免用户误以为库存被补货）
       return port.getGoodsStock(goodsId);
+=======
+      final portStock = port.getGoodsStock(goodsId);
+      final config = port.getGoodsConfig(goodsId);
+      return portStock > 0 ? portStock : (config?.s0 ?? 0);
+>>>>>>> b5f7fbb (updated docs for game content(island, goods, tutorial.). balanced merchant's purchase price)
     }
   }
 

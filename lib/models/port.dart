@@ -33,7 +33,7 @@ class PortGoodsConfig {
   factory PortGoodsConfig.fromJson(Map<String, dynamic> json) {
     return PortGoodsConfig(
       alpha: (json['alpha'] as num).toDouble(),
-      s0: json['s0'] as int,
+      s0: json['s0'] as int? ?? 0,
       basePrice: (json['basePrice'] as num).toDouble(),
     );
   }

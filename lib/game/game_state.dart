@@ -1460,7 +1460,7 @@ class GameState extends ChangeNotifier {
 
   /// 获取指定港口指定商品的库存
   /// 如果不存在，返回对应商品的 S₀ 值（从港口配置获取）
-  int getPortGoodsStock(String portId, String goodsId, {int defaultS0 = 50}) {
+  int getPortGoodsStock(String portId, String goodsId, {int defaultS0 = 0}) {
     final portIndex = _ports.indexWhere((p) => p.id == portId);
     if (portIndex == -1) {
       return defaultS0;

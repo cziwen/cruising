@@ -14,11 +14,53 @@
     "imagePath": "assets/images/goods/food.png"
   },
   {
+    "id": "water",
+    "name": "淡水",
+    "category": "基础",
+    "weight": 1.0,
+    "imagePath": "assets/images/goods/water.png"
+  },
+  {
+    "id": "rum",
+    "name": "朗姆酒",
+    "category": "基础",
+    "weight": 1.2,
+    "imagePath": "assets/images/goods/rum.png"
+  },
+  {
     "id": "wood",
     "name": "木材",
     "category": "材料",
     "weight": 2.0,
     "imagePath": "assets/images/goods/wood.png"
+  },
+  {
+    "id": "metal",
+    "name": "金属",
+    "category": "材料",
+    "weight": 5.0,
+    "imagePath": "assets/images/goods/metal.png"
+  },
+  {
+    "id": "stone",
+    "name": "石材",
+    "category": "材料",
+    "weight": 4.0,
+    "imagePath": "assets/images/goods/stone.png"
+  },
+  {
+    "id": "cloth",
+    "name": "布料",
+    "category": "材料",
+    "weight": 1.5,
+    "imagePath": "assets/images/goods/cloth.png"
+  },
+  {
+    "id": "leather",
+    "name": "皮革",
+    "category": "材料",
+    "weight": 1.8,
+    "imagePath": "assets/images/goods/leather.png"
   },
   {
     "id": "spice",
@@ -28,10 +70,24 @@
     "imagePath": "assets/images/goods/spice.png"
   },
   {
-    "id": "metal",
-    "name": "金属",
-    "category": "材料",
-    "weight": 5.0,
-    "imagePath": "assets/images/goods/metal.png"
+    "id": "silk",
+    "name": "丝绸",
+    "category": "奢侈品",
+    "weight": 0.3,
+    "imagePath": "assets/images/goods/silk.png"
+  },
+  {
+    "id": "ivory",
+    "name": "象牙",
+    "category": "奢侈品",
+    "weight": 2.5,
+    "imagePath": "assets/images/goods/ivory.png"
+  },
+  {
+    "id": "artwork",
+    "name": "艺术品",
+    "category": "奢侈品",
+    "weight": 3.0,
+    "imagePath": "assets/images/goods/artwork.png"
   }
 ]

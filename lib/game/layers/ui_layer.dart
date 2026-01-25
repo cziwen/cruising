@@ -98,10 +98,9 @@ class _UILayerState extends State<UILayer> {
     final centerX = screenSize.width / 2;
     final centerY = screenSize.height / 2;
     
-    // 岛屿位置（与near_background_layer中的位置对齐）
-    // 岛屿中心在屏幕中心向下40像素，岛屿大小约400x300
-    final islandCenterX = centerX;
-    final islandCenterY = centerY + 40;
+    // 岛屿中心位置调整：向左偏移 100px，向上偏移 10px
+    final islandCenterX = centerX - 100;
+    final islandCenterY = centerY - 10;
     
     return Stack(
       children: [
