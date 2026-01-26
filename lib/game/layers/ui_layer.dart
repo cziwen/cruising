@@ -98,9 +98,9 @@ class _UILayerState extends State<UILayer> {
     final centerX = screenSize.width / 2;
     final centerY = screenSize.height / 2;
     
-    // 岛屿中心位置调整：向左偏移 100px，向上偏移 10px
-    final islandCenterX = centerX - 100;
-    final islandCenterY = centerY - 10;
+    // 岛屿中心位置调整，向下偏移 30px
+    final islandCenterX = centerX;
+    final islandCenterY = centerY + 30;
     
     return Stack(
       children: [
@@ -181,16 +181,16 @@ class _UILayerState extends State<UILayer> {
               if (widget.gameState.currentPort?.id == 'home_island' && widget.gameState.homeIsland.accumulatedTax > 0)
                 Positioned(
                   left: islandCenterX - 60,
-                  top: islandCenterY - 230,
+                  top: islandCenterY - 280,
                   child: QuestTarget(
                     id: 'ui.collectTaxButton',
-                    child: _buildTaxButton(islandCenterX - 60, islandCenterY - 230),
+                    child: _buildTaxButton(islandCenterX - 60, islandCenterY - 280),
                   ),
                 ),
 
               // 市场按钮 - 岛屿左侧
               Positioned(
-                left: islandCenterX - 250,
+                left: islandCenterX - 320,
                 top: islandCenterY - 50,
                 child: QuestTarget(
                   id: 'ui.marketButton',
@@ -205,8 +205,8 @@ class _UILayerState extends State<UILayer> {
               // 大厅按钮 (仅限主岛)
               if (widget.gameState.currentPort?.id == 'home_island')
                 Positioned(
-                  left: islandCenterX - 250,
-                  top: islandCenterY + 80,
+                  left: islandCenterX - 320,
+                  top: islandCenterY + 100,
                   child: _buildIslandButton(
                     '大厅',
                     () => _showMainHall(context, 0),
@@ -216,8 +216,8 @@ class _UILayerState extends State<UILayer> {
 
               // 港口酒馆按钮 - 岛屿左上方
               Positioned(
-                left: islandCenterX - 220,
-                top: islandCenterY - 150,
+                left: islandCenterX - 250,
+                top: islandCenterY - 180,
                 child: _buildIslandButton(
                   '港口酒馆',
                   widget.onCrewMarketPressed,
@@ -226,8 +226,8 @@ class _UILayerState extends State<UILayer> {
               ),
               // 设置按钮 - 岛屿右上方 (与酒馆对称)
               Positioned(
-                left: islandCenterX + 220,
-                top: islandCenterY - 150,
+                left: islandCenterX + 250,
+                top: islandCenterY - 180,
                 child: _buildIslandButton(
                   '设置',
                   widget.onSettingsPressed,
@@ -236,7 +236,7 @@ class _UILayerState extends State<UILayer> {
               ),
               // 船厂按钮 - 岛屿右侧（代替升级）
               Positioned(
-                left: islandCenterX + 150,
+                left: islandCenterX + 220,
                 top: islandCenterY - 50,
                 child: QuestTarget(
                   id: 'ui.shipUpgradeButton',
@@ -249,8 +249,8 @@ class _UILayerState extends State<UILayer> {
               ),
               // 船员管理按钮 - 岛屿右下方（船只旁边）
               Positioned(
-                left: islandCenterX + 120,
-                top: islandCenterY + 80,
+                left: islandCenterX + 200,
+                top: islandCenterY + 100,
                 child: _buildIslandButton(
                   '船员管理',
                   () => _showCrewManagement(context),
