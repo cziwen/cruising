@@ -3,7 +3,7 @@
     "id": "base",
     "name": "基础配置",
     "description": "全局货物的默认基础配置（以贸易港为基准）。",
-   "goodsConfig": {
+    "goodsConfig": {
       "food": { "alpha": 0.15, "s0": 500, "basePrice": 12.0 },
       "water": { "alpha": 0.10, "s0": 800, "basePrice": 8.0 },
       "rum": { "alpha": 0.18, "s0": 300, "basePrice": 20.0 },
@@ -21,9 +21,17 @@
   {
     "id": "home_island",
     "name": "我的岛屿",
-    "description": "你的私人领地，一切传奇开始的地方。这里物资丰富，价格稳定，是你最坚实的后盾。",
-    "restockingAggressiveness": 0.2,
     "description": "你的私人领地。目前百废待兴，经济极度不稳定，急需通过建设大厅来改善本地经济环境。",
+    "restockingAggressiveness": 0.2,
+    "distances": {
+      "port_1": 480,
+      "port_2": 1440,
+      "port_3": 2370,
+      "port_4": 3530,
+      "port_5": 2080,
+      "port_6": 5040,
+      "port_7": 4220
+    },
     "goodsConfig": {
       "food": { "alpha": 0.30, "s0": 100, "basePrice": 9.6 },
       "water": { "alpha": 0.20, "s0": 160, "basePrice": 6.4 },
@@ -46,8 +54,13 @@
     "description": "一个宁静的小港口，周边的森林提供了丰富的木材资源。由于近期收成不佳，岛民们急需食物补给。",
     "unlocked": true,
     "distances": {
+      "home_island": 480,
       "port_2": 960,
-      "port_3": 1920
+      "port_3": 1920,
+      "port_4": 3060,
+      "port_5": 1780,
+      "port_6": 4560,
+      "port_7": 3790
     },
     "restockingAggressiveness": 0.3,
     "goodsConfig": {
@@ -66,9 +79,13 @@
     "description": "区域性的贸易中心，各项经济指标处于标准中位数，是衡量物价的基准。",
     "unlocked": true,
     "distances": {
+      "home_island": 1440,
       "port_1": 960,
       "port_3": 1080,
-      "port_5": 1500
+      "port_4": 2150,
+      "port_5": 1500,
+      "port_6": 3600,
+      "port_7": 2980
     },
     "restockingAggressiveness": 0.4,
     "goodsConfig": {
@@ -95,9 +112,13 @@
     "description": "盛产名贵香料的异域港口，由于土地贫瘠，极度依赖外界输入食物和金属资源。",
     "unlocked": true,
     "distances": {
+      "home_island": 2370,
       "port_1": 1920,
       "port_2": 1080,
-      "port_4": 1200
+      "port_4": 1200,
+      "port_5": 2340,
+      "port_6": 2880,
+      "port_7": 2930
     },
     "restockingAggressiveness": 0.3,
     "goodsConfig": {
@@ -117,8 +138,13 @@
     "description": "一座建立在火山岩上的工业岛屿，以精湛的金属冶炼和石材开采闻名。岛上空气干燥，急需朗姆酒缓解疲劳，同时也向往丝绸等奢侈品。",
     "unlocked": true,
     "distances": {
+      "home_island": 3530,
+      "port_1": 3060,
+      "port_2": 2150,
       "port_3": 1200,
-      "port_6": 1800
+      "port_5": 3060,
+      "port_6": 1800,
+      "port_7": 2630
     },
     "goodsConfig": {
       "food": { "alpha": 0.15, "s0": 300, "basePrice": 12.0 },
@@ -138,7 +164,12 @@
     "description": "阳光明媚的海湾，出产世界上最优质的丝绸和棉布。由于土地大多用于种植桑树，木材和皮革这类基础工业材料相对匮乏。",
     "unlocked": true,
     "distances": {
+      "home_island": 2080,
+      "port_1": 1780,
       "port_2": 1500,
+      "port_3": 2340,
+      "port_4": 3060,
+      "port_6": 3860,
       "port_7": 2400
     },
     "goodsConfig": {
@@ -160,7 +191,12 @@
     "description": "肥沃的平原地区，是这片海域的粮仓和酒窖。这里的人们虽然丰衣足食，但缺乏坚硬的金属和石材来进行防御工事的扩建。",
     "unlocked": true,
     "distances": {
+      "home_island": 5040,
+      "port_1": 4560,
+      "port_2": 3600,
+      "port_3": 2880,
       "port_4": 1800,
+      "port_5": 3860,
       "port_7": 2100
     },
     "goodsConfig": {
@@ -170,7 +206,7 @@
       "metal": { "alpha": 0.24, "s0": 80, "basePrice": 37.5 },
       "stone": { "alpha": 0.18, "s0": 100, "basePrice": 27.0 }
     },
-    "restockingAggressiveness": 1,
+    "restockingAggressiveness": 1.0,
     "merchantMoney": 15000,
     "initialMerchantMoney": 15000
   },
@@ -181,6 +217,11 @@
     "description": "深藏在迷雾海域的荒凉岛屿，散落着远古文明的遗珍。在这里，象牙和艺术品随处可见，但生存所需的淡水和食物却是奢侈品。",
     "unlocked": true,
     "distances": {
+      "home_island": 4220,
+      "port_1": 3790,
+      "port_2": 2980,
+      "port_3": 2930,
+      "port_4": 2630,
       "port_5": 2400,
       "port_6": 2100
     },
@@ -193,5 +234,14 @@
     },
     "merchantMoney": 25000,
     "initialMerchantMoney": 25000
+  },
+  {
+    "id": "sea",
+    "name": "海上",
+    "backgroundImage": "",
+    "description": "离开港口，进入广阔的海域。在这里你可以随时选择新的目的地。",
+    "unlocked": true,
+    "distances": {},
+    "isSeaLocation": true
   }
 ]

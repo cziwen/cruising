@@ -104,8 +104,8 @@ class _UILayerState extends State<UILayer> {
     
     return Stack(
       children: [
-        // 顶部航行进度条（仅在海上航行时显示）
-        if (widget.gameState.isAtSea)
+        // 顶部航行进度条（仅在海上航行且有目标港口时显示）
+        if (widget.gameState.isAtSea && widget.gameState.destinationPort != null)
           Positioned(
             top: 0,
             left: 180,  // 左侧留出更多空间，避免与左上角时间显示冲突
@@ -266,7 +266,11 @@ class _UILayerState extends State<UILayer> {
 
   /// 构建带动画的选择目的地按钮
   Widget _buildDestinationButtonAnimated() {
-    final showButton = !widget.gameState.isTransitioning && !widget.gameState.isAtSea;
+    // 显示按钮的条件：
+    // 1. 不在过渡状态
+    // 2. 不在海上，或者在海上但没有目标港口（可以重新选择目的地）
+    final showButton = !widget.gameState.isTransitioning && 
+                      (!widget.gameState.isAtSea || widget.gameState.destinationPort == null);
     
     return Positioned(
       bottom: 80,

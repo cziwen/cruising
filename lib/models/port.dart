@@ -61,6 +61,8 @@ class Port {
   final int initialMerchantMoney;
   // 补货激进程度（小于0.5通常看作保守，大于0.5看作激进）
   final double restockingAggressiveness;
+  // 是否为"海上"特殊地点（不是真正的港口）
+  final bool isSeaLocation;
 
   Port({
     required this.id,
@@ -74,6 +76,7 @@ class Port {
     this.merchantMoney = 1000,
     this.initialMerchantMoney = 1000,
     this.restockingAggressiveness = 0.5, // 默认值：中等激进程度
+    this.isSeaLocation = false, // 默认不是海上地点
   })  : distances = distances ?? {},
         goodsStock = goodsStock ?? {},
         goodsConfig = goodsConfig ?? {};
@@ -135,6 +138,7 @@ class Port {
     int? merchantMoney,
     int? initialMerchantMoney,
     double? restockingAggressiveness,
+    bool? isSeaLocation,
   }) {
     return Port(
       id: id ?? this.id,
@@ -148,6 +152,7 @@ class Port {
       merchantMoney: merchantMoney ?? this.merchantMoney,
       initialMerchantMoney: initialMerchantMoney ?? this.initialMerchantMoney,
       restockingAggressiveness: restockingAggressiveness ?? this.restockingAggressiveness,
+      isSeaLocation: isSeaLocation ?? this.isSeaLocation,
     );
   }
 
@@ -164,6 +169,7 @@ class Port {
       'merchantMoney': merchantMoney,
       'initialMerchantMoney': initialMerchantMoney,
       'restockingAggressiveness': restockingAggressiveness,
+      'isSeaLocation': isSeaLocation,
     };
   }
 
@@ -189,6 +195,7 @@ class Port {
       merchantMoney: json['merchantMoney'] as int? ?? 1000,
       initialMerchantMoney: json['initialMerchantMoney'] as int? ?? 1000,
       restockingAggressiveness: (json['restockingAggressiveness'] as num?)?.toDouble() ?? 0.5, // 向后兼容：默认值0.5
+      isSeaLocation: json['isSeaLocation'] as bool? ?? false, // 向后兼容：默认false
     );
   }
 }

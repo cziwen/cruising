@@ -13,7 +13,21 @@ class PortSystem {
 
   /// 获取可访问的港口列表
   List<Port> getAvailablePorts() {
-    final ports = gameState.ports.where((port) => port.unlocked).toList();
+    var ports = gameState.ports.where((port) => port.unlocked).toList();
+
+    // 如果当前在海上，过滤掉“海上”目的地和上一个出发港口
+    if (gameState.isAtSea) {
+      ports = ports.where((port) {
+        // 不允许在海上时再次选择“海上”
+        if (port.isSeaLocation) return false;
+        // 不允许选择上一个出发的港口
+        if (gameState.previousPort != null && port.id == gameState.previousPort!.id) {
+          return false;
+        }
+        return true;
+      }).toList();
+    }
+
     // 将主岛放在第一个选项
     ports.sort((a, b) {
       if (a.id == 'home_island') return -1;
@@ -103,6 +117,7 @@ class _PortSelectDialogState extends State<_PortSelectDialog> {
               itemBuilder: (context, index) {
                 final port = availablePorts[index];
                 final isCurrentPort = port.id == currentPort?.id;
+                final isSeaLocation = port.isSeaLocation;
 
                 // 准备高亮 ID
                 final rowKeyId = 'ui.portRow(\'${port.id}\')';
@@ -116,17 +131,27 @@ class _PortSelectDialogState extends State<_PortSelectDialog> {
                   margin: const EdgeInsets.symmetric(vertical: 4),
                   color: isCurrentPort 
                       ? const Color(0xFFD7CCC8).withValues(alpha: 0.5) 
-                      : const Color(0xFFD7CCC8).withValues(alpha: 0.2),
+                      : isSeaLocation
+                          ? const Color(0xFFB3E5FC).withValues(alpha: 0.3) // 海上地点使用浅蓝色背景
+                          : const Color(0xFFD7CCC8).withValues(alpha: 0.2),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(8),
                     side: BorderSide(
-                      color: isCurrentPort ? const Color(0xFF5D4037) : const Color(0xFF8D6E63).withValues(alpha: 0.3),
+                      color: isCurrentPort 
+                          ? const Color(0xFF5D4037) 
+                          : isSeaLocation
+                              ? const Color(0xFF0277BD) // 海上地点使用蓝色边框
+                              : const Color(0xFF8D6E63).withValues(alpha: 0.3),
                     ),
                   ),
                   child: ListTile(
                     leading: Icon(
-                      Icons.location_on, 
-                      color: isCurrentPort ? const Color(0xFF5D4037) : const Color(0xFF8D6E63),
+                      isSeaLocation ? Icons.waves : Icons.location_on, 
+                      color: isCurrentPort 
+                          ? const Color(0xFF5D4037) 
+                          : isSeaLocation
+                              ? const Color(0xFF0277BD) // 海上地点使用蓝色图标
+                              : const Color(0xFF8D6E63),
                     ),
                     title: Text(
                       port.name,

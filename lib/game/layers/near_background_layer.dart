@@ -78,10 +78,12 @@ class _NearBackgroundLayerState extends State<NearBackgroundLayer> {
             // 计算离开动画的偏移量
             double? exitOffset;
             if (isAtSea && _lastPort != null) {
-              final accumulatedDistance = widget.gameState.accumulatedDistance;
+              // 直接使用 accumulatedDistance，在切换目的地时它不再归零，因此动画会平滑继续
+              final exitDistance = widget.gameState.accumulatedDistance;
+              
               final currentSpeed = widget.gameState.currentSpeed;
               if (currentSpeed > 0) {
-                final timeElapsedHours = accumulatedDistance / currentSpeed;
+                final timeElapsedHours = exitDistance / currentSpeed;
                 // 动态滚动速度与当前航速正相关
                 final dynamicScrollSpeed = _scrollSpeed * (currentSpeed / 8.0);
                 exitOffset = -timeElapsedHours * dynamicScrollSpeed;
