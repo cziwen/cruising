@@ -5,6 +5,7 @@ import 'package:flutter/services.dart';
 import 'dart:io' show exit;
 import 'package:audioplayers/audioplayers.dart';
 import '../game/game_state.dart';
+import '../models/port.dart';
 import '../game/game_scene.dart';
 import '../game/debug_panel.dart';
 import '../game/tavern_dialog.dart';
@@ -276,8 +277,16 @@ class _GameScreenState extends State<GameScreen> {
     final configLoader = GameConfigLoader();
     final ports = configLoader.portsList;
     
-    // 不再手动指定 startingPort，让 GameState 内部默认选择主岛
-    _gameState.initialize(ports);
+    // 查找 "sea" 港口作为初始位置
+    Port? seaPort;
+    try {
+      seaPort = ports.firstWhere((p) => p.id == 'sea');
+    } catch (_) {
+      seaPort = null;
+    }
+    
+    // 初始化游戏状态，从海上开始
+    _gameState.initialize(ports, startingPort: seaPort);
     
     // 初始化港口商品库存（使用配置的 s0 值）
     _gameState.initializePortGoodsStock();
@@ -355,7 +364,7 @@ class _GameScreenState extends State<GameScreen> {
       isNewGame: true,
       skipTutorial: QuestSystem.shouldSkipTutorial,
     );
-    MusicSystem().playState('port');
+    MusicSystem().playState(_gameState.isAtSea ? 'cruising' : 'port');
 
     // 更新当前背景存档 ID
     _currentBackgroundSaveId = -1;

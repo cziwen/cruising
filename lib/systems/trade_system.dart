@@ -592,6 +592,7 @@ class _TradeDialogState extends State<_TradeDialog> {
       }
       // 同步关闭滑块状态
       gs.setQuantitySliderOpened(false);
+      gs.clearPendingTradeQuantities();
     });
     super.dispose();
   }
@@ -947,6 +948,7 @@ class _TradeDialogState extends State<_TradeDialog> {
                         items.removeAt(index);
                         // 移除物品后，标记为需要重新平衡
                         widget.tradeSystem.gameState.setTradeBalanced(false);
+                        _syncPendingQuantitiesToGameState();
                       }),
                     ),
                   ),
@@ -1096,14 +1098,22 @@ class _TradeDialogState extends State<_TradeDialog> {
                 ],
               ),
             ),
-            Slider(
-              value: _selectedQuantity.toDouble(),
-              min: 1,
-              max: availableMaxQuantity.toDouble(),
-              divisions: availableMaxQuantity > 1 ? availableMaxQuantity - 1 : 1,
-              activeColor: const Color(0xFF5D4037),
-              inactiveColor: const Color(0xFF8D6E63).withValues(alpha: 0.3),
-              onChanged: (v) => setState(() => _selectedQuantity = v.round()),
+            QuestTarget(
+              id: 'ui.quantitySliderTrack',
+              child: Slider(
+                value: _selectedQuantity.toDouble(),
+                min: 1,
+                max: availableMaxQuantity.toDouble(),
+                divisions: availableMaxQuantity > 1 ? availableMaxQuantity - 1 : 1,
+                activeColor: const Color(0xFF5D4037),
+                inactiveColor: const Color(0xFF8D6E63).withValues(alpha: 0.3),
+                onChanged: (v) {
+                  final qty = v.round();
+                  setState(() => _selectedQuantity = qty);
+                  widget.tradeSystem.gameState.setSliderValue(qty);
+                },
+                onChangeEnd: (_) => widget.tradeSystem.gameState.setSliderInteracted(true),
+              ),
             ),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -1148,6 +1158,23 @@ class _TradeDialogState extends State<_TradeDialog> {
     );
   }
 
+  /// 同步待交易数量到 GameState（用于任务系统判定）
+  void _syncPendingQuantitiesToGameState() {
+    final gameState = widget.tradeSystem.gameState;
+    // 重置所有相关的 pending 数量
+    gameState.clearPendingTradeQuantities();
+    
+    // 换入记为正数
+    for (final item in _pendingTrade.itemsToReceive) {
+      gameState.updatePendingTradeQuantity(item.goodsId, item.quantity);
+    }
+    // 换出记为负数
+    for (final item in _pendingTrade.itemsToGive) {
+      final current = gameState.getPendingTradeQuantity(item.goodsId);
+      gameState.updatePendingTradeQuantity(item.goodsId, current - item.quantity);
+    }
+  }
+
   void _addToPending(String goodsId, int addQuantity, bool isBuying, String portId) {
     setState(() {
       _internalAddToPending(goodsId, addQuantity, isBuying, portId);
@@ -1172,6 +1199,7 @@ class _TradeDialogState extends State<_TradeDialog> {
     }
     // 添加新物品后，必然需要重新平衡
     widget.tradeSystem.gameState.setTradeBalanced(false);
+    _syncPendingQuantitiesToGameState();
   }
 
   void _executeTrade() {
@@ -1180,6 +1208,7 @@ class _TradeDialogState extends State<_TradeDialog> {
       setState(() {});
       // 交易成功后，标记为不再平衡（因为列表已空，直到下一次操作）
       widget.tradeSystem.gameState.setTradeBalanced(false);
+      widget.tradeSystem.gameState.clearPendingTradeQuantities();
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('交易成功！'), backgroundColor: Colors.green));
     } else {
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('交易失败: $result'), backgroundColor: Colors.red));

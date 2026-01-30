@@ -160,9 +160,30 @@ class GameState extends ChangeNotifier {
   bool _isPortListOpened = false;
   bool _isShipyardOpened = false;
   bool _isQuantitySliderOpened = false;
+  bool _isSliderInteracted = false;
+  int _sliderValue = 0;
   bool _isTradeBalanced = false;
   int _shipUpgradeCount = 0;
   bool _taxCollectedToday = false;
+  
+  // 待交易物品追踪（用于任务系统判定）
+  // 换入为正，换出为负
+  final Map<String, int> _pendingTradeQuantities = {};
+  Map<String, int> get pendingTradeQuantities => Map.unmodifiable(_pendingTradeQuantities);
+
+  void updatePendingTradeQuantity(String goodsId, int quantity) {
+    _pendingTradeQuantities[goodsId] = quantity;
+    notifyListeners();
+  }
+
+  int getPendingTradeQuantity(String goodsId) {
+    return _pendingTradeQuantities[goodsId] ?? 0;
+  }
+
+  void clearPendingTradeQuantities() {
+    _pendingTradeQuantities.clear();
+    notifyListeners();
+  }
 
   // 最近离队的船员名单（用于向玩家展示提示）
   final List<String> _departingCrewNames = [];
@@ -343,6 +364,7 @@ class GameState extends ChangeNotifier {
     _isTradeBalanced = false;
     _shipUpgradeCount = 0;
     _taxCollectedToday = false;
+    _pendingTradeQuantities.clear();
     
     // 6. 重置战斗相关状态
     _isInCombat = false;
@@ -382,11 +404,29 @@ class GameState extends ChangeNotifier {
     _ensureHomeIslandInPorts();
 
     if (startingPort != null) {
-      _currentPort = startingPort;
+      if (startingPort.isSeaLocation) {
+        _currentPort = null;
+        _isAtSea = true;
+        
+        // 新游戏从海上开始时，上一个港口为空，这样背景就不会显示初始岛屿
+        _previousPort = null;
+        
+        // 如果是在海上开始，设置一个初始的航行状态，让背景持续滚动
+        _totalTravelDistance = 999999999;
+        _accumulatedDistance = 0.0;
+        _legStartDistance = 0.0;
+        _lastProgressUpdateTime = DateTime.now();
+        _accumulatedGameHours = 0.0;
+        _travelProgress = 0.0;
+      } else {
+        _currentPort = startingPort;
+        _isAtSea = false;
+      }
     } else {
       // 默认初始在主岛
       final homeIslandPort = _ports.firstWhere((p) => p.id == 'home_island', orElse: () => _ports.first);
       _currentPort = homeIslandPort;
+      _isAtSea = false;
     }
 
     // 初始化船员和天气
@@ -826,6 +866,8 @@ class GameState extends ChangeNotifier {
   bool get isPortListOpened => _isPortListOpened;
   bool get isShipyardOpened => _isShipyardOpened;
   bool get isQuantitySliderOpened => _isQuantitySliderOpened;
+  bool get isSliderInteracted => _isSliderInteracted;
+  int get sliderValue => _sliderValue;
   bool get isTradeBalanced => _isTradeBalanced;
   int get shipUpgradeCount => _shipUpgradeCount;
   bool get taxCollectedToday => _taxCollectedToday;
@@ -854,6 +896,24 @@ class GameState extends ChangeNotifier {
   void setQuantitySliderOpened(bool opened) {
     if (_isQuantitySliderOpened != opened) {
       _isQuantitySliderOpened = opened;
+      if (opened) {
+        _isSliderInteracted = false;
+        _sliderValue = 0;
+      }
+      notifyListeners();
+    }
+  }
+
+  void setSliderInteracted(bool interacted) {
+    if (_isSliderInteracted != interacted) {
+      _isSliderInteracted = interacted;
+      notifyListeners();
+    }
+  }
+
+  void setSliderValue(int value) {
+    if (_sliderValue != value) {
+      _sliderValue = value;
       notifyListeners();
     }
   }
@@ -990,10 +1050,10 @@ class GameState extends ChangeNotifier {
     MusicSystem().playState('cruising');
 
     // 获取航行距离（节）
-    int travelDistance = 8; // 默认8节（基础速度1小时的距离）
+    int travelDistance = 240; // 默认 240 节（初始从海上选择目的地时的最小距离）
     if (previousPort != null) {
       // 获取航行距离（节）
-      travelDistance = previousPort.getDistanceTo(portId) ?? 8;
+      travelDistance = previousPort.getDistanceTo(portId) ?? 240;
     }
 
     // 初始化进度（基于距离）

@@ -129,13 +129,26 @@ class QuestSystem extends ChangeNotifier {
 
   void _onGameStateChanged() {
     if (_activeQuest != null) {
-      if (_evaluateCondition(_activeQuest!.completeWhen)) {
+      if (_evaluateFullCondition(_activeQuest!.completeWhen)) {
         completeQuest(_activeQuest!.id);
       }
     } else {
       // 如果没有活跃任务，尝试触发新的
       _checkTriggers();
     }
+  }
+
+  /// 评估完整条件（支持 && 分割）
+  bool _evaluateFullCondition(String fullCondition) {
+    if (fullCondition.isEmpty) return true;
+    
+    final parts = fullCondition.split('&&').map((e) => e.trim()).where((e) => e.isNotEmpty);
+    for (final part in parts) {
+      if (!_evaluateCondition(part)) {
+        return false;
+      }
+    }
+    return true;
   }
 
   /// 检查任务触发
@@ -160,32 +173,7 @@ class QuestSystem extends ChangeNotifier {
   }
 
   bool _shouldTrigger(Quest quest) {
-    final trigger = quest.trigger;
-    
-    // 支持多重条件判定，用 && 分割
-    final parts = trigger.split('&&').map((e) => e.trim()).where((e) => e.isNotEmpty);
-    
-    for (final part in parts) {
-      if (!_evaluateTriggerPart(part)) {
-        return false;
-      }
-    }
-    
-    return true;
-  }
-
-  bool _evaluateTriggerPart(String part) {
-    if (part == 'on_new_game_start') {
-      return _isNewGame && _completedQuestIds.isEmpty && _activeQuest == null;
-    }
-    
-    if (part.startsWith('after(')) {
-      final prevId = part.substring(6, part.length - 1);
-      return _completedQuestIds.contains(prevId);
-    }
-
-    // 复用条件评估逻辑检查游戏状态
-    return _evaluateCondition(part);
+    return _evaluateFullCondition(quest.trigger.replaceAll('after(', 'trigger.after('));
   }
 
   /// 处理点击任意处（用于 complete_when: "tap_anywhere"）
@@ -222,6 +210,20 @@ class QuestSystem extends ChangeNotifier {
     if (_gameState == null) return false;
     final gs = _gameState!;
 
+    // 0. 触发器专用逻辑 (重定向)
+    if (condition.startsWith('on_new_game_start')) {
+      return _isNewGame && _completedQuestIds.isEmpty && _activeQuest == null;
+    }
+    if (condition.startsWith('trigger.after(')) {
+      final prevId = condition.substring(14, condition.length - 1);
+      return _completedQuestIds.contains(prevId);
+    }
+    if (condition.startsWith('after(')) {
+      // 兼容旧格式，虽然现在统一走 trigger.after
+      final prevId = condition.substring(6, condition.length - 1);
+      return _completedQuestIds.contains(prevId);
+    }
+
     // 1. 特殊条件
     if (condition == "tap_anywhere") {
       // 由 UI 层通过外部调用标记完成，或者此处保持 false 等待手动触发
@@ -247,20 +249,51 @@ class QuestSystem extends ChangeNotifier {
     if (condition == "ui.shipyard.opened") {
       return gs.isShipyardOpened;
     }
+    if (condition == "ui.sliderInteracted") {
+      return gs.isSliderInteracted;
+    }
+    if (condition.startsWith("ui.sliderValue")) {
+      final val = gs.sliderValue;
+      final operator = _extractOperator(condition);
+      final target = _extractTargetValue(condition);
+      return _compare(val, operator, target);
+    }
 
-    // 3. 货物数量 cargo.count('Fish') >= 10
+    // 2.1 待交易物品 trade.pending('wood') > 0
+    if (condition.startsWith("trade.pending(")) {
+      final startQuote = condition.indexOf("'") + 1;
+      final endQuote = condition.indexOf("'", startQuote);
+      final goodsId = condition.substring(startQuote, endQuote);
+      
+      final count = gs.getPendingTradeQuantity(goodsId);
+      final operator = _extractOperator(condition);
+      final target = _extractTargetValue(condition);
+      return _compare(count, operator, target);
+    }
+
+    // 3. 货物数量 cargo.count('wood') >= 10
     if (condition.startsWith("cargo.count(")) {
-      final goodsId = condition.substring(13, condition.indexOf("')"));
+      // 提取单引号内部的 goodsId
+      final startQuote = condition.indexOf("'") + 1;
+      final endQuote = condition.indexOf("'", startQuote);
+      final goodsId = condition.substring(startQuote, endQuote);
+      
       final count = gs.getInventoryQuantity(goodsId);
       final operator = _extractOperator(condition);
       final target = _extractTargetValue(condition);
       return _compare(count, operator, target);
     }
 
-    // 4. 目的地 navigation.destination == 'SeaBreezePort'
+    // 4. 目的地 navigation.destination == 'port_1'
     if (condition.startsWith("navigation.destination == ")) {
-      final targetPortId = condition.substring(26, condition.length - 1);
-      return gs.destinationPort?.id == targetPortId;
+      // 提取单引号内部的 portId
+      final startQuote = condition.indexOf("'") + 1;
+      final endQuote = condition.indexOf("'", startQuote);
+      if (startQuote > 0 && endQuote > startQuote) {
+        final targetPortId = condition.substring(startQuote, endQuote);
+        return gs.destinationPort?.id == targetPortId;
+      }
+      return false;
     }
 
     // 5. 航行到达 navigation.arrived

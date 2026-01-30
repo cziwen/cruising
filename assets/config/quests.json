@@ -16,211 +16,162 @@
     "is_mandatory": true
   },
   {
-    "id": "T02_open_market",
+    "id": "T01c_open_port_list",
     "trigger": "after(T01b_intro)",
-    "highlight": "ui.marketButton",
-    "text": "先打开【市场】看看这里现在什么便宜。",
-    "complete_when": "ui.marketPanel.opened",
-    "is_mandatory": true
-  },
-  {
-    "id": "T02b_market_tip",
-    "trigger": "after(T02_open_market)",
-    "highlight": null,
-    "text": "看，左侧是商人的货物。每种货物的价格都在波动，现在【食物】看起来是个不错的选择。",
-    "complete_when": "tap_anywhere",
-    "is_mandatory": true
-  },
-  {
-    "id": "T03a_select_food",
-    "trigger": "after(T02b_market_tip)",
-    "highlight": "ui.goodsRow('food')",
-    "text": "选中【食物】以准备买入。",
-    "complete_when": "ui.quantitySlider.opened",
-    "is_mandatory": true
-  },
-  {
-    "id": "T03b_confirm_quantity",
-    "trigger": "after(T03a_select_food)",
-    "highlight": "ui.quantitySlider",
-    "text": "调整滑块选择 10份，然后点击【确认】放入待交易列表。",
-    "complete_when": "!ui.quantitySlider.opened",
-    "is_mandatory": true
-  },
-  {
-    "id": "T03c_balance_trade",
-    "trigger": "after(T03b_confirm_quantity)",
-    "highlight": "ui.balanceButton",
-    "text": "点击【平衡报价】，商人会自动计算双方价值差异并用金币补足。",
-    "complete_when": "ui.tradeBalanced",
-    "is_mandatory": true
-  },
-  {
-    "id": "T03d_execute_trade",
-    "trigger": "after(T03c_balance_trade)",
-    "highlight": "ui.sellButton",
-    "text": "点击【确认交易】来最终完成买入。",
-    "complete_when": "cargo.count('food') >= 10",
-    "action": "ui.marketPanel.close",
-    "is_mandatory": true
-  },
-  {
-    "id": "T03e_trade_success",
-    "trigger": "after(T03d_execute_trade)",
-    "highlight": null,
-    "text": "干得漂亮！货物已经入库了。现在我们需要找一个需要这些食物的地方把它卖掉。",
-    "complete_when": "tap_anywhere",
-    "is_mandatory": true
-  },
-  {
-    "id": "T04a_open_port_list",
-    "trigger": "after(T03e_trade_success)",
     "highlight": "ui.portListButton",
-    "text": "点开【选择目的地】来规划下一步。",
+    "text": "点开【选择目的地】来开始我们的第一段航程。",
     "complete_when": "ui.portList.opened",
     "is_mandatory": true
   },
   {
-    "id": "T04b_confirm_departure",
-    "trigger": "after(T04a_open_port_list)",
+    "id": "T01d_select_lighthouse",
+    "trigger": "after(T01c_open_port_list)",
+    "highlight": "ui.portRow('port_1')",
+    "text": "【灯塔岛】就在附近，那里的木材非常便宜。点击【出发】！",
+    "complete_when": "navigation.destination == 'port_1'",
+    "is_mandatory": true
+  },
+  {
+    "id": "T02_arrival_lighthouse",
+    "trigger": "after(T01d_select_lighthouse) && navigation.arrived",
+    "highlight": null,
+    "text": "我们到了！灯塔岛的森林提供了源源不断的木材。",
+    "complete_when": "tap_anywhere",
+    "is_mandatory": true
+  },
+  {
+    "id": "T02b_open_market",
+    "trigger": "after(T02_arrival_lighthouse)",
+    "highlight": "ui.marketButton",
+    "text": "打开【市场】，看看这里的木材价格。",
+    "complete_when": "ui.marketPanel.opened",
+    "is_mandatory": true
+  },
+  {
+    "id": "T02c_select_wood",
+    "trigger": "after(T02b_open_market)",
+    "highlight": "ui.goodsRow('wood')",
+    "text": "选中【木材】以准备买入。",
+    "complete_when": "ui.quantitySlider.opened",
+    "is_mandatory": true
+  },
+  {
+    "id": "T02d1_adjust_quantity",
+    "trigger": "after(T02c_select_wood)",
+    "highlight": "ui.quantitySliderTrack",
+    "text": "尽量多买一些。请将滑块调整到 10 到 50 之间。",
+    "complete_when": "ui.sliderInteracted && ui.sliderValue > 10 && ui.sliderValue < 50",
+    "is_mandatory": true
+  },
+  {
+    "id": "T02d2_confirm_quantity",
+    "trigger": "after(T02d1_adjust_quantity)",
+    "highlight": "ui.confirmQuantityButton",
+    "text": "调整滑块后点击【确认】。",
+    "complete_when": "trade.pending('wood') > 10 && trade.pending('wood') < 50 && !ui.quantitySlider.opened",
+    "is_mandatory": true
+  },
+  {
+    "id": "T02e_balance_trade",
+    "trigger": "after(T02d2_confirm_quantity) && trade.pending('wood') > 0",
+    "highlight": "ui.balanceButton",
+    "text": "点击【平衡报价】，让商人补足差额。",
+    "complete_when": "ui.tradeBalanced",
+    "is_mandatory": true
+  },
+  {
+    "id": "T02f_execute_trade",
+    "trigger": "after(T02e_balance_trade)",
+    "highlight": "none",
+    "text": "点击【确认交易】完成买入。",
+    "complete_when": "cargo.count('wood') > 0",
+    "action": "ui.marketPanel.close",
+    "is_mandatory": true
+  },
+  {
+    "id": "T03a_open_port_list",
+    "trigger": "after(T02f_execute_trade)",
+    "highlight": "ui.portListButton",
+    "text": "现在我们需要找一个需要木材的地方。再次打开【选择目的地】。",
+    "complete_when": "ui.portList.opened",
+    "is_mandatory": true
+  },
+  {
+    "id": "T03b_select_trading_port",
+    "trigger": "after(T03a_open_port_list)",
     "highlight": "ui.portRow('port_2')",
-    "text": "【贸易港】距离不远，且对食物有不错的需求。点击【出发】！",
-    "complete_when": "navigation.isAtSea",
+    "text": "【贸易港】距离不远，且对木材有很大的需求。出发吧！",
+    "complete_when": "navigation.destination == 'port_2'",
     "is_mandatory": true
   },
   {
-    "id": "T05_sailing",
-    "trigger": "after(T04b_confirm_departure)",
-    "highlight": "ui.travelProgressBar",
-    "text": "航行中... 记得关注顶部的进度条。距离越远，航行的时间也就越久。",
-    "complete_when": "tap_anywhere",
-    "is_mandatory": true
-  },
-  {
-    "id": "T05b_arrival",
-    "trigger": "after(T05_sailing) && navigation.arrived",
+    "id": "T04_arrival_trading_port",
+    "trigger": "after(T03b_select_trading_port) && navigation.arrived",
     "highlight": null,
-    "text": "我们到了！这里的商人正急需新鲜的补给。",
+    "text": "这里就是贸易港。这里的商人愿意花大价钱买下我们的木材。",
     "complete_when": "tap_anywhere",
     "is_mandatory": true
   },
   {
-    "id": "T06a_open_market",
-    "trigger": "after(T05b_arrival)",
+    "id": "T04b_open_market",
+    "trigger": "after(T04_arrival_trading_port)",
     "highlight": "ui.marketButton",
-    "text": "点开【市场】准备卖出我们的战利品。",
+    "text": "打开【市场】准备卖出。",
     "complete_when": "ui.marketPanel.opened",
     "is_mandatory": true
   },
   {
-    "id": "T06b_select_food",
-    "trigger": "after(T06a_open_market)",
-    "highlight": "ui.playerGoodsRow('food')",
-    "text": "在右侧【你的库存】中选中【食物】以准备卖出。",
+    "id": "T04c_select_wood",
+    "trigger": "after(T04b_open_market)",
+    "highlight": "ui.playerGoodsRow('wood')",
+    "text": "在你的库存中选中【木材】。",
     "complete_when": "ui.quantitySlider.opened",
     "is_mandatory": true
   },
   {
-    "id": "T06c_sell_goods",
-    "trigger": "after(T06b_select_food)",
-    "highlight": "ui.quantitySlider",
-    "text": "调整滑块选择所有【食物】然后点击【确认】。",
-    "complete_when": "!ui.quantitySlider.opened",
+    "id": "T04d1_adjust_quantity",
+    "trigger": "after(T04c_select_wood)",
+    "highlight": "ui.quantitySliderTrack",
+    "text": "选择全部数量。拖动滑块进行调整。",
+    "complete_when": "ui.sliderInteracted",
     "is_mandatory": true
   },
   {
-    "id": "T06d_balance_trade",
-    "trigger": "after(T06c_sell_goods)",
+    "id": "T04d2_confirm_quantity",
+    "trigger": "after(T04d1_adjust_quantity)",
+    "highlight": "ui.confirmQuantityButton",
+    "text": "点击【确认】以锁定卖出数量。",
+    "complete_when": "trade.pending('wood') < 0 && !ui.quantitySlider.opened",
+    "is_mandatory": true
+  },
+  {
+    "id": "T04e_balance_trade",
+    "trigger": "after(T04d2_confirm_quantity) && trade.pending('wood') < 0",
     "highlight": "ui.balanceButton",
-    "text": "再次点击【平衡报价】，看看你能赚到多少金币。",
+    "text": "点击【平衡报价】，看看你能赚到多少利润。",
     "complete_when": "ui.tradeBalanced",
     "is_mandatory": true
   },
   {
-    "id": "T06e_execute_trade",
-    "trigger": "after(T06d_balance_trade)",
+    "id": "T04f_execute_trade",
+    "trigger": "after(T04e_balance_trade)",
     "highlight": "ui.sellButton",
-    "text": "点击【确认交易】来大赚一笔！",
-    "complete_when": "cargo.count('food') == 0",
+    "text": "确认交易！",
+    "complete_when": "cargo.count('wood') == 0",
     "action": "ui.marketPanel.close",
     "is_mandatory": true
   },
   {
-    "id": "T06f_profit_intro",
-    "trigger": "after(T06e_execute_trade)",
+    "id": "T04g_last_text",
+    "trigger": "after(T04f_execute_trade)",
     "highlight": null,
-    "text": "这就是贸易的魅力。现在你手里有钱了，是时候让我们的船变得更强大。",
+    "text": "这就是贸易的魅力：利用地区间的物价差异获利。",
     "complete_when": "tap_anywhere",
-    "is_mandatory": true
-  },
-  {
-    "id": "T07a_open_shipyard",
-    "trigger": "after(T06f_profit_intro)",
-    "highlight": "ui.shipUpgradeButton",
-    "text": "用利润去船厂升级一次船只。点击【船厂】按钮进入。",
-    "complete_when": "ui.shipyard.opened",
-    "is_mandatory": true
-  },
-  {
-    "id": "T07b_upgrade_ship",
-    "trigger": "after(T07a_open_shipyard)",
-    "highlight": "ui.shipyard.upgradeCargoButton",
-    "text": "点击【升级】增加载货量，这样下次能带更多货。",
-    "complete_when": "ship.cargo_level >= 1",
-    "is_mandatory": true
-  },
-  {
-    "id": "T07c_close_shipyard",
-    "trigger": "after(T07b_upgrade_ship)",
-    "highlight": null,
-    "text": "恭喜你船长，这样下次能带更多货来交易了。",
-    "complete_when": "tap_anywhere",
-    "is_mandatory": true
-  },
-  {
-    "id": "T08a_home_island_intro",
-    "trigger": "after(T07c_close_shipyard)",
-    "highlight": null,
-    "text": "别忘了，你还有一座属于自己的岛屿。那里也会为你产生收益。",
-    "complete_when": "tap_anywhere",
-    "action": "ui.shipyard.close",
-    "is_mandatory": true
-  },
-  {
-    "id": "T08b_open_port_list",
-    "trigger": "after(T08a_home_island_intro)",
-    "highlight": "ui.portListButton",
-    "text": "点开【选择目的地】准备回家。",
-    "complete_when": "ui.portList.opened",
-    "is_mandatory": true
-  },
-  {
-    "id": "T08c_go_home",
-    "trigger": "after(T08b_open_port_list)",
-    "highlight": "ui.homeIslandButton",
-    "text": "选择【我的岛屿】并点击【出发】。",
-    "complete_when": "navigation.isAtSea",
-    "is_mandatory": true
-  },
-  {
-    "id": "T08d_home_arrival_tip",
-    "trigger": "after(T08c_go_home) && homeIsland.opened",
-    "highlight": null,
-    "text": "我们回到了家乡。看，领地上的税收已经积攒不少了。",
-    "complete_when": "tap_anywhere",
-    "is_mandatory": true
-  },
-  {
-    "id": "T09_collect_tax",
-    "trigger": "after(T08d_home_arrival_tip)",
-    "highlight": "ui.collectTaxButton",
-    "text": "点击税收气泡，领取属于你的领地税收！",
-    "complete_when": "homeIsland.tax_collected_today == true",
     "is_mandatory": true
   },
   {
     "id": "T10_tutorial_complete",
-    "trigger": "after(T09_collect_tax)",
+    "trigger": "after(T04f_execute_trade)",
     "highlight": null,
     "text": "新手引导结束了。现在，这片大海是属于你的了，船长！尽情去航行吧。",
     "complete_when": "tap_anywhere",

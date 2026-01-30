@@ -22,9 +22,6 @@ class _NearBackgroundLayerState extends State<NearBackgroundLayer> {
   // 与背景层 wave1 相同的速度: 50.0 * 0.8 = 40 像素/秒
   static const double _scrollSpeed = 40.0;
   
-  // 上一次记录的港口（用于离开动画）
-  Port? _lastPort;
-  
   // 屏幕宽度
   double _screenWidth = 0.0;
   
@@ -34,29 +31,15 @@ class _NearBackgroundLayerState extends State<NearBackgroundLayer> {
   @override
   void initState() {
     super.initState();
-    _lastPort = widget.gameState.currentPort;
-    widget.gameState.addListener(_handleStateChange);
-  }
-
-  void _handleStateChange() {
-    if (widget.gameState.currentPort != null) {
-      _lastPort = widget.gameState.currentPort;
-    }
-    // 由于 build 中使用了 AnimatedBuilder，这里不需要手动调用 setState
   }
   
   @override
   void didUpdateWidget(NearBackgroundLayer oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (oldWidget.gameState != widget.gameState) {
-      oldWidget.gameState.removeListener(_handleStateChange);
-      widget.gameState.addListener(_handleStateChange);
-    }
   }
 
   @override
   void dispose() {
-    widget.gameState.removeListener(_handleStateChange);
     super.dispose();
   }
 
@@ -71,13 +54,14 @@ class _NearBackgroundLayerState extends State<NearBackgroundLayer> {
           builder: (context, child) {
             final isAtSea = widget.gameState.isAtSea;
             final currentPort = widget.gameState.currentPort;
+            final previousPort = widget.gameState.previousPort;
             final destinationPort = widget.gameState.destinationPort;
             final progress = widget.gameState.dayNightSystem.dayCycleProgress;
             final colorFilter = DayNightVisualUtils.getColorFilter(progress, layerType: VisualLayerType.island);
 
             // 计算离开动画的偏移量
             double? exitOffset;
-            if (isAtSea && _lastPort != null) {
+            if (isAtSea && previousPort != null) {
               // 直接使用 accumulatedDistance，在切换目的地时它不再归零，因此动画会平滑继续
               final exitDistance = widget.gameState.accumulatedDistance;
               
@@ -112,7 +96,7 @@ class _NearBackgroundLayerState extends State<NearBackgroundLayer> {
               child: Stack(
                 children: [
                   // 正在离开的港口（基于航行进度）
-                  if (exitOffset != null && _lastPort != null && exitOffset > -_screenWidth)
+                  if (exitOffset != null && previousPort != null && exitOffset > -_screenWidth)
                     Positioned(
                       left: exitOffset,
                       top: 0,
@@ -120,7 +104,7 @@ class _NearBackgroundLayerState extends State<NearBackgroundLayer> {
                       bottom: 0,
                       child: SizedBox(
                         width: _screenWidth,
-                        child: _buildPortImage(_lastPort!),
+                        child: _buildPortImage(previousPort),
                       ),
                     ),
                   
