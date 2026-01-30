@@ -21,7 +21,7 @@
   {
     "id": "home_island",
     "name": "我的岛屿",
-    "description": "你的私人领地。目前百废待兴，经济极度不稳定，急需通过建设大厅来改善本地经济环境。",
+    "description": "一座尚未苏醒的荒芜海岛，补给稀薄，港口设施简陋，等待玩家重新点燃生机。",
     "restockingAggressiveness": 0.2,
     "distances": {
       "port_1": 480,
@@ -51,7 +51,7 @@
     "id": "port_1",
     "name": "灯塔岛",
     "backgroundImage": "assets/images/buildings/village_stone_0.png",
-    "description": "一个宁静的小港口，周边的森林提供了丰富的木材资源。由于近期收成不佳，岛民们急需食物补给。",
+    "description": "港口周围密布林地与简易码头，是新人最先接触的“资源补给站”。",
     "unlocked": true,
     "distances": {
       "home_island": 480,
@@ -76,7 +76,7 @@
     "id": "port_2",
     "name": "贸易港",
     "backgroundImage": "assets/images/buildings/business_port.png",
-    "description": "区域性的贸易中心，各项经济指标处于标准中位数，是衡量物价的基准。",
+    "description": "商船云集、市场成熟的中心港，价格与供需最稳定，是全球贸易的参照点。",
     "unlocked": true,
     "distances": {
       "home_island": 1440,
@@ -109,7 +109,7 @@
     "id": "port_3",
     "name": "香料港",
     "backgroundImage": "assets/images/buildings/exotic_village.png",
-    "description": "盛产名贵香料的异域港口，由于土地贫瘠，极度依赖外界输入食物和金属资源。",
+    "description": "香气弥漫的港湾，异域商队汇聚，货摊以香料与奇珍闻名。",
     "unlocked": true,
     "distances": {
       "home_island": 2370,
@@ -135,7 +135,7 @@
     "id": "port_4",
     "name": "铁炉岛",
     "backgroundImage": "assets/images/buildings/stone_castle.png",
-    "description": "一座建立在火山岩上的工业岛屿，以精湛的金属冶炼和石材开采闻名。岛上空气干燥，急需朗姆酒缓解疲劳，同时也向往丝绸等奢侈品。",
+    "description": "烟囱林立、火炉终日不熄的工业岛，矿脉与石场支撑着重工贸易。",
     "unlocked": true,
     "distances": {
       "home_island": 3530,
@@ -161,7 +161,7 @@
     "id": "port_5",
     "name": "织梦湾",
     "backgroundImage": "assets/images/buildings/two_towers.png",
-    "description": "阳光明媚的海湾，出产世界上最优质的丝绸和棉布。由于土地大多用于种植桑树，木材和皮革这类基础工业材料相对匮乏。",
+    "description": "纺机声与染坊香交织的海湾，帆布与丝线从这里流向各地。",
     "unlocked": true,
     "distances": {
       "home_island": 2080,
@@ -188,7 +188,7 @@
     "id": "port_6",
     "name": "翡翠领",
     "backgroundImage": "assets/images/buildings/two_towers.png",
-    "description": "肥沃的平原地区，是这片海域的粮仓和酒窖。这里的人们虽然丰衣足食，但缺乏坚硬的金属和石材来进行防御工事的扩建。",
+    "description": "田野与水渠铺展的绿色群岛，是远航队伍最可靠的补给腹地。",
     "unlocked": true,
     "distances": {
       "home_island": 5040,
@@ -214,7 +214,7 @@
     "id": "port_7",
     "name": "远古遗址",
     "backgroundImage": "assets/images/buildings/village_stone_1.png",
-    "description": "深藏在迷雾海域的荒凉岛屿，散落着远古文明的遗珍。在这里，象牙和艺术品随处可见，但生存所需的淡水和食物却是奢侈品。",
+    "description": "被风沙与藤蔓覆盖的遗迹群岛，少量高价值遗物在暗市中流通。",
     "unlocked": true,
     "distances": {
       "home_island": 4220,
