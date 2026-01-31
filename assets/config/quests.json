@@ -82,7 +82,7 @@
   {
     "id": "T02f_execute_trade",
     "trigger": "after(T02e_balance_trade)",
-    "highlight": "none",
+    "highlight": "ui.sellButton",
     "text": "点击【确认交易】完成买入。",
     "complete_when": "cargo.count('wood') > 0",
     "action": "ui.marketPanel.close",
@@ -132,8 +132,8 @@
     "id": "T04d1_adjust_quantity",
     "trigger": "after(T04c_select_wood)",
     "highlight": "ui.quantitySliderTrack",
-    "text": "选择全部数量。拖动滑块进行调整。",
-    "complete_when": "ui.sliderInteracted",
+    "text": "尽可能多选一些。拖动滑块进行调整。",
+    "complete_when": "ui.sliderInteracted && ui.sliderValue > 10",
     "is_mandatory": true
   },
   {
@@ -157,7 +157,7 @@
     "trigger": "after(T04e_balance_trade)",
     "highlight": "ui.sellButton",
     "text": "确认交易！",
-    "complete_when": "cargo.count('wood') == 0",
+    "complete_when": "ui.tradeConfirmed",
     "action": "ui.marketPanel.close",
     "is_mandatory": true
   },
@@ -170,10 +170,108 @@
     "is_mandatory": true
   },
   {
-    "id": "T10_tutorial_complete",
-    "trigger": "after(T04f_execute_trade)",
+    "id": "T05_free_trading",
+    "trigger": "after(T04g_last_text)",
     "highlight": null,
-    "text": "新手引导结束了。现在，这片大海是属于你的了，船长！尽情去航行吧。",
+    "text": "现在你已经掌握了贸易的基础。去广阔的大海自由航行吧！",
+    "complete_when": "tap_anywhere",
+    "is_mandatory": true
+  },
+  {
+    "id": "T06_messenger_encounter",
+    "trigger": "after(T05_free_trading) && navigation.arrived && !homeIsland.opened && (player.gold >= 3000 || navigation.visited_ports_count >= 5)",
+    "highlight": null,
+    "text": "一位举止优雅但面带疲惫的绅士在码头拦住了你：“您好，尊敬的船长。我是【我的岛屿】的代理执政官。冒昧打扰，是因为我们正面临一个巨大的转机。”",
+    "complete_when": "tap_anywhere",
+    "is_mandatory": true
+  },
+  {
+    "id": "T06a_messenger_dialogue",
+    "trigger": "after(T06_messenger_encounter)",
+    "highlight": null,
+    "text": "他叹了口气说道：“那座岛屿曾是这片海域的明珠，但现在由于缺乏管理而百废待兴，许多基础建设已经荒废多年，急需一位有远见的人来主持大局。”",
+    "complete_when": "tap_anywhere",
+    "is_mandatory": true
+  },
+  {
+    "id": "T06b_messenger_request",
+    "trigger": "after(T06a_messenger_dialogue)",
+    "highlight": null,
+    "text": "“您的贸易才华已传遍各港，大家一致认为只有您这样的贸易新星才能重振岛屿的荣光。请您务必接任领主之位，去治理那片属于您的领地！”",
+    "complete_when": "tap_anywhere",
+    "action": "port.unlock('home_island')",
+    "is_mandatory": true
+  },
+  {
+    "id": "T06c_open_port_list",
+    "trigger": "after(T06b_messenger_request)",
+    "highlight": "ui.portListButton",
+    "text": "打开【选择目的地】",
+    "complete_when": "ui.portList.opened",
+    "is_mandatory": true
+  },
+  {
+    "id": "T06c_open_home_island",
+    "trigger": "after(T06c_open_port_list)",
+    "highlight": "ui.portRow('home_island')",
+    "text": "选择【我的岛屿】并出发，开启你的领主治理之路吧。",
+    "complete_when": "navigation.destination == 'home_island'",
+    "is_mandatory": true
+  },
+  {
+    "id": "T06d_collect_tax",
+    "trigger": "after(T06c_open_home_island) && navigation.arrived",
+    "highlight": "ui.collectTaxButton",
+    "text": "领主你终于回来了！",
+    "complete_when": "tap_anywhere",
+    "is_mandatory": true
+  },
+  {
+    "id": "T06e_tax_idle",
+    "trigger": "after(T06d_collect_tax)",
+    "highlight": "ui.collectTaxButton",
+    "text": "之前村民们缴纳的税金已经闲置很久了，现在终于可以派上用场了。",
+    "complete_when": "tap_anywhere",
+    "is_mandatory": true
+  },
+  {
+    "id": "T06f_collect_tax",
+    "trigger": "after(T06e_tax_idle)",
+    "highlight": "ui.collectTaxButton",
+    "text": "点击岛屿上方的金币图标，领取用于重建岛屿的第一笔资金吧。",
+    "complete_when": "homeIsland.tax_collected_today == true",
+    "is_mandatory": true
+  },
+  {
+    "id": "T06e_open_hall",
+    "trigger": "after(T06d_collect_tax)",
+    "highlight": "ui.hallButton",
+    "text": "点击【大厅】进入岛屿的管理中心",
+    "complete_when": "ui.hallPanel.opened",
+    "is_mandatory": true
+  },
+  {
+    "id": "T06f_explain_upgrade",
+    "trigger": "after(T06e_open_hall)",
+    "highlight": null,
+    "text": "在大厅里，您可以投资金币升级岛屿的基建。随着税收、经济、资金和补货能力的提升，这座原本荒凉的岛屿将会在您的治理下焕发新生。",
+    "complete_when": "tap_anywhere",
+    "is_mandatory": true
+  },
+  {
+    "id": "T06g_upgrade_logic",
+    "trigger": "after(T06f_explain_upgrade)",
+    "highlight": "ui.upgradeTab",
+    "text": "尝试进行第一次基建升级，开启岛屿的繁荣纪元吧！",
+    "complete_when": "ui.homeIslandUpgraded",
+    "is_mandatory": true,
+    "action": "ui.hallPanel.close"
+  },
+  {
+    "id": "T10_tutorial_complete",
+    "trigger": "after(T06g_upgrade_logic)",
+    "highlight": null,
+    "text": "无论是成为富甲一方的巨贾，还是建设最繁荣的领地，都由您决定。祝您航行顺利，领主大人！",
     "complete_when": "tap_anywhere",
     "is_mandatory": true
   }

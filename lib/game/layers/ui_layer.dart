@@ -207,10 +207,15 @@ class _UILayerState extends State<UILayer> {
                 Positioned(
                   left: islandCenterX - 320,
                   top: islandCenterY + 100,
-                  child: _buildIslandButton(
-                    '大厅',
-                    () => _showMainHall(context, 0),
-                    Colors.indigo,
+                  child: QuestTarget(
+                    id: 'ui.hallButton',
+                    child: _buildIslandButton(
+                      '大厅',
+                      () {
+                        _showMainHall(context, 0);
+                      },
+                      Colors.indigo,
+                    ),
                   ),
                 ),
 

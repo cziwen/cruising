@@ -57,6 +57,11 @@ class GameState extends ChangeNotifier {
     _getGoodsById = getGoodsById;
   }
 
+  // 访问过的港口追踪
+  final Set<String> _visitedPortIds = {};
+  Set<String> get visitedPortIds => Set.unmodifiable(_visitedPortIds);
+  int get visitedPortCount => _visitedPortIds.length;
+
   // 玩家金币
   int _gold = 1000;
 
@@ -165,6 +170,10 @@ class GameState extends ChangeNotifier {
   bool _isTradeBalanced = false;
   int _shipUpgradeCount = 0;
   bool _taxCollectedToday = false;
+  bool _isHallPanelOpened = false;
+  bool _isHomeIslandUpgraded = false;
+  
+  bool _isTradeConfirmed = false;
   
   // 待交易物品追踪（用于任务系统判定）
   // 换入为正，换出为负
@@ -361,10 +370,16 @@ class GameState extends ChangeNotifier {
     _isPortListOpened = false;
     _isShipyardOpened = false;
     _isQuantitySliderOpened = false;
+    _isSliderInteracted = false;
+    _sliderValue = 0;
     _isTradeBalanced = false;
+    _isTradeConfirmed = false;
     _shipUpgradeCount = 0;
     _taxCollectedToday = false;
+    _isHallPanelOpened = false;
+    _isHomeIslandUpgraded = false;
     _pendingTradeQuantities.clear();
+    _visitedPortIds.clear();
     
     // 6. 重置战斗相关状态
     _isInCombat = false;
@@ -871,6 +886,9 @@ class GameState extends ChangeNotifier {
   bool get isTradeBalanced => _isTradeBalanced;
   int get shipUpgradeCount => _shipUpgradeCount;
   bool get taxCollectedToday => _taxCollectedToday;
+  bool get isHallPanelOpened => _isHallPanelOpened;
+  bool get isHomeIslandUpgraded => _isHomeIslandUpgraded;
+  bool get isTradeConfirmed => _isTradeConfirmed;
 
   void setMarketOpened(bool opened) {
     if (_isMarketOpened != opened) {
@@ -921,6 +939,27 @@ class GameState extends ChangeNotifier {
   void setTradeBalanced(bool balanced) {
     if (_isTradeBalanced != balanced) {
       _isTradeBalanced = balanced;
+      notifyListeners();
+    }
+  }
+
+  void setTradeConfirmed(bool confirmed) {
+    if (_isTradeConfirmed != confirmed) {
+      _isTradeConfirmed = confirmed;
+      notifyListeners();
+    }
+  }
+
+  void setHallPanelOpened(bool opened) {
+    if (_isHallPanelOpened != opened) {
+      _isHallPanelOpened = opened;
+      notifyListeners();
+    }
+  }
+
+  void setHomeIslandUpgraded(bool upgraded) {
+    if (_isHomeIslandUpgraded != upgraded) {
+      _isHomeIslandUpgraded = upgraded;
       notifyListeners();
     }
   }
@@ -1236,6 +1275,11 @@ class GameState extends ChangeNotifier {
     _isAtSea = false;
     _legStartDistance = 0.0; // 到达港口，重置起始点
 
+    // 记录访问过的港口（排除海上特殊位置）
+    if (!port.isSeaLocation) {
+      _visitedPortIds.add(portId);
+    }
+
     // 播放港口音乐
     MusicSystem().playState('port');
 
@@ -1332,7 +1376,7 @@ class GameState extends ChangeNotifier {
         name: '我的岛屿',
         backgroundImage: _homeIsland.appearance,
         description: '这是你的私人岛屿，可以进行养成和存储。',
-        unlocked: true,
+        unlocked: false,
         distances: {
           'port_1': 480, // 默认到起始港较近
         },
@@ -1402,6 +1446,16 @@ class GameState extends ChangeNotifier {
     }
   }
 
+  void setPortUnlocked(String portId, bool unlocked) {
+    final portIndex = _ports.indexWhere((p) => p.id == portId);
+    if (portIndex != -1) {
+      if (_ports[portIndex].unlocked != unlocked) {
+        _ports[portIndex] = _ports[portIndex].copyWith(unlocked: unlocked);
+        notifyListeners();
+      }
+    }
+  }
+
   /// 升级主岛功能
   bool upgradeHomeIsland(String type) {
     int currentLevel = 0;
@@ -1431,6 +1485,9 @@ class GameState extends ChangeNotifier {
         case 'restock': _homeIsland.restockSpeedLevel++; break;
       }
       
+      // 标记主岛已升级（用于任务系统）
+      _isHomeIslandUpgraded = true;
+
       // 升级后更新主岛港口属性
       _ensureHomeIslandInPorts();
       
@@ -2113,6 +2170,7 @@ class GameState extends ChangeNotifier {
       'lastTavernRefreshDay': _lastTavernRefreshDay,
       'homeIsland': _homeIsland.toJson(),
       'lastTaxHour': _lastTaxHour,
+      'visitedPortIds': _visitedPortIds.toList(),
       'completedQuestIds': QuestSystem.instance.completedQuestIds,
       'activeQuestId': QuestSystem.instance.activeQuest?.id,
     };
@@ -2136,6 +2194,13 @@ class GameState extends ChangeNotifier {
     }
     _lastTavernRefreshDay = (json['lastTavernRefreshDay'] as int?) ?? -1;
     _lastTaxHour = (json['lastTaxHour'] as int?) ?? -1;
+    
+    // 恢复访问过的港口
+    _visitedPortIds.clear();
+    final visitedPorts = json['visitedPortIds'] as List?;
+    if (visitedPorts != null) {
+      _visitedPortIds.addAll(visitedPorts.cast<String>());
+    }
     
     // 恢复任务系统进度
     final completedQuestIds = (json['completedQuestIds'] as List?)?.cast<String>() ?? [];
@@ -2223,6 +2288,9 @@ class GameState extends ChangeNotifier {
 
     // 8. 恢复昼夜系统
     _dayNightSystem.loadFromJson(json['dayNightSystem'] as Map<String, dynamic>);
+    
+    // 重置 UI 判定标志
+    _isTradeConfirmed = false;
     
     // 清除缓存
     _cachedCurrentSpeed = null;

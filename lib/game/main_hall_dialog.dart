@@ -4,6 +4,7 @@ import '../models/goods.dart';
 import '../utils/game_config_loader.dart';
 import 'paper_dialog.dart';
 import 'paper_button.dart';
+import '../systems/quest_system.dart';
 
 /// 大厅对话框 - 用于主岛升级和仓库管理
 class MainHallDialog extends StatefulWidget {
@@ -32,11 +33,20 @@ class _MainHallDialogState extends State<MainHallDialog> with SingleTickerProvid
   void initState() {
     super.initState();
     _tabController = TabController(length: 2, vsync: this, initialIndex: widget.initialTab);
+    
+    // 通知任务系统：大厅已打开
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      widget.gameState.setHallPanelOpened(true);
+    });
   }
 
   @override
   void dispose() {
     _tabController.dispose();
+    // 使用 addPostFrameCallback 避免在 unmount 期间触发 setState
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      widget.gameState.setHallPanelOpened(false);
+    });
     super.dispose();
   }
 
@@ -150,15 +160,17 @@ class _MainHallDialogState extends State<MainHallDialog> with SingleTickerProvid
           unselectedLabelColor: const Color(0xFF8D6E63),
           indicatorColor: const Color(0xFF5D4037),
           indicatorWeight: 3,
-        ),
-        const Divider(color: Color(0xFF8D6E63), thickness: 1, height: 1),
-      ],
-    );
-  }
+      ),
+      const Divider(color: Color(0xFF8D6E63), thickness: 1, height: 1),
+    ],
+  );
+}
 
-  Widget _buildUpgradeTab() {
-    final island = widget.gameState.homeIsland;
-    return SingleChildScrollView(
+Widget _buildUpgradeTab() {
+  final island = widget.gameState.homeIsland;
+  return QuestTarget(
+    id: 'ui.upgradeTab',
+    child: SingleChildScrollView(
       padding: const EdgeInsets.all(24),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -189,8 +201,9 @@ class _MainHallDialogState extends State<MainHallDialog> with SingleTickerProvid
           ),
         ],
       ),
-    );
-  }
+    ),
+  );
+}
 
   Widget _buildUpgradeCard(String title, String desc, String type, int level) {
     final island = widget.gameState.homeIsland;

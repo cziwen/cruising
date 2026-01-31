@@ -138,17 +138,55 @@ class QuestSystem extends ChangeNotifier {
     }
   }
 
-  /// 评估完整条件（支持 && 分割）
+  /// 评估完整条件（支持 &&、|| 和括号）
   bool _evaluateFullCondition(String fullCondition) {
-    if (fullCondition.isEmpty) return true;
-    
-    final parts = fullCondition.split('&&').map((e) => e.trim()).where((e) => e.isNotEmpty);
-    for (final part in parts) {
-      if (!_evaluateCondition(part)) {
-        return false;
+    String condition = fullCondition.trim();
+    if (condition.isEmpty) return true;
+
+    // 1. 处理最外层括号
+    // 注意：这里需要匹配配对的括号，而不是简单的 findFirst/findLast
+    if (condition.startsWith('(') && condition.endsWith(')')) {
+      // 检查这对括号是否覆盖了整个表达式
+      int balance = 0;
+      bool fullyEnclosed = true;
+      for (int i = 0; i < condition.length - 1; i++) {
+        if (condition[i] == '(') balance++;
+        else if (condition[i] == ')') balance--;
+        if (balance == 0 && i < condition.length - 1) {
+          fullyEnclosed = false;
+          break;
+        }
+      }
+      if (fullyEnclosed) {
+        return _evaluateFullCondition(condition.substring(1, condition.length - 1));
       }
     }
-    return true;
+
+    // 2. 处理 || (最低优先级)
+    // 同样需要跳过括号内的内容
+    int balance = 0;
+    for (int i = condition.length - 1; i >= 0; i--) {
+      if (condition[i] == ')') balance++;
+      else if (condition[i] == '(') balance--;
+      else if (balance == 0 && i > 0 && condition.substring(i - 1, i + 1) == '||') {
+        return _evaluateFullCondition(condition.substring(0, i - 1)) ||
+               _evaluateFullCondition(condition.substring(i + 1));
+      }
+    }
+
+    // 3. 处理 &&
+    balance = 0;
+    for (int i = condition.length - 1; i >= 0; i--) {
+      if (condition[i] == ')') balance++;
+      else if (condition[i] == '(') balance--;
+      else if (balance == 0 && i > 0 && condition.substring(i - 1, i + 1) == '&&') {
+        return _evaluateFullCondition(condition.substring(0, i - 1)) &&
+               _evaluateFullCondition(condition.substring(i + 1));
+      }
+    }
+
+    // 4. 原子条件
+    return _evaluateCondition(condition);
   }
 
   /// 检查任务触发
@@ -231,6 +269,12 @@ class QuestSystem extends ChangeNotifier {
     }
 
     // 2. UI 面板状态 (简化处理，实际可能需要 GameState 暴露这些状态)
+    if (condition.startsWith("player.gold")) {
+      final val = gs.gold;
+      final operator = _extractOperator(condition);
+      final target = _extractTargetValue(condition);
+      return _compare(val, operator, target);
+    }
     if (condition == "ui.marketPanel.opened") {
       return gs.isMarketOpened;
     }
@@ -243,11 +287,20 @@ class QuestSystem extends ChangeNotifier {
     if (condition == "ui.tradeBalanced") {
       return gs.isTradeBalanced;
     }
+    if (condition == "ui.tradeConfirmed") {
+      return gs.isTradeConfirmed;
+    }
     if (condition == "ui.portList.opened") {
       return gs.isPortListOpened;
     }
     if (condition == "ui.shipyard.opened") {
       return gs.isShipyardOpened;
+    }
+    if (condition == "ui.hallPanel.opened") {
+      return gs.isHallPanelOpened;
+    }
+    if (condition == "ui.homeIslandUpgraded") {
+      return gs.isHomeIslandUpgraded;
     }
     if (condition == "ui.sliderInteracted") {
       return gs.isSliderInteracted;
@@ -297,11 +350,40 @@ class QuestSystem extends ChangeNotifier {
     }
 
     // 5. 航行到达 navigation.arrived
+    if (condition == "navigation.visited_ports_count >= ") {
+      // 兼容旧的解析逻辑，提取数值进行比较
+      final target = _extractTargetValue(condition);
+      return gs.visitedPortCount >= target;
+    }
+    if (condition.startsWith("navigation.visited_ports_count")) {
+      final val = gs.visitedPortCount;
+      final operator = _extractOperator(condition);
+      final target = _extractTargetValue(condition);
+      return _compare(val, operator, target);
+    }
     if (condition == "navigation.arrived") {
       return !gs.isAtSea && gs.currentPort != null && !gs.isTransitioning;
     }
     if (condition == "navigation.isAtSea") {
       return gs.isAtSea;
+    }
+    if (condition.startsWith("navigation.current_port == ")) {
+      final startQuote = condition.indexOf("'") + 1;
+      final endQuote = condition.indexOf("'", startQuote);
+      if (startQuote > 0 && endQuote > startQuote) {
+        final targetPortId = condition.substring(startQuote, endQuote);
+        return gs.currentPort?.id == targetPortId;
+      }
+      return false;
+    }
+    if (condition.startsWith("navigation.current_port != ")) {
+      final startQuote = condition.indexOf("'") + 1;
+      final endQuote = condition.indexOf("'", startQuote);
+      if (startQuote > 0 && endQuote > startQuote) {
+        final targetPortId = condition.substring(startQuote, endQuote);
+        return gs.currentPort != null && gs.currentPort?.id != targetPortId;
+      }
+      return false;
     }
 
     // 6. 船只升级
@@ -326,6 +408,9 @@ class QuestSystem extends ChangeNotifier {
     // 7. 主岛打开 homeIsland.opened
     if (condition == "homeIsland.opened") {
       return gs.currentPort?.id == 'home_island' && !gs.isTransitioning;
+    }
+    if (condition == "!homeIsland.opened") {
+      return gs.currentPort?.id != 'home_island' && !gs.isTransitioning;
     }
 
     // 8. 税收领取 homeIsland.tax_collected_today == true

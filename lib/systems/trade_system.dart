@@ -574,6 +574,7 @@ class _TradeDialogState extends State<_TradeDialog> {
       final gs = widget.tradeSystem.gameState;
       gs.setMarketOpened(true);
       gs.setTradeBalanced(false); // 强制重置，确保教学开始时处于“未平衡”状态
+      gs.setTradeConfirmed(false); // 确保重置确认标志
     });
   }
 
@@ -590,6 +591,8 @@ class _TradeDialogState extends State<_TradeDialog> {
       if (gs.isTradeBalanced) {
         gs.setTradeBalanced(false);
       }
+      // 同步重置确认标志
+      gs.setTradeConfirmed(false);
       // 同步关闭滑块状态
       gs.setQuantitySliderOpened(false);
       gs.clearPendingTradeQuantities();
@@ -1107,6 +1110,7 @@ class _TradeDialogState extends State<_TradeDialog> {
                 divisions: availableMaxQuantity > 1 ? availableMaxQuantity - 1 : 1,
                 activeColor: const Color(0xFF5D4037),
                 inactiveColor: const Color(0xFF8D6E63).withValues(alpha: 0.3),
+                onChangeStart: (_) => widget.tradeSystem.gameState.setSliderInteracted(false),
                 onChanged: (v) {
                   final qty = v.round();
                   setState(() => _selectedQuantity = qty);
@@ -1208,6 +1212,8 @@ class _TradeDialogState extends State<_TradeDialog> {
       setState(() {});
       // 交易成功后，标记为不再平衡（因为列表已空，直到下一次操作）
       widget.tradeSystem.gameState.setTradeBalanced(false);
+      // 标记交易已确认（用于任务系统）
+      widget.tradeSystem.gameState.setTradeConfirmed(true);
       widget.tradeSystem.gameState.clearPendingTradeQuantities();
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('交易成功！'), backgroundColor: Colors.green));
     } else {

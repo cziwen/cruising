@@ -239,6 +239,9 @@ class _GameScreenState extends State<GameScreen> {
       if (mounted) {
         Navigator.of(context).popUntil((route) => route.isFirst);
       }
+    } else if (action.startsWith("port.unlock('") && action.endsWith("')")) {
+      final portId = action.substring(13, action.length - 2);
+      _gameState.setPortUnlocked(portId, true);
     }
     
     QuestSystem.instance.clearPendingAction();
