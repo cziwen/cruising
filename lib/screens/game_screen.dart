@@ -231,19 +231,32 @@ class _GameScreenState extends State<GameScreen> {
   }
 
   void _handleQuestAction() {
-    final action = QuestSystem.instance.pendingAction;
-    if (action == null) return;
+    final pendingAction = QuestSystem.instance.pendingAction;
+    if (pendingAction == null) return;
 
-    if (action == "ui.marketPanel.close" || action == "ui.shipyard.close") {
-      // 如果当前弹窗是对应面板，则关闭它
-      if (mounted) {
-        Navigator.of(context).popUntil((route) => route.isFirst);
+    // 支持多个动作，用 && 分隔
+    final actions = pendingAction.split("&&").map((s) => s.trim());
+
+    for (final action in actions) {
+      if (action == "ui.marketPanel.close" || action == "ui.shipyard.close") {
+        // 如果当前弹窗是对应面板，则关闭它
+        if (mounted) {
+          Navigator.of(context).popUntil((route) => route.isFirst);
+        }
+      } else if (action.startsWith("port.unlock('") && action.endsWith("')")) {
+        final portId = action.substring(13, action.length - 2);
+        _gameState.setPortUnlocked(portId, true);
+      } else if (action == "combat.unlock") {
+        _gameState.setCombatUnlocked(true);
+      } else if (action.startsWith("homeIsland.setTax(") && action.endsWith(")")) {
+        final valueStr = action.substring(18, action.length - 1);
+        final value = int.tryParse(valueStr) ?? 0;
+        _gameState.setAccumulatedTax(value);
+      } else if (action == "homeIsland.unlockTax") {
+        _gameState.unlockHomeIslandTax();
       }
-    } else if (action.startsWith("port.unlock('") && action.endsWith("')")) {
-      final portId = action.substring(13, action.length - 2);
-      _gameState.setPortUnlocked(portId, true);
     }
-    
+
     QuestSystem.instance.clearPendingAction();
   }
 

@@ -36,16 +36,7 @@
     "goodsConfig": {
       "food": { "alpha": 0.30, "s0": 100, "basePrice": 9.6 },
       "water": { "alpha": 0.20, "s0": 160, "basePrice": 6.4 },
-      "rum": { "alpha": 0.36, "s0": 60, "basePrice": 16.0 },
-      "wood": { "alpha": 0.24, "s0": 80, "basePrice": 12.8 },
-      "metal": { "alpha": 0.40, "s0": 60, "basePrice": 20.0 },
-      "stone": { "alpha": 0.30, "s0": 80, "basePrice": 14.4 },
-      "cloth": { "alpha": 0.24, "s0": 100, "basePrice": 12.0 },
-      "leather": { "alpha": 0.32, "s0": 60, "basePrice": 17.6 },
-      "spice": { "alpha": 0.50, "s0": 60, "basePrice": 24.0 },
-      "silk": { "alpha": 0.56, "s0": 40, "basePrice": 36.0 },
-      "ivory": { "alpha": 0.60, "s0": 30, "basePrice": 48.0 },
-      "artwork": { "alpha": 0.70, "s0": 20, "basePrice": 64.0 }
+      "rum": { "alpha": 0.36, "s0": 60, "basePrice": 16.0 }
     }
   },
   {

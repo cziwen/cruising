@@ -172,6 +172,7 @@ class GameState extends ChangeNotifier {
   bool _taxCollectedToday = false;
   bool _isHallPanelOpened = false;
   bool _isHomeIslandUpgraded = false;
+  bool _isCombatUnlocked = false; // 战斗系统是否已解锁
   
   bool _isTradeConfirmed = false;
   
@@ -340,6 +341,7 @@ class GameState extends ChangeNotifier {
     
     // 2. 重置主岛养成
     _homeIsland = HomeIsland();
+    _homeIsland.isTaxUnlocked = false; // 确保新游戏时税收功能锁定
     
     // 3. 重置船只状态
     _ship.cargoCapacity = 100;
@@ -378,6 +380,7 @@ class GameState extends ChangeNotifier {
     _taxCollectedToday = false;
     _isHallPanelOpened = false;
     _isHomeIslandUpgraded = false;
+    _isCombatUnlocked = false;
     _pendingTradeQuantities.clear();
     _visitedPortIds.clear();
     
@@ -889,6 +892,7 @@ class GameState extends ChangeNotifier {
   bool get isHallPanelOpened => _isHallPanelOpened;
   bool get isHomeIslandUpgraded => _isHomeIslandUpgraded;
   bool get isTradeConfirmed => _isTradeConfirmed;
+  bool get isCombatUnlocked => _isCombatUnlocked;
 
   void setMarketOpened(bool opened) {
     if (_isMarketOpened != opened) {
@@ -960,6 +964,27 @@ class GameState extends ChangeNotifier {
   void setHomeIslandUpgraded(bool upgraded) {
     if (_isHomeIslandUpgraded != upgraded) {
       _isHomeIslandUpgraded = upgraded;
+      notifyListeners();
+    }
+  }
+
+  void setCombatUnlocked(bool unlocked) {
+    if (_isCombatUnlocked != unlocked) {
+      _isCombatUnlocked = unlocked;
+      notifyListeners();
+    }
+  }
+
+  /// 一键解锁/锁定所有港口（调试用）
+  void setAllPortsUnlocked(bool unlocked) {
+    bool changed = false;
+    for (int i = 0; i < _ports.length; i++) {
+      if (_ports[i].unlocked != unlocked) {
+        _ports[i] = _ports[i].copyWith(unlocked: unlocked);
+        changed = true;
+      }
+    }
+    if (changed) {
       notifyListeners();
     }
   }
@@ -1301,16 +1326,34 @@ class GameState extends ChangeNotifier {
 
   /// 处理税收生成（每小时执行一次）
   void _processTaxGeneration() {
-    _homeIsland.accumulatedTax += _homeIsland.taxAmount;
-    notifyListeners();
+    if (_homeIsland.isTaxUnlocked) {
+      _homeIsland.accumulatedTax += _homeIsland.taxAmount;
+      notifyListeners();
+    }
   }
 
   /// 领取税收
   void collectTax() {
-    if (_homeIsland.accumulatedTax > 0) {
+    if (_homeIsland.isTaxUnlocked && _homeIsland.accumulatedTax > 0) {
       addGold(_homeIsland.accumulatedTax);
       _homeIsland.accumulatedTax = 0;
       _taxCollectedToday = true;
+      notifyListeners();
+    }
+  }
+
+  /// 强制设置积累的税收金额（仅用于任务系统或调试）
+  void setAccumulatedTax(int amount) {
+    if (_homeIsland.isTaxUnlocked) {
+      _homeIsland.accumulatedTax = amount;
+      notifyListeners();
+    }
+  }
+
+  /// 解锁主岛税收功能
+  void unlockHomeIslandTax() {
+    if (!_homeIsland.isTaxUnlocked) {
+      _homeIsland.isTaxUnlocked = true;
       notifyListeners();
     }
   }
@@ -1329,31 +1372,89 @@ class GameState extends ChangeNotifier {
     if (configHome != null) {
       homePort = configHome;
 
-      // 字段级回退：如果 JSON 中没有配置货物，则使用动态计算
-      if (homePort.goodsConfig.isEmpty) {
-        homePort = homePort.copyWith(goodsConfig: {
-          'food': PortGoodsConfig(
-              alpha: (0.05 - (_homeIsland.economyLevel * 0.005))
-                  .clamp(0.01, 0.05),
-              s0: 500 + _homeIsland.restockSpeedLevel * 100,
-              basePrice: 8.0),
-          'wood': PortGoodsConfig(
-              alpha: (0.04 - (_homeIsland.economyLevel * 0.005))
-                  .clamp(0.01, 0.04),
-              s0: 500 + _homeIsland.restockSpeedLevel * 100,
-              basePrice: 12.0),
-          'spice': PortGoodsConfig(
-              alpha:
-                  (0.08 - (_homeIsland.economyLevel * 0.01)).clamp(0.01, 0.08),
-              s0: 300 + _homeIsland.restockSpeedLevel * 50,
-              basePrice: 28.0),
-          'metal': PortGoodsConfig(
-              alpha: (0.05 - (_homeIsland.economyLevel * 0.005))
-                  .clamp(0.01, 0.05),
-              s0: 500 + _homeIsland.restockSpeedLevel * 100,
-              basePrice: 23.0),
-        });
+      // 动态构建 goodsConfig
+      final Map<String, PortGoodsConfig> dynamicGoodsConfig = {};
+      final level = _homeIsland.level;
+
+      // 等级 0: 基础物资
+      dynamicGoodsConfig['food'] = PortGoodsConfig(
+          alpha: (0.05 - (_homeIsland.economyLevel * 0.005)).clamp(0.01, 0.05),
+          s0: 500 + _homeIsland.restockSpeedLevel * 100,
+          basePrice: 8.0);
+      dynamicGoodsConfig['water'] = PortGoodsConfig(
+          alpha: (0.04 - (_homeIsland.economyLevel * 0.005)).clamp(0.01, 0.04),
+          s0: 800 + _homeIsland.restockSpeedLevel * 150,
+          basePrice: 6.0);
+      dynamicGoodsConfig['rum'] = PortGoodsConfig(
+          alpha: (0.06 - (_homeIsland.economyLevel * 0.005)).clamp(0.01, 0.06),
+          s0: 300 + _homeIsland.restockSpeedLevel * 50,
+          basePrice: 15.0);
+
+      // 等级 1: 建材
+      if (level >= 1) {
+        dynamicGoodsConfig['wood'] = PortGoodsConfig(
+            alpha: (0.04 - (_homeIsland.economyLevel * 0.005)).clamp(0.01, 0.04),
+            s0: 500 + _homeIsland.restockSpeedLevel * 100,
+            basePrice: 12.0);
+        dynamicGoodsConfig['stone'] = PortGoodsConfig(
+            alpha: (0.05 - (_homeIsland.economyLevel * 0.005)).clamp(0.01, 0.05),
+            s0: 400 + _homeIsland.restockSpeedLevel * 80,
+            basePrice: 14.0);
       }
+
+      // 等级 2: 材料
+      if (level >= 2) {
+        dynamicGoodsConfig['cloth'] = PortGoodsConfig(
+            alpha: (0.04 - (_homeIsland.economyLevel * 0.005)).clamp(0.01, 0.04),
+            s0: 500 + _homeIsland.restockSpeedLevel * 100,
+            basePrice: 11.0);
+        dynamicGoodsConfig['leather'] = PortGoodsConfig(
+            alpha: (0.05 - (_homeIsland.economyLevel * 0.005)).clamp(0.01, 0.05),
+            s0: 300 + _homeIsland.restockSpeedLevel * 60,
+            basePrice: 16.0);
+      }
+
+      // 等级 3: 金属
+      if (level >= 3) {
+        dynamicGoodsConfig['metal'] = PortGoodsConfig(
+            alpha: (0.05 - (_homeIsland.economyLevel * 0.005)).clamp(0.01, 0.05),
+            s0: 500 + _homeIsland.restockSpeedLevel * 100,
+            basePrice: 23.0);
+      }
+
+      // 等级 4: 香料
+      if (level >= 4) {
+        dynamicGoodsConfig['spice'] = PortGoodsConfig(
+            alpha: (0.08 - (_homeIsland.economyLevel * 0.01)).clamp(0.01, 0.08),
+            s0: 300 + _homeIsland.restockSpeedLevel * 50,
+            basePrice: 28.0);
+      }
+
+      // 等级 5: 丝绸
+      if (level >= 5) {
+        dynamicGoodsConfig['silk'] = PortGoodsConfig(
+            alpha: (0.10 - (_homeIsland.economyLevel * 0.01)).clamp(0.01, 0.10),
+            s0: 200 + _homeIsland.restockSpeedLevel * 40,
+            basePrice: 40.0);
+      }
+
+      // 等级 6: 象牙
+      if (level >= 6) {
+        dynamicGoodsConfig['ivory'] = PortGoodsConfig(
+            alpha: (0.12 - (_homeIsland.economyLevel * 0.01)).clamp(0.01, 0.12),
+            s0: 150 + _homeIsland.restockSpeedLevel * 30,
+            basePrice: 55.0);
+      }
+
+      // 等级 7: 艺术品
+      if (level >= 7) {
+        dynamicGoodsConfig['artwork'] = PortGoodsConfig(
+            alpha: (0.15 - (_homeIsland.economyLevel * 0.015)).clamp(0.01, 0.15),
+            s0: 100 + _homeIsland.restockSpeedLevel * 20,
+            basePrice: 75.0);
+      }
+
+      homePort = homePort.copyWith(goodsConfig: dynamicGoodsConfig);
 
       // 字段级回退：如果商人初始资金未配置（或为初始默认值），则使用动态计算
       if (homePort.initialMerchantMoney <= 1000) {
@@ -1370,7 +1471,49 @@ class GameState extends ChangeNotifier {
         homePort = homePort.copyWith(backgroundImage: _homeIsland.appearance);
       }
     } else {
-      // 查找或创建主岛基本属性（全量动态生成）
+      // 查找或创建主岛基本属性（全量动态生成，逻辑同上，由于 homePort 已经被上面 logic 覆盖，这里暂时保留备份但实际可能用不到）
+      // ... (省略 else 部分，逻辑已在 if (configHome != null) 中处理)
+      // 为了保持一致性，我也更新 else 分支的内容
+      final Map<String, PortGoodsConfig> dynamicGoodsConfig = {};
+      final level = _homeIsland.level;
+      
+      dynamicGoodsConfig['food'] = PortGoodsConfig(
+          alpha: (0.05 - (_homeIsland.economyLevel * 0.005)).clamp(0.01, 0.05),
+          s0: 500 + _homeIsland.restockSpeedLevel * 100,
+          basePrice: 8.0);
+      dynamicGoodsConfig['water'] = PortGoodsConfig(
+          alpha: (0.04 - (_homeIsland.economyLevel * 0.005)).clamp(0.01, 0.04),
+          s0: 800 + _homeIsland.restockSpeedLevel * 150,
+          basePrice: 6.0);
+      dynamicGoodsConfig['rum'] = PortGoodsConfig(
+          alpha: (0.06 - (_homeIsland.economyLevel * 0.005)).clamp(0.01, 0.06),
+          s0: 300 + _homeIsland.restockSpeedLevel * 50,
+          basePrice: 15.0);
+
+      if (level >= 1) {
+        dynamicGoodsConfig['wood'] = PortGoodsConfig(alpha: 0.04, s0: 500 + _homeIsland.restockSpeedLevel * 100, basePrice: 12.0);
+        dynamicGoodsConfig['stone'] = PortGoodsConfig(alpha: 0.05, s0: 400 + _homeIsland.restockSpeedLevel * 80, basePrice: 14.0);
+      }
+      if (level >= 2) {
+        dynamicGoodsConfig['cloth'] = PortGoodsConfig(alpha: 0.04, s0: 500 + _homeIsland.restockSpeedLevel * 100, basePrice: 11.0);
+        dynamicGoodsConfig['leather'] = PortGoodsConfig(alpha: 0.05, s0: 300 + _homeIsland.restockSpeedLevel * 60, basePrice: 16.0);
+      }
+      if (level >= 3) {
+        dynamicGoodsConfig['metal'] = PortGoodsConfig(alpha: 0.05, s0: 500 + _homeIsland.restockSpeedLevel * 100, basePrice: 23.0);
+      }
+      if (level >= 4) {
+        dynamicGoodsConfig['spice'] = PortGoodsConfig(alpha: 0.08, s0: 300 + _homeIsland.restockSpeedLevel * 50, basePrice: 28.0);
+      }
+      if (level >= 5) {
+        dynamicGoodsConfig['silk'] = PortGoodsConfig(alpha: 0.10, s0: 200 + _homeIsland.restockSpeedLevel * 40, basePrice: 40.0);
+      }
+      if (level >= 6) {
+        dynamicGoodsConfig['ivory'] = PortGoodsConfig(alpha: 0.12, s0: 150 + _homeIsland.restockSpeedLevel * 30, basePrice: 55.0);
+      }
+      if (level >= 7) {
+        dynamicGoodsConfig['artwork'] = PortGoodsConfig(alpha: 0.15, s0: 100 + _homeIsland.restockSpeedLevel * 20, basePrice: 75.0);
+      }
+
       homePort = Port(
         id: 'home_island',
         name: '我的岛屿',
@@ -1380,29 +1523,7 @@ class GameState extends ChangeNotifier {
         distances: {
           'port_1': 480, // 默认到起始港较近
         },
-        goodsConfig: {
-          // 主岛也有商人，其配置受等级影响
-          'food': PortGoodsConfig(
-              alpha: (0.05 - (_homeIsland.economyLevel * 0.005))
-                  .clamp(0.01, 0.05),
-              s0: 500 + _homeIsland.restockSpeedLevel * 100,
-              basePrice: 8.0),
-          'wood': PortGoodsConfig(
-              alpha: (0.04 - (_homeIsland.economyLevel * 0.005))
-                  .clamp(0.01, 0.04),
-              s0: 500 + _homeIsland.restockSpeedLevel * 100,
-              basePrice: 12.0),
-          'spice': PortGoodsConfig(
-              alpha:
-                  (0.08 - (_homeIsland.economyLevel * 0.01)).clamp(0.01, 0.08),
-              s0: 300 + _homeIsland.restockSpeedLevel * 50,
-              basePrice: 28.0),
-          'metal': PortGoodsConfig(
-              alpha: (0.05 - (_homeIsland.economyLevel * 0.005))
-                  .clamp(0.01, 0.05),
-              s0: 500 + _homeIsland.restockSpeedLevel * 100,
-              basePrice: 23.0),
-        },
+        goodsConfig: dynamicGoodsConfig,
         merchantMoney: 1000 + _homeIsland.merchantFundsLevel * 2000,
         initialMerchantMoney: 1000 + _homeIsland.merchantFundsLevel * 2000,
       );
@@ -1490,6 +1611,9 @@ class GameState extends ChangeNotifier {
 
       // 升级后更新主岛港口属性
       _ensureHomeIslandInPorts();
+      
+      // 确保新解锁的物资能够立即初始化库存
+      initializePortGoodsStock();
       
       // 如果当前就在主岛，更新当前港口引用
       if (_currentPort?.id == 'home_island') {
@@ -1735,12 +1859,13 @@ class GameState extends ChangeNotifier {
       final port = _ports[i];
       // 遍历所有已配置的商品
       for (final goodsId in port.goodsConfig.keys) {
-        final currentStock = port.getGoodsStock(goodsId);
         final config = port.getGoodsConfig(goodsId);
         if (config != null) {
-          // 如果库存为0（未初始化），使用配置的 s0 初始化
-          final initialStock = currentStock > 0 ? currentStock : config.s0;
-          _ports[i] = _ports[i].setGoodsStock(goodsId, initialStock);
+          // 仅当库存映射中完全没有该商品的键时，才进行初始化（例如新解锁的物资）
+          // 已经存在的物资（即使当前库存为 0）不应被重置为 s₀
+          if (!port.goodsStock.containsKey(goodsId)) {
+            _ports[i] = _ports[i].setGoodsStock(goodsId, config.s0);
+          }
         }
       }
       
@@ -2132,7 +2257,7 @@ class GameState extends ChangeNotifier {
 
   /// 触发战斗（在航行过程中随机触发）
   void _triggerCombat() {
-    if (_isInCombat || !_isAtSea) return;
+    if (_isInCombat || !_isAtSea || !_isCombatUnlocked) return;
 
     // 随机触发战斗（每20%进度5%概率）
     final random = Random();
@@ -2173,6 +2298,7 @@ class GameState extends ChangeNotifier {
       'visitedPortIds': _visitedPortIds.toList(),
       'completedQuestIds': QuestSystem.instance.completedQuestIds,
       'activeQuestId': QuestSystem.instance.activeQuest?.id,
+      'isCombatUnlocked': _isCombatUnlocked,
     };
   }
 
@@ -2288,6 +2414,9 @@ class GameState extends ChangeNotifier {
 
     // 8. 恢复昼夜系统
     _dayNightSystem.loadFromJson(json['dayNightSystem'] as Map<String, dynamic>);
+    
+    // 恢复战斗系统解锁状态
+    _isCombatUnlocked = json['isCombatUnlocked'] as bool? ?? false;
     
     // 重置 UI 判定标志
     _isTradeConfirmed = false;

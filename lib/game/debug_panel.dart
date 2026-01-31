@@ -220,6 +220,42 @@ class _DebugPanelState extends State<DebugPanel>
                       ],
                     ),
                     const SizedBox(height: 8),
+                    // 战斗解锁开关
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        const Text(
+                          '战斗系统解锁',
+                          style: TextStyle(color: Colors.white, fontSize: 12),
+                        ),
+                        Switch(
+                          value: widget.gameState!.isCombatUnlocked,
+                          onChanged: (value) {
+                            widget.gameState!.setCombatUnlocked(value);
+                          },
+                          activeThumbColor: Colors.orange,
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 8),
+                    // 所有岛屿解锁开关
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        const Text(
+                          '所有岛屿解锁',
+                          style: TextStyle(color: Colors.white, fontSize: 12),
+                        ),
+                        Switch(
+                          value: widget.gameState!.ports.every((p) => p.unlocked),
+                          onChanged: (value) {
+                            widget.gameState!.setAllPortsUnlocked(value);
+                          },
+                          activeThumbColor: Colors.orange,
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 8),
                     // 船只属性调节
                     const Text(
                       '船只属性调节',

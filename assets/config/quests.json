@@ -175,6 +175,7 @@
     "highlight": null,
     "text": "现在你已经掌握了贸易的基础。去广阔的大海自由航行吧！",
     "complete_when": "tap_anywhere",
+    "action": "combat.unlock",
     "is_mandatory": true
   },
   {
@@ -216,20 +217,22 @@
     "highlight": "ui.portRow('home_island')",
     "text": "选择【我的岛屿】并出发，开启你的领主治理之路吧。",
     "complete_when": "navigation.destination == 'home_island'",
-    "is_mandatory": true
+    "is_mandatory": true,
+    "action": "homeIsland.setTax(0)"
   },
   {
     "id": "T06d_collect_tax",
     "trigger": "after(T06c_open_home_island) && navigation.arrived",
-    "highlight": "ui.collectTaxButton",
+    "highlight": null,
     "text": "领主你终于回来了！",
     "complete_when": "tap_anywhere",
-    "is_mandatory": true
+    "is_mandatory": true,
+    "action": "homeIsland.unlockTax && homeIsland.setTax(2000)"
   },
   {
     "id": "T06e_tax_idle",
     "trigger": "after(T06d_collect_tax)",
-    "highlight": "ui.collectTaxButton",
+    "highlight": null,
     "text": "之前村民们缴纳的税金已经闲置很久了，现在终于可以派上用场了。",
     "complete_when": "tap_anywhere",
     "is_mandatory": true

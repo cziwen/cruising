@@ -12,6 +12,9 @@ class HomeIsland {
   // 累积税收
   int accumulatedTax = 0;
   
+  // 税收功能是否已解锁
+  bool isTaxUnlocked = false;
+  
   // 仓库库存
   List<ShipInventoryItem> warehouseInventory = [];
 
@@ -21,6 +24,7 @@ class HomeIsland {
     this.merchantFundsLevel = 0,
     this.restockSpeedLevel = 0,
     this.accumulatedTax = 0,
+    this.isTaxUnlocked = false,
     List<ShipInventoryItem>? warehouseInventory,
   }) : warehouseInventory = warehouseInventory ?? [];
 
@@ -45,6 +49,7 @@ class HomeIsland {
       'merchantFundsLevel': merchantFundsLevel,
       'restockSpeedLevel': restockSpeedLevel,
       'accumulatedTax': accumulatedTax,
+      'isTaxUnlocked': isTaxUnlocked,
       'warehouseInventory': warehouseInventory.map((item) => item.toJson()).toList(),
     };
   }
@@ -56,6 +61,7 @@ class HomeIsland {
       merchantFundsLevel: json['merchantFundsLevel'] as int? ?? 0,
       restockSpeedLevel: json['restockSpeedLevel'] as int? ?? 0,
       accumulatedTax: json['accumulatedTax'] as int? ?? 0,
+      isTaxUnlocked: json['isTaxUnlocked'] as bool? ?? false,
       warehouseInventory: (json['warehouseInventory'] as List?)
           ?.map((item) => ShipInventoryItem.fromJson(item as Map<String, dynamic>))
           .toList(),
@@ -68,6 +74,7 @@ class HomeIsland {
     int? merchantFundsLevel,
     int? restockSpeedLevel,
     int? accumulatedTax,
+    bool? isTaxUnlocked,
     List<ShipInventoryItem>? warehouseInventory,
   }) {
     return HomeIsland(
@@ -76,6 +83,7 @@ class HomeIsland {
       merchantFundsLevel: merchantFundsLevel ?? this.merchantFundsLevel,
       restockSpeedLevel: restockSpeedLevel ?? this.restockSpeedLevel,
       accumulatedTax: accumulatedTax ?? this.accumulatedTax,
+      isTaxUnlocked: isTaxUnlocked ?? this.isTaxUnlocked,
       warehouseInventory: warehouseInventory ?? this.warehouseInventory,
     );
   }
