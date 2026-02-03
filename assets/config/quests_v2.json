@@ -8,42 +8,33 @@
     "is_mandatory": true
   },
   {
-    "id": "T01b_intro",
+    "id": "T01_go_port",
     "trigger": "after(T01_welcome)",
-    "highlight": null,
-    "text": "我们需要先赚到第一桶金。通常的做法是在物产丰富的港口低价买入，再到稀缺的地方高价卖出。",
-    "complete_when": "tap_anywhere",
-    "is_mandatory": true
-  },
-  {
-    "id": "T01c_open_port_list",
-    "trigger": "after(T01b_intro)",
     "highlight": "ui.portListButton",
-    "text": "点开【选择目的地】来开始我们的第一段航程。",
+    "text": "我们需要先赚到第一桶金。点开【选择目的地】，前往【灯塔岛】看看吧，听说那里木材非常便宜。",
     "complete_when": "ui.portList.opened",
     "is_mandatory": true
   },
   {
-    "id": "T01d_select_lighthouse",
-    "trigger": "after(T01c_open_port_list)",
+    "id": "T01_select_lighthouse",
+    "trigger": "after(T01_go_port)",
     "highlight": "ui.portRow('port_1')",
-    "text": "【灯塔岛】就在附近，那里的木材非常便宜。点击【出发】！",
     "complete_when": "navigation.destination == 'port_1'",
     "is_mandatory": true
   },
   {
-    "id": "T02_arrival_lighthouse",
-    "trigger": "after(T01d_select_lighthouse) && navigation.arrived",
+    "id": "T02_arrival",
+    "trigger": "after(T01_select_lighthouse) && navigation.arrived",
     "highlight": null,
-    "text": "我们到了！灯塔岛的森林提供了源源不断的木材。",
+    "text": "我们到了！这里的森林提供了源源不断的木材。看看这里的市场吧。",
     "complete_when": "tap_anywhere",
     "is_mandatory": true
   },
   {
     "id": "T02_buy_goods",
-    "trigger": "after(T02_arrival_lighthouse)",
+    "trigger": "after(T02_arrival)",
     "highlight": "ui.marketButton",
-    "text": "打开【市场】，买入一些吧。",
+    "text": "打开【市场】，买入一些货物。推荐买入【木材】。你可以选中货物后调整滑块，并利用【平衡报价】让商人补足差额，最后点击确认交易。",
     "complete_when": "ui.marketPanel.opened",
     "is_mandatory": true
   },
@@ -51,77 +42,49 @@
     "id": "T02_in_market",
     "trigger": "after(T02_buy_goods)",
     "highlight": "ui.marketPanel",
-    "highlight_padding": -20,
-    "padding_top": -80,
     "complete_when": "ui.tradeConfirmed",
     "is_mandatory": true,
     "action": "ui.marketPanel.close"
   },
   {
-    "id": "T03a_open_port_list",
+    "id": "T03_profit_hint",
     "trigger": "after(T02_in_market)",
     "highlight": "ui.portListButton",
-    "text": "现在我们需要找一个地方卖出。再次打开【选择目的地】。",
+    "text": "干得好。现在我们需要找个地方卖掉。看看目的地列表。【贸易港】是个不错的选择。",
     "complete_when": "ui.portList.opened",
     "is_mandatory": true
   },
   {
-    "id": "T03b_select_trading_port",
-    "trigger": "after(T03a_open_port_list)",
+    "id": "T03_profit_hint_2",
+    "trigger": "after(T03_profit_hint)",
     "highlight": "ui.portRow('port_2')",
-    "text": "【贸易港】距离不远，且对木材有很大的需求。出发吧！",
     "complete_when": "navigation.destination == 'port_2'",
     "is_mandatory": true
   },
   {
-    "id": "T04_arrival_trading_port",
-    "trigger": "after(T03b_select_trading_port) && navigation.arrived",
-    "highlight": null,
-    "text": "这里就是贸易港。这里的商人愿意花大价钱买下我们的木材。",
-    "complete_when": "tap_anywhere",
-    "is_mandatory": true
-  },
-  {
-    "id": "T04b_open_market",
-    "trigger": "after(T04_arrival_trading_port)",
+    "id": "T04_sell_goods",
+    "trigger": "after(T03_profit_hint_2) && navigation.arrived",
     "highlight": "ui.marketButton",
+    "text": "这里的商人对木材需求量很大。进入市场，把货物卖掉来赚取利润吧！",
     "complete_when": "ui.marketPanel.opened",
     "is_mandatory": true
   },
   {
-    "id": "T04c_select_wood",
-    "trigger": "after(T04b_open_market)",
-    "highlight": "ui.playerGoodsRow('wood')",
-    "text": "在你的库存中选中【木材】。",
-    "complete_when": "ui.quantitySlider.opened",
-    "is_mandatory": true
-  },
-  {
     "id": "T04_sell_goods_2",
-    "trigger": "after(T04c_select_wood)",
+    "trigger": "after(T04_sell_goods)",
     "highlight": "ui.marketPanel",
-    "highlight_padding": -20,
-    "padding_top": -80,
     "complete_when": "ui.tradeConfirmed",
-    "is_mandatory": true
-  },
-  {
-    "id": "T04g_last_text",
-    "trigger": "after(T04_sell_goods_2)",
-    "highlight": null,
-    "text": "这就是贸易的魅力：利用地区间的物价差异获利。",
-    "complete_when": "tap_anywhere",
     "is_mandatory": true,
     "action": "ui.marketPanel.close"
   },
   {
     "id": "T05_free_trading",
-    "trigger": "after(T04g_last_text)",
+    "trigger": "after(T04_sell_goods_2)",
     "highlight": null,
-    "text": "现在你已经掌握了贸易的基础。去广阔的大海自由航行吧！",
+    "text": "这就是贸易的魅力：利用地区间的物价差异获利。现在你已经掌握了基础。去广阔的大海自由航行吧！",
     "complete_when": "tap_anywhere",
-    "action": "combat.unlock",
-    "is_mandatory": true
+    "is_mandatory": true,
+    "action": "combat.unlock"
   },
   {
     "id": "T06_messenger_encounter",
@@ -160,7 +123,7 @@
     "id": "T06c_open_home_island",
     "trigger": "after(T06c_open_port_list)",
     "highlight": "ui.portRow('home_island')",
-    "text": "选择【我的岛屿】并出发",
+    "text": "选择【我的岛屿】并出发，开启你的领主治理之路吧。",
     "complete_when": "navigation.destination == 'home_island'",
     "is_mandatory": true,
     "action": "homeIsland.setTax(0)"
@@ -210,7 +173,6 @@
     "id": "T06g_upgrade_logic",
     "trigger": "after(T06f_explain_upgrade)",
     "highlight": "ui.upgradeTab",
-    "padding_top": -20,
     "text": "尝试进行第一次基建升级，开启岛屿的繁荣纪元吧！",
     "complete_when": "ui.homeIslandUpgraded",
     "is_mandatory": true,

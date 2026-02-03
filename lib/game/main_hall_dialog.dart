@@ -75,6 +75,7 @@ class _MainHallDialogState extends State<MainHallDialog> with SingleTickerProvid
   @override
   Widget build(BuildContext context) {
     return PaperDialog(
+      questId: 'ui.hallPanel',
       assetPath: 'assets/paper_ui/Sprites/Book Desk/6.png',
       width: 1000,
       height: 800,

@@ -81,6 +81,13 @@ class QuestOverlay extends StatelessWidget {
       return const SizedBox.shrink();
     }
 
+    final padding = EdgeInsets.only(
+      top: quest.paddingTop ?? quest.highlightPadding ?? 8,
+      bottom: quest.paddingBottom ?? quest.highlightPadding ?? 8,
+      left: quest.paddingLeft ?? quest.highlightPadding ?? 8,
+      right: quest.paddingRight ?? quest.highlightPadding ?? 8,
+    );
+
     return Stack(
       children: [
         IgnorePointer(
@@ -89,6 +96,7 @@ class QuestOverlay extends StatelessWidget {
             painter: _HighlightPainter(
               rect: highlightRect,
               color: Colors.black.withValues(alpha: 0.7),
+              padding: padding,
             ),
           ),
         ),
@@ -96,12 +104,15 @@ class QuestOverlay extends StatelessWidget {
         if (quest.isMandatory)
           _InteractionBlocker(
             highlightRect: highlightRect,
+            padding: padding,
           ),
       ],
     );
   }
 
   Widget _buildQuestText(BuildContext context, Quest quest, Rect? highlightRect, double maxHeight) {
+    if (quest.text == null) return const SizedBox.shrink();
+
     bool useTop = false;
     if (highlightRect != null) {
       // 动态定位：如果高亮目标在屏幕下半部分，提示文字显示在上方；否则显示在下方
@@ -136,7 +147,7 @@ class QuestOverlay extends StatelessWidget {
               mainAxisSize: MainAxisSize.min,
               children: [
                 Text(
-                  quest.text,
+                  quest.text!,
                   style: const TextStyle(
                     color: Color(0xFF4E342E),
                     fontSize: 18,
@@ -166,8 +177,13 @@ class QuestOverlay extends StatelessWidget {
 class _HighlightPainter extends CustomPainter {
   final Rect rect;
   final Color color;
+  final EdgeInsets padding;
 
-  _HighlightPainter({required this.rect, required this.color});
+  _HighlightPainter({
+    required this.rect, 
+    required this.color,
+    this.padding = const EdgeInsets.all(8),
+  });
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -177,9 +193,17 @@ class _HighlightPainter extends CustomPainter {
     // 先绘制背景色
     canvas.drawRect(Offset.zero & size, Paint()..color = color);
 
+    // 计算实际的高亮矩形（应用 padding）
+    final highlightedRect = Rect.fromLTRB(
+      rect.left - padding.left,
+      rect.top - padding.top,
+      rect.right + padding.right,
+      rect.bottom + padding.bottom,
+    );
+
     // 使用 BlendMode.clear 挖孔，确保高亮区域完全透明（镂空效果）
     canvas.drawRRect(
-      RRect.fromRectAndRadius(rect.inflate(8), const Radius.circular(8)),
+      RRect.fromRectAndRadius(highlightedRect, const Radius.circular(8)),
       Paint()..blendMode = BlendMode.clear,
     );
 
@@ -190,24 +214,33 @@ class _HighlightPainter extends CustomPainter {
       ..color = Colors.amber
       ..style = PaintingStyle.stroke
       ..strokeWidth = 3;
-    canvas.drawRRect(RRect.fromRectAndRadius(rect.inflate(8), const Radius.circular(8)), borderPaint);
+    canvas.drawRRect(RRect.fromRectAndRadius(highlightedRect, const Radius.circular(8)), borderPaint);
   }
 
   @override
   bool shouldRepaint(_HighlightPainter oldDelegate) => 
-      rect != oldDelegate.rect || color != oldDelegate.color;
+      rect != oldDelegate.rect || color != oldDelegate.color || padding != oldDelegate.padding;
 }
 
 /// 用于在强制引导时屏蔽非高亮区域的点击
 class _InteractionBlocker extends StatelessWidget {
   final Rect highlightRect;
+  final EdgeInsets padding;
 
-  const _InteractionBlocker({required this.highlightRect});
+  const _InteractionBlocker({
+    required this.highlightRect,
+    this.padding = const EdgeInsets.all(8),
+  });
 
   @override
   Widget build(BuildContext context) {
     // 这里的 rect 应该和 _HighlightPainter 中的一致，包含 padding
-    final rect = highlightRect.inflate(8);
+    final rect = Rect.fromLTRB(
+      highlightRect.left - padding.left,
+      highlightRect.top - padding.top,
+      highlightRect.right + padding.right,
+      highlightRect.bottom + padding.bottom,
+    );
     
     return Stack(
       children: [

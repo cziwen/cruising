@@ -90,6 +90,7 @@ class _ShipyardDialogState extends State<ShipyardDialog>
     final ship = widget.gameState.ship;
 
     return PaperDialog(
+      questId: 'ui.shipyardPanel',
       assetPath: 'assets/paper_ui/Sprites/Book Desk/7.png',
       width: 1200,
       height: 800,
