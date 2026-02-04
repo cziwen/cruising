@@ -58,6 +58,7 @@ class _MapPortSelectDialog extends StatefulWidget {
 
 class _MapPortSelectDialogState extends State<_MapPortSelectDialog> {
   String? hoveredPortId;
+  String? selectedPortId;
   Offset? mousePosition;
 
   @override
@@ -65,6 +66,8 @@ class _MapPortSelectDialogState extends State<_MapPortSelectDialog> {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       widget.portSystem.gameState.setPortListOpened(true);
+      // 同步初始选中的港口（如果有的话，虽然通常开始时没有）
+      widget.portSystem.gameState.setSelectedMapPortId(selectedPortId);
     });
   }
 
@@ -72,6 +75,7 @@ class _MapPortSelectDialogState extends State<_MapPortSelectDialog> {
   void dispose() {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       widget.portSystem.gameState.setPortListOpened(false);
+      widget.portSystem.gameState.setSelectedMapPortId(null);
     });
     super.dispose();
   }
@@ -150,31 +154,6 @@ class _MapPortSelectDialogState extends State<_MapPortSelectDialog> {
                     ),
                   ),
 
-                  // 标题
-                  Positioned(
-                    top: 20,
-                    left: 0,
-                    right: 0,
-                    child: Center(
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFFD7CCC8).withValues(alpha: 0.8),
-                          borderRadius: BorderRadius.circular(20),
-                          border: Border.all(color: const Color(0xFF5D4037), width: 2),
-                        ),
-                        child: const Text(
-                          '选择目的地 Select Destination',
-                          style: TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                            color: Color(0xFF4E342E),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-
                   // 港口标记点
                   ...availablePorts.map((port) {
                     if (port.mapX == null || port.mapY == null) return const SizedBox.shrink();
@@ -182,10 +161,11 @@ class _MapPortSelectDialogState extends State<_MapPortSelectDialog> {
                     final double x = port.mapX! * scale;
                     final double y = port.mapY! * scale;
                     final bool isHovered = hoveredPortId == port.id;
+                    final bool isSelected = selectedPortId == port.id;
                     final bool isCurrent = port.id == currentPort?.id;
 
-                    // 准备高亮 ID (保持与列表一致)
-                    final actionKeyId = 'ui.portDepartButton(\'${port.id}\')';
+                    // 准备高亮 ID
+                    final portKeyId = 'ui.mapPort(\'${port.id}\')';
 
                     return Positioned(
                       left: x - 50 * scale, // 增加点击区域
@@ -195,18 +175,13 @@ class _MapPortSelectDialogState extends State<_MapPortSelectDialog> {
                         onExit: (_) => setState(() => hoveredPortId = null),
                         cursor: SystemMouseCursors.click,
                         child: QuestTarget(
-                          id: actionKeyId,
+                          id: portKeyId,
                           child: GestureDetector(
                             behavior: HitTestBehavior.opaque,
-                            onTap: isCurrent ? null : () async {
-                              final navigator = Navigator.of(context);
-                              navigator.pop();
-                              Future.microtask(() async {
-                                try {
-                                  await widget.portSystem.gameState.startTravelToPort(port.id);
-                                } catch (e) {
-                                  debugPrint('航行失败: $e');
-                                }
+                            onTap: isCurrent ? null : () {
+                              setState(() {
+                                selectedPortId = port.id;
+                                widget.portSystem.gameState.setSelectedMapPortId(port.id);
                               });
                             },
                             child: SizedBox(
@@ -215,8 +190,8 @@ class _MapPortSelectDialogState extends State<_MapPortSelectDialog> {
                               child: Stack(
                                 alignment: Alignment.center,
                                 children: [
-                                  // 只有在 hover 时显示红圈
-                                  if (isHovered)
+                                  // 只有在选中时显示红圈
+                                  if (isSelected)
                                     Opacity(
                                       opacity: 0.6,
                                       child: Image.asset(
@@ -234,7 +209,7 @@ class _MapPortSelectDialogState extends State<_MapPortSelectDialog> {
                                         port.isSeaLocation ? Icons.waves : Icons.location_on,
                                         color: isCurrent 
                                             ? Colors.orange 
-                                            : (isHovered ? Colors.red : const Color(0xFF5D4037)),
+                                            : (isSelected ? Colors.red : (isHovered ? Colors.red.withValues(alpha: 0.5) : const Color(0xFF5D4037))),
                                         size: 30 * scale,
                                       ),
                                       Container(
@@ -262,6 +237,32 @@ class _MapPortSelectDialogState extends State<_MapPortSelectDialog> {
                       ),
                     );
                   }),
+
+                  // 出发按钮 - 右下角
+                  Positioned(
+                    bottom: 20,
+                    right: 20,
+                    child: QuestTarget(
+                      id: 'ui.mapDepartButton',
+                      child: PaperButton(
+                        onPressed: selectedPortId == null ? null : () async {
+                          final navigator = Navigator.of(context);
+                          navigator.pop();
+                          Future.microtask(() async {
+                            try {
+                              await widget.portSystem.gameState.startTravelToPort(selectedPortId!);
+                            } catch (e) {
+                              debugPrint('航行失败: $e');
+                            }
+                          });
+                        },
+                        label: '出发',
+                        style: PaperButtonStyle.brown,
+                        width: 100,
+                        height: 48,
+                      ),
+                    ),
+                  ),
 
                   // 坐标调试信息覆盖层
                   if (widget.portSystem.gameState.showMapCoordinates && mousePosition != null) ...[

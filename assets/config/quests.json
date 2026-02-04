@@ -24,16 +24,32 @@
     "is_mandatory": true
   },
   {
+    "id": "T01c_open_port_lis_2",
+    "trigger": "after(T01c_open_port_list)",
+    "highlight": null,
+    "text": "这就是世界的地图，你可以去往任何你想去的地方。",
+    "complete_when": "tap_anywhere",
+    "is_mandatory": true
+  },
+  {
     "id": "T01d_select_lighthouse",
     "trigger": "after(T01c_open_port_list)",
-    "highlight": "ui.portRow('port_1')",
-    "text": "【灯塔岛】就在附近，那里的木材非常便宜。点击【出发】！",
+    "highlight": "ui.mapPort('port_1')",
+    "text": "在地图上选中【灯塔岛】，那里的木材非常便宜。",
+    "complete_when": "navigation.map_selected == 'port_1'",
+    "is_mandatory": true
+  },
+  {
+    "id": "T01e_depart_lighthouse",
+    "trigger": "after(T01d_select_lighthouse)",
+    "highlight": "ui.mapDepartButton",
+    "text": "点击右下角的【出发】！",
     "complete_when": "navigation.destination == 'port_1'",
     "is_mandatory": true
   },
   {
     "id": "T02_arrival_lighthouse",
-    "trigger": "after(T01d_select_lighthouse) && navigation.arrived",
+    "trigger": "after(T01e_depart_lighthouse) && navigation.arrived",
     "highlight": null,
     "text": "我们到了！灯塔岛的森林提供了源源不断的木材。",
     "complete_when": "tap_anywhere",
@@ -68,14 +84,22 @@
   {
     "id": "T03b_select_trading_port",
     "trigger": "after(T03a_open_port_list)",
-    "highlight": "ui.portRow('port_2')",
-    "text": "【贸易港】距离不远，且对木材有很大的需求。出发吧！",
+    "highlight": "ui.mapPort('port_2')",
+    "text": "在地图上选中【贸易港】，那里对木材有很大的需求。",
+    "complete_when": "navigation.map_selected == 'port_2'",
+    "is_mandatory": true
+  },
+  {
+    "id": "T03c_depart_trading_port",
+    "trigger": "after(T03b_select_trading_port)",
+    "highlight": "ui.mapDepartButton",
+    "text": "出发吧！",
     "complete_when": "navigation.destination == 'port_2'",
     "is_mandatory": true
   },
   {
     "id": "T04_arrival_trading_port",
-    "trigger": "after(T03b_select_trading_port) && navigation.arrived",
+    "trigger": "after(T03c_depart_trading_port) && navigation.arrived",
     "highlight": null,
     "text": "这里就是贸易港。这里的商人愿意花大价钱买下我们的木材。",
     "complete_when": "tap_anywhere",
@@ -157,17 +181,25 @@
     "is_mandatory": true
   },
   {
-    "id": "T06c_open_home_island",
+    "id": "T06d_select_home_island",
     "trigger": "after(T06c_open_port_list)",
-    "highlight": "ui.portRow('home_island')",
-    "text": "选择【我的岛屿】并出发",
-    "complete_when": "navigation.destination == 'home_island'",
+    "highlight": "ui.mapPort('home_island')",
+    "text": "在地图上选中【我的岛屿】。",
+    "complete_when": "navigation.map_selected == 'home_island'",
     "is_mandatory": true,
     "action": "homeIsland.setTax(0)"
   },
   {
-    "id": "T06d_collect_tax",
-    "trigger": "after(T06c_open_home_island) && navigation.arrived",
+    "id": "T06e_depart_home_island",
+    "trigger": "after(T06d_select_home_island)",
+    "highlight": "ui.mapDepartButton",
+    "text": "并点击【出发】。",
+    "complete_when": "navigation.destination == 'home_island'",
+    "is_mandatory": true
+  },
+  {
+    "id": "T06f_collect_tax_intro",
+    "trigger": "after(T06e_depart_home_island) && navigation.arrived",
     "highlight": null,
     "text": "领主你终于回来了！",
     "complete_when": "tap_anywhere",
@@ -175,40 +207,40 @@
     "action": "homeIsland.unlockTax && homeIsland.setTax(2000)"
   },
   {
-    "id": "T06e_tax_idle",
-    "trigger": "after(T06d_collect_tax)",
+    "id": "T06g_tax_idle",
+    "trigger": "after(T06f_collect_tax_intro)",
     "highlight": null,
     "text": "之前村民们缴纳的税金已经闲置很久了，现在终于可以派上用场了。",
     "complete_when": "tap_anywhere",
     "is_mandatory": true
   },
   {
-    "id": "T06f_collect_tax",
-    "trigger": "after(T06e_tax_idle)",
+    "id": "T06h_collect_tax_action",
+    "trigger": "after(T06g_tax_idle)",
     "highlight": "ui.collectTaxButton",
     "text": "点击岛屿上方的金币图标，领取用于重建岛屿的第一笔资金吧。",
     "complete_when": "homeIsland.tax_collected_today == true",
     "is_mandatory": true
   },
   {
-    "id": "T06e_open_hall",
-    "trigger": "after(T06d_collect_tax)",
+    "id": "T06i_open_hall",
+    "trigger": "after(T06h_collect_tax_action)",
     "highlight": "ui.hallButton",
     "text": "点击【大厅】进入岛屿的管理中心",
     "complete_when": "ui.hallPanel.opened",
     "is_mandatory": true
   },
   {
-    "id": "T06f_explain_upgrade",
-    "trigger": "after(T06e_open_hall)",
+    "id": "T06j_explain_upgrade",
+    "trigger": "after(T06i_open_hall)",
     "highlight": null,
     "text": "在大厅里，您可以投资金币升级岛屿的基建。随着税收、经济、资金和补货能力的提升，这座原本荒凉的岛屿将会在您的治理下焕发新生。",
     "complete_when": "tap_anywhere",
     "is_mandatory": true
   },
   {
-    "id": "T06g_upgrade_logic",
-    "trigger": "after(T06f_explain_upgrade)",
+    "id": "T06k_upgrade_logic",
+    "trigger": "after(T06j_explain_upgrade)",
     "highlight": "ui.upgradeTab",
     "padding_top": -20,
     "text": "尝试进行第一次基建升级，开启岛屿的繁荣纪元吧！",
@@ -218,7 +250,7 @@
   },
   {
     "id": "T10_tutorial_complete",
-    "trigger": "after(T06g_upgrade_logic)",
+    "trigger": "after(T06k_upgrade_logic)",
     "highlight": null,
     "text": "无论是成为富甲一方的巨贾，还是建设最繁荣的领地，都由您决定。祝您航行顺利，领主大人！",
     "complete_when": "tap_anywhere",

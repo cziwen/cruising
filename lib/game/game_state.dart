@@ -137,6 +137,17 @@ class GameState extends ChangeNotifier {
   // 是否处于菜单模式（暂停游戏时间流逝，仅保留动画）
   bool isMenuMode = false;
 
+  // 是否处于任务对话框暂停模式（弹出对话框时暂停）
+  bool _isQuestPaused = false;
+  bool get isQuestPaused => _isQuestPaused;
+
+  void setQuestPaused(bool paused) {
+    if (_isQuestPaused != paused) {
+      _isQuestPaused = paused;
+      notifyListeners();
+    }
+  }
+
   // 进度更新 Ticker（用于每帧更新航行进度）
   Ticker? _progressTicker;
   
@@ -175,6 +186,17 @@ class GameState extends ChangeNotifier {
   bool _isCombatUnlocked = false; // 战斗系统是否已解锁
   
   bool _isTradeConfirmed = false;
+  
+  // 地图对话框中当前选中的港口ID（用于任务系统判定）
+  String? _selectedMapPortId;
+  String? get selectedMapPortId => _selectedMapPortId;
+
+  void setSelectedMapPortId(String? id) {
+    if (_selectedMapPortId != id) {
+      _selectedMapPortId = id;
+      notifyListeners();
+    }
+  }
   
   // 调试辅助：是否显示地图坐标
   bool _showMapCoordinates = false;
@@ -387,6 +409,7 @@ class GameState extends ChangeNotifier {
     _sliderValue = 0;
     _isTradeBalanced = false;
     _isTradeConfirmed = false;
+    _selectedMapPortId = null;
     _shipUpgradeCount = 0;
     _taxCollectedToday = false;
     _isHallPanelOpened = false;
@@ -495,8 +518,8 @@ class GameState extends ChangeNotifier {
     // swayTime 始终增加，用于模拟海浪左右晃动
     _swayTime += dtRealSeconds;
     
-    // 如果处于菜单模式，跳过后续所有游戏逻辑更新（仅保留基础动画）
-    if (isMenuMode) {
+    // 如果处于菜单模式或任务暂停模式，跳过后续所有游戏逻辑更新（仅保留基础动画）
+    if (isMenuMode || _isQuestPaused) {
       notifyListeners();
       return;
     }
@@ -672,6 +695,8 @@ class GameState extends ChangeNotifier {
   /// [dtRealSeconds] 实际经过的秒数（从上一帧到当前帧）
   /// 根据船工的技能自动恢复耐久度
   void processAutoRepairWithDeltaTime(double dtRealSeconds) {
+    if (isMenuMode || _isQuestPaused) return;
+
     final autoRepair = autoRepairPerSecond;
     if (autoRepair <= 0 || _ship.durability >= _ship.maxDurability) {
       return;
@@ -1962,6 +1987,8 @@ class GameState extends ChangeNotifier {
   /// [dtGameSeconds] 游戏时间增量（秒）
   /// 由主游戏循环调用，确保使用统一的游戏时钟
   void updateCombatWithDeltaTime(double dtGameSeconds) {
+    if (isMenuMode || _isQuestPaused) return;
+
     if (!_isInCombat || _enemyShip == null || _isSinking) {
       return;
     }

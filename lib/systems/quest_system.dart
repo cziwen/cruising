@@ -85,13 +85,24 @@ class QuestSystem extends ChangeNotifier {
     
     // 确保不在 build 阶段直接调用 notifyListeners
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      _updateGamePauseState();
       notifyListeners();
     });
+  }
+
+  /// 更新游戏暂停状态：当有活跃任务且包含文本时，暂停游戏时间
+  void _updateGamePauseState() {
+    if (_gameState == null) return;
+    
+    // 如果有活跃任务且任务有文本，则暂停游戏
+    final shouldPause = _activeQuest != null && _activeQuest!.text != null;
+    _gameState!.setQuestPaused(shouldPause);
   }
 
   /// 重置系统状态（用于返回主菜单）
   void reset() {
     _gameState?.removeListener(_onGameStateChanged);
+    _updateGamePauseState(); // 恢复非暂停状态
     _gameState = null;
     _allQuests.clear();
     _completedQuestIds.clear();
@@ -122,6 +133,8 @@ class QuestSystem extends ChangeNotifier {
     // 加载进度后重新检查触发器（以防 activeQuest 为空时需要触发新任务）
     _checkTriggers();
     
+    _updateGamePauseState();
+    
     WidgetsBinding.instance.addPostFrameCallback((_) {
       notifyListeners();
     });
@@ -136,6 +149,7 @@ class QuestSystem extends ChangeNotifier {
       // 如果没有活跃任务，尝试触发新的
       _checkTriggers();
     }
+    _updateGamePauseState();
   }
 
   /// 评估完整条件（支持 &&、|| 和括号）
@@ -204,6 +218,7 @@ class QuestSystem extends ChangeNotifier {
     }
     
     if (hasChanged) {
+      _updateGamePauseState();
       WidgetsBinding.instance.addPostFrameCallback((_) {
         notifyListeners();
       });
@@ -237,6 +252,7 @@ class QuestSystem extends ChangeNotifier {
         }
       }
       
+      _updateGamePauseState();
       WidgetsBinding.instance.addPostFrameCallback((_) {
         notifyListeners();
       });
@@ -345,6 +361,17 @@ class QuestSystem extends ChangeNotifier {
       if (startQuote > 0 && endQuote > startQuote) {
         final targetPortId = condition.substring(startQuote, endQuote);
         return gs.destinationPort?.id == targetPortId;
+      }
+      return false;
+    }
+
+    // 4.1 地图选中港口 navigation.map_selected == 'port_1'
+    if (condition.startsWith("navigation.map_selected == ")) {
+      final startQuote = condition.indexOf("'") + 1;
+      final endQuote = condition.indexOf("'", startQuote);
+      if (startQuote > 0 && endQuote > startQuote) {
+        final targetPortId = condition.substring(startQuote, endQuote);
+        return gs.selectedMapPortId == targetPortId;
       }
       return false;
     }
