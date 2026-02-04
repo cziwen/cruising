@@ -176,6 +176,17 @@ class GameState extends ChangeNotifier {
   
   bool _isTradeConfirmed = false;
   
+  // 调试辅助：是否显示地图坐标
+  bool _showMapCoordinates = false;
+  bool get showMapCoordinates => _showMapCoordinates;
+
+  void setShowMapCoordinates(bool value) {
+    if (_showMapCoordinates != value) {
+      _showMapCoordinates = value;
+      notifyListeners();
+    }
+  }
+
   // 待交易物品追踪（用于任务系统判定）
   // 换入为正，换出为负
   final Map<String, int> _pendingTradeQuantities = {};
@@ -1520,6 +1531,8 @@ class GameState extends ChangeNotifier {
         backgroundImage: _homeIsland.appearance,
         description: '这是你的私人岛屿，可以进行养成和存储。',
         unlocked: false,
+        mapX: configHome?.mapX ?? 250.0,
+        mapY: configHome?.mapY ?? 350.0,
         distances: {
           'port_1': 480, // 默认到起始港较近
         },
