@@ -171,6 +171,12 @@ class GameState extends ChangeNotifier {
   bool _isFadeOut = false; // 是否正在渐变黑屏
   Port? _previousPortBeforeCombat; // 战斗前的港口（用于失败重生）
 
+  // 战斗事件计数器（用于触发视觉反馈）
+  int _playerFireCount = 0;
+  int _enemyFireCount = 0;
+  int _playerHitCount = 0;
+  int _enemyHitCount = 0;
+
   // 任务/教程系统追踪
   bool _isMarketOpened = false;
   bool _isPortListOpened = false;
@@ -433,6 +439,10 @@ class GameState extends ChangeNotifier {
     _isReturningFromCombat = false;
     _isFadeOut = false;
     _previousPortBeforeCombat = null;
+    _playerFireCount = 0;
+    _enemyFireCount = 0;
+    _playerHitCount = 0;
+    _enemyHitCount = 0;
     
     // 7. 重置动画相关状态
     _swayTime = 0.0;
@@ -914,6 +924,12 @@ class GameState extends ChangeNotifier {
   bool get isPlayerSinking => _isPlayerSinking;
   bool get isReturningFromCombat => _isReturningFromCombat;
   bool get isFadeOut => _isFadeOut;
+
+  // 战斗事件计数器 getters
+  int get playerFireCount => _playerFireCount;
+  int get enemyFireCount => _enemyFireCount;
+  int get playerHitCount => _playerHitCount;
+  int get enemyHitCount => _enemyHitCount;
 
   // 任务系统相关 getter
   bool get isMarketOpened => _isMarketOpened;
@@ -1950,6 +1966,12 @@ class GameState extends ChangeNotifier {
     _playerRepairTimer = 0.0;
     _enemyRepairTimer = 0.0;
 
+    // 重置战斗事件计数器
+    _playerFireCount = 0;
+    _enemyFireCount = 0;
+    _playerHitCount = 0;
+    _enemyHitCount = 0;
+
     // 暂停航行进度更新
     _progressTicker?.stop();
 
@@ -2003,7 +2025,7 @@ class GameState extends ChangeNotifier {
   void updateCombatWithDeltaTime(double dtGameSeconds) {
     if (isMenuMode || _isQuestPaused) return;
 
-    if (!_isInCombat || _enemyShip == null || _isSinking) {
+    if (!_isInCombat || _enemyShip == null || _isSinking || _isEnteringCombat) {
       return;
     }
 
@@ -2028,6 +2050,8 @@ class GameState extends ChangeNotifier {
       while (_playerAttackTimer >= attackInterval) {
         _enemyShip!.takeDamage(_ship.damagePerShot);
         _playerAttackTimer -= attackInterval;
+        _playerFireCount++;
+        _enemyHitCount++;
         notifyListeners();
       }
     }
@@ -2042,6 +2066,8 @@ class GameState extends ChangeNotifier {
       while (_enemyAttackTimer >= attackInterval) {
         _ship.durability = (_ship.durability - _enemyShip!.damagePerShot).clamp(0, _ship.maxDurability);
         _enemyAttackTimer -= attackInterval;
+        _enemyFireCount++;
+        _playerHitCount++;
         notifyListeners();
       }
     }

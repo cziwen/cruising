@@ -37,6 +37,20 @@ class _ShipLayerState extends State<ShipLayer>
   AnimationController? _playerEnterController;
   Animation<double>? _playerEnterAnimation;
   
+  // 战斗视觉反馈相关
+  int _lastPlayerHitCount = 0;
+  int _lastEnemyHitCount = 0;
+
+  late AnimationController _playerHitFlashController;
+  late Animation<double> _playerHitFlashAnimation;
+  late AnimationController _enemyHitFlashController;
+  late Animation<double> _enemyHitFlashAnimation;
+
+  late AnimationController _playerShakeController;
+  late Animation<double> _playerShakeAnimation;
+  late AnimationController _enemyShakeController;
+  late Animation<double> _enemyShakeAnimation;
+
   // 缓存加载失败的图像路径，避免重复尝试
   static final Set<String> _failedImagePaths = {};
 
@@ -58,6 +72,45 @@ class _ShipLayerState extends State<ShipLayer>
       curve: Curves.easeInOut,
     ));
 
+    // 初始化战斗视觉反馈动画
+    _playerHitFlashController = AnimationController(
+      duration: const Duration(milliseconds: 150),
+      vsync: this,
+    );
+    _playerHitFlashAnimation = TweenSequence<double>([
+      TweenSequenceItem(tween: Tween<double>(begin: 0.0, end: 1.0), weight: 50),
+      TweenSequenceItem(tween: Tween<double>(begin: 1.0, end: 0.0), weight: 50),
+    ]).animate(CurvedAnimation(parent: _playerHitFlashController, curve: Curves.easeInOut));
+
+    _enemyHitFlashController = AnimationController(
+      duration: const Duration(milliseconds: 150),
+      vsync: this,
+    );
+    _enemyHitFlashAnimation = TweenSequence<double>([
+      TweenSequenceItem(tween: Tween<double>(begin: 0.0, end: 1.0), weight: 50),
+      TweenSequenceItem(tween: Tween<double>(begin: 1.0, end: 0.0), weight: 50),
+    ]).animate(CurvedAnimation(parent: _enemyHitFlashController, curve: Curves.easeInOut));
+
+    _playerShakeController = AnimationController(
+      duration: const Duration(milliseconds: 200),
+      vsync: this,
+    );
+    _playerShakeAnimation = Tween<double>(begin: 1.0, end: 0.0).animate(
+      CurvedAnimation(parent: _playerShakeController, curve: Curves.easeOut),
+    );
+
+    _enemyShakeController = AnimationController(
+      duration: const Duration(milliseconds: 200),
+      vsync: this,
+    );
+    _enemyShakeAnimation = Tween<double>(begin: 1.0, end: 0.0).animate(
+      CurvedAnimation(parent: _enemyShakeController, curve: Curves.easeOut),
+    );
+
+    // 同步当前计数器状态
+    _lastPlayerHitCount = widget.gameState.playerHitCount;
+    _lastEnemyHitCount = widget.gameState.enemyHitCount;
+
     // 监听战斗状态变化
     widget.gameState.addListener(_onGameStateChanged);
   }
@@ -70,6 +123,10 @@ class _ShipLayerState extends State<ShipLayer>
     _sinkingController?.dispose();
     _playerReturnController?.dispose();
     _playerEnterController?.dispose();
+    _playerHitFlashController.dispose();
+    _enemyHitFlashController.dispose();
+    _playerShakeController.dispose();
+    _enemyShakeController.dispose();
     super.dispose();
   }
 
@@ -111,6 +168,30 @@ class _ShipLayerState extends State<ShipLayer>
       _playerReturnController?.dispose();
       _playerReturnController = null;
       _playerReturnAnimation = null;
+    }
+
+    // --- 战斗视觉反馈逻辑 ---
+    
+    // 如果计数器减少（通常意味着开启了新战斗），重置本地记录
+    if (widget.gameState.playerHitCount < _lastPlayerHitCount) {
+      _lastPlayerHitCount = widget.gameState.playerHitCount;
+    }
+    if (widget.gameState.enemyHitCount < _lastEnemyHitCount) {
+      _lastEnemyHitCount = widget.gameState.enemyHitCount;
+    }
+
+    // 检查玩家受击
+    if (widget.gameState.playerHitCount > _lastPlayerHitCount) {
+      _lastPlayerHitCount = widget.gameState.playerHitCount;
+      _playerHitFlashController.forward(from: 0.0);
+      _playerShakeController.forward(from: 0.0);
+    }
+
+    // 检查敌方受击
+    if (widget.gameState.enemyHitCount > _lastEnemyHitCount) {
+      _lastEnemyHitCount = widget.gameState.enemyHitCount;
+      _enemyHitFlashController.forward(from: 0.0);
+      _enemyShakeController.forward(from: 0.0);
     }
   }
 
@@ -244,12 +325,51 @@ class _ShipLayerState extends State<ShipLayer>
     }
 
     return Positioned.fill(
-      child: Transform.translate(
-        offset: Offset(xOffset, animateY),
-        child: _buildShipImage(
-          widget.gameState.ship.appearance,
-          fit: BoxFit.fill,
-        ),
+      child: AnimatedBuilder(
+        animation: _playerShakeAnimation,
+        builder: (context, child) {
+          // 计算船只震动偏移
+          Offset shakeOffset = Offset.zero;
+          if (_playerShakeController.isAnimating) {
+            final intensity = _playerShakeAnimation.value * 10.0;
+            shakeOffset = Offset(
+              (DateTime.now().millisecond % 2 == 0 ? 1 : -1) * intensity,
+              (DateTime.now().microsecond % 2 == 0 ? 1 : -1) * intensity,
+            );
+          }
+
+          return Transform.translate(
+            offset: Offset(shakeOffset.dx, shakeOffset.dy),
+            child: Stack(
+              children: [
+                Transform.translate(
+                  offset: Offset(xOffset, animateY),
+                  child: AnimatedBuilder(
+                    animation: _playerHitFlashAnimation,
+                    builder: (context, child) {
+                      Widget shipImage = _buildShipImage(
+                        widget.gameState.ship.appearance,
+                        fit: BoxFit.fill,
+                      );
+
+                      // 如果正在闪烁，应用白色滤镜
+                      if (_playerHitFlashAnimation.value > 0) {
+                        return ColorFiltered(
+                          colorFilter: ColorFilter.mode(
+                            Colors.white.withOpacity(_playerHitFlashAnimation.value * 0.8),
+                            BlendMode.srcATop,
+                          ),
+                          child: shipImage,
+                        );
+                      }
+                      return shipImage;
+                    },
+                  ),
+                ),
+              ],
+            ),
+          );
+        },
       ),
     );
   }
@@ -270,28 +390,63 @@ class _ShipLayerState extends State<ShipLayer>
     }
 
     return Positioned.fill(
-      child: Stack(
-        children: [
-          // 敌方船只图片 - 全屏
-          Positioned.fill(
-            child: Transform.translate(
-              offset: Offset(xOffset, animateY),
-              child: Transform.scale(
-                scaleX: -1,
-                child: _buildShipImage(
-                  widget.gameState.enemyShip?.appearance ?? 'assets/images/ships/single_sail_0.png',
-                  fit: BoxFit.fill,
+      child: AnimatedBuilder(
+        animation: _enemyShakeAnimation,
+        builder: (context, child) {
+          // 计算船只震动偏移
+          Offset shakeOffset = Offset.zero;
+          if (_enemyShakeController.isAnimating) {
+            final intensity = _enemyShakeAnimation.value * 10.0;
+            shakeOffset = Offset(
+              (DateTime.now().millisecond % 2 == 0 ? 1 : -1) * intensity,
+              (DateTime.now().microsecond % 2 == 0 ? 1 : -1) * intensity,
+            );
+          }
+
+          return Transform.translate(
+            offset: Offset(shakeOffset.dx, shakeOffset.dy),
+            child: Stack(
+              children: [
+                // 敌方船只图片 - 全屏
+                Positioned.fill(
+                  child: Transform.translate(
+                    offset: Offset(xOffset, animateY),
+                    child: Transform.scale(
+                      scaleX: -1,
+                      child: AnimatedBuilder(
+                        animation: _enemyHitFlashAnimation,
+                        builder: (context, child) {
+                          Widget shipImage = _buildShipImage(
+                            widget.gameState.enemyShip?.appearance ?? 'assets/images/ships/single_sail_0.png',
+                            fit: BoxFit.fill,
+                          );
+
+                          // 如果正在闪烁，应用白色滤镜
+                          if (_enemyHitFlashAnimation.value > 0) {
+                            return ColorFiltered(
+                              colorFilter: ColorFilter.mode(
+                                Colors.white.withOpacity(_enemyHitFlashAnimation.value * 0.8),
+                                BlendMode.srcATop,
+                              ),
+                              child: shipImage,
+                            );
+                          }
+                          return shipImage;
+                        },
+                      ),
+                    ),
+                  ),
                 ),
-              ),
+                // 敌方船只信息（显示在图片上方）
+                Positioned(
+                  left: screenSize.width / 2 + xOffset - 100,
+                  top: screenSize.height / 2 + animateY - 100, // 加上 animateY 使其随船下沉
+                  child: _buildEnemyShipInfo(),
+                ),
+              ],
             ),
-          ),
-          // 敌方船只信息（显示在图片上方）
-          Positioned(
-            left: screenSize.width / 2 + xOffset - 100,
-            top: screenSize.height / 2 - 100, // 与原位置相近
-            child: _buildEnemyShipInfo(),
-          ),
-        ],
+          );
+        },
       ),
     );
   }
