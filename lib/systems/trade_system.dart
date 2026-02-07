@@ -633,7 +633,7 @@ class _TradeDialogState extends State<_TradeDialog> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                '交易 Trade - ${currentPort.name}',
+                '市场 - ${currentPort.name}',
                 style: const TextStyle(
                   fontSize: 22,
                   fontWeight: FontWeight.bold,
@@ -662,7 +662,7 @@ class _TradeDialogState extends State<_TradeDialog> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       const Text(
-                        '商人库存 Merchant',
+                        '商人库存',
                         style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Color(0xFF5D4037)),
                       ),
                       const SizedBox(height: 8),
