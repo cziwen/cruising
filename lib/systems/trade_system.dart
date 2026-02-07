@@ -540,8 +540,13 @@ class TradeSystem {
 
   /// 显示交易界面
   static void showTradeDialog(BuildContext context, TradeSystem tradeSystem) {
+    // 检查任务配置是否允许关闭弹窗
+    final activeQuest = QuestSystem.instance.activeQuest;
+    final bool barrierDismissible = activeQuest?.barrierDismissible ?? true;
+
     showDialog(
       context: context,
+      barrierDismissible: barrierDismissible,
       builder: (context) => _TradeDialog(tradeSystem: tradeSystem),
     );
   }
@@ -619,10 +624,13 @@ class _TradeDialogState extends State<_TradeDialog> {
     final favor = _pendingTrade.calculateTradeFavor();
     final isAcceptable = _pendingTrade.isTradeAcceptable();
 
-    return QuestTarget(
-      id: 'ui.marketPanel',
-      child: PaperDialog(
-        assetPath: 'assets/paper_ui/Sprites/Book Desk/7.png',
+    // 检查任务配置是否允许关闭弹窗（用于隐藏关闭按钮）
+    final activeQuest = QuestSystem.instance.activeQuest;
+    final bool canClose = activeQuest?.barrierDismissible ?? true;
+
+    return PaperDialog(
+      questId: 'ui.marketPanel',
+      assetPath: 'assets/paper_ui/Sprites/Book Desk/7.png',
       width: 1000,
       height: 800,
       child: Column(
@@ -640,13 +648,14 @@ class _TradeDialogState extends State<_TradeDialog> {
                   color: Color(0xFF4E342E),
                 ),
               ),
-              PaperButton(
-                onPressed: () => Navigator.of(context).pop(),
-                icon: const Icon(Icons.close, color: Color(0xFF4E342E), size: 20),
-                style: PaperButtonStyle.brown,
-                width: 40,
-                height: 40,
-              ),
+              if (canClose) // 根据任务配置显示/隐藏关闭按钮
+                PaperButton(
+                  onPressed: () => Navigator.of(context).pop(),
+                  icon: const Icon(Icons.close, color: Color(0xFF4E342E), size: 20),
+                  style: PaperButtonStyle.brown,
+                  width: 40,
+                  height: 40,
+                ),
             ],
           ),
           const Divider(color: Color(0xFF8D6E63)),
@@ -771,7 +780,7 @@ class _TradeDialogState extends State<_TradeDialog> {
           ),
         ],
       ),
-    ));
+    );
   }
 
   Widget _buildMerchantInventory(List<Goods> goodsList, Port port) {

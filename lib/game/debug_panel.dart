@@ -256,6 +256,24 @@ class _DebugPanelState extends State<DebugPanel>
                       ],
                     ),
                     const SizedBox(height: 8),
+                    // 地图坐标调试开关
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        const Text(
+                          '地图坐标调试',
+                          style: TextStyle(color: Colors.white, fontSize: 12),
+                        ),
+                        Switch(
+                          value: widget.gameState!.showMapCoordinates,
+                          onChanged: (value) {
+                            widget.gameState!.setShowMapCoordinates(value);
+                          },
+                          activeThumbColor: Colors.orange,
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 8),
                     // 船只属性调节
                     const Text(
                       '船只属性调节',

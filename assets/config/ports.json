@@ -23,6 +23,8 @@
     "name": "我的岛屿",
     "description": "一座尚未苏醒的荒芜海岛，补给稀薄，港口设施简陋，等待玩家重新点燃生机。",
     "unlocked": false,
+    "mapX": 173.0,
+    "mapY": 629,
     "restockingAggressiveness": 0.2,
     "distances": {
       "port_1": 480,
@@ -45,6 +47,8 @@
     "backgroundImage": "assets/images/buildings/village_stone_0.png",
     "description": "港口周围密布林地与简易码头，是新人最先接触的“资源补给站”。",
     "unlocked": true,
+    "mapX": 201,
+    "mapY": 526,
     "distances": {
       "home_island": 480,
       "port_2": 960,
@@ -70,6 +74,8 @@
     "backgroundImage": "assets/images/buildings/business_port.png",
     "description": "商船云集、市场成熟的中心港，价格与供需最稳定，是全球贸易的参照点。",
     "unlocked": true,
+    "mapX": 406.0,
+    "mapY": 451.0,
     "distances": {
       "home_island": 1440,
       "port_1": 960,
@@ -103,6 +109,8 @@
     "backgroundImage": "assets/images/buildings/exotic_village.png",
     "description": "香气弥漫的港湾，异域商队汇聚，货摊以香料与奇珍闻名。",
     "unlocked": false,
+    "mapX": 471,
+    "mapY": 366.0,
     "distances": {
       "home_island": 2370,
       "port_1": 1920,
@@ -129,6 +137,8 @@
     "backgroundImage": "assets/images/buildings/stone_castle.png",
     "description": "烟囱林立、火炉终日不熄的工业岛，矿脉与石场支撑着重工贸易。",
     "unlocked": false,
+    "mapX": 669.0,
+    "mapY": 333.0,
     "distances": {
       "home_island": 3530,
       "port_1": 3060,
@@ -155,6 +165,8 @@
     "backgroundImage": "assets/images/buildings/two_towers.png",
     "description": "纺机声与染坊香交织的海湾，帆布与丝线从这里流向各地。",
     "unlocked": false,
+    "mapX": 552.0,
+    "mapY": 429.0,
     "distances": {
       "home_island": 2080,
       "port_1": 1780,
@@ -182,6 +194,8 @@
     "backgroundImage": "assets/images/buildings/two_towers.png",
     "description": "田野与水渠铺展的绿色群岛，是远航队伍最可靠的补给腹地。",
     "unlocked": false,
+    "mapX": 837.0,
+    "mapY": 225.0,
     "distances": {
       "home_island": 5040,
       "port_1": 4560,
@@ -208,6 +222,8 @@
     "backgroundImage": "assets/images/buildings/village_stone_1.png",
     "description": "被风沙与藤蔓覆盖的遗迹群岛，少量高价值遗物在暗市中流通。",
     "unlocked": false,
+    "mapX": 723.0,
+    "mapY": 420.0,
     "distances": {
       "home_island": 4220,
       "port_1": 3790,

@@ -63,6 +63,9 @@ class Port {
   final double restockingAggressiveness;
   // 是否为"海上"特殊地点（不是真正的港口）
   final bool isSeaLocation;
+  // 地图坐标
+  final double? mapX;
+  final double? mapY;
 
   Port({
     required this.id,
@@ -77,6 +80,8 @@ class Port {
     this.initialMerchantMoney = 1000,
     this.restockingAggressiveness = 0.5, // 默认值：中等激进程度
     this.isSeaLocation = false, // 默认不是海上地点
+    this.mapX,
+    this.mapY,
   })  : distances = distances ?? {},
         goodsStock = goodsStock ?? {},
         goodsConfig = goodsConfig ?? {};
@@ -139,6 +144,8 @@ class Port {
     int? initialMerchantMoney,
     double? restockingAggressiveness,
     bool? isSeaLocation,
+    double? mapX,
+    double? mapY,
   }) {
     return Port(
       id: id ?? this.id,
@@ -153,6 +160,8 @@ class Port {
       initialMerchantMoney: initialMerchantMoney ?? this.initialMerchantMoney,
       restockingAggressiveness: restockingAggressiveness ?? this.restockingAggressiveness,
       isSeaLocation: isSeaLocation ?? this.isSeaLocation,
+      mapX: mapX ?? this.mapX,
+      mapY: mapY ?? this.mapY,
     );
   }
 
@@ -170,6 +179,8 @@ class Port {
       'initialMerchantMoney': initialMerchantMoney,
       'restockingAggressiveness': restockingAggressiveness,
       'isSeaLocation': isSeaLocation,
+      'mapX': mapX,
+      'mapY': mapY,
     };
   }
 
@@ -196,6 +207,8 @@ class Port {
       initialMerchantMoney: json['initialMerchantMoney'] as int? ?? 1000,
       restockingAggressiveness: (json['restockingAggressiveness'] as num?)?.toDouble() ?? 0.5, // 向后兼容：默认值0.5
       isSeaLocation: json['isSeaLocation'] as bool? ?? false, // 向后兼容：默认false
+      mapX: (json['mapX'] as num?)?.toDouble(),
+      mapY: (json['mapY'] as num?)?.toDouble(),
     );
   }
 }
