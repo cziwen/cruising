@@ -56,7 +56,7 @@ class _CrewManagementDialogState extends State<CrewManagementDialog> {
                 const Icon(Icons.people, color: Color(0xFF4E342E), size: 24),
                 const SizedBox(width: 10),
                 const Text(
-                  '船员管理 Crew Management',
+                  '船员管理',
                   style: TextStyle(
                     color: Color(0xFF4E342E),
                     fontSize: 22,

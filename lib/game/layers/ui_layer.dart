@@ -257,7 +257,7 @@ class _UILayerState extends State<UILayer> {
                 left: islandCenterX + 200,
                 top: islandCenterY + 100,
                 child: _buildIslandButton(
-                  '船员管理',
+                  '管理',
                   () => _showCrewManagement(context),
                   Colors.teal,
                 ),
@@ -305,8 +305,13 @@ class _UILayerState extends State<UILayer> {
       label: text,
       onPressed: onPressed,
       style: style,
-      width: 100,
-      height: 40,
+      width: 140,
+      height: 48,
+      textStyle: const TextStyle(
+        color: Color(0xFF4E342E),
+        fontSize: 18, // 增加字体大小
+        fontWeight: FontWeight.bold,
+      ),
     );
   }
 
@@ -315,12 +320,18 @@ class _UILayerState extends State<UILayer> {
     return QuestTarget(
       id: 'ui.portListButton',
       child: PaperButton(
-        label: '选择目的地',
-        icon: const Icon(Icons.map, color: Color(0xFF4E342E), size: 20),
+        label: '地图',
+        icon: const Icon(Icons.map, color: Color(0xFF4E342E), size: 24),
         onPressed: widget.onPortSelectPressed,
         style: PaperButtonStyle.green,
-        width: 120,
-        height: 48,
+        width: 180,
+        height: 60,
+        alignment: const Alignment(-0.3, 0.0),
+        textStyle: const TextStyle(
+          color: Color(0xFF4E342E),
+          fontSize: 20, // 增加字体大小
+          fontWeight: FontWeight.bold,
+        ),
       ),
     );
   }

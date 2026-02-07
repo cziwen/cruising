@@ -1,3 +1,4 @@
+import 'dart:math';
 import 'package:flutter/material.dart';
 import 'game_state.dart';
 import '../models/goods.dart';
@@ -310,19 +311,75 @@ Widget _buildUpgradeTab() {
               ),
             ],
           ),
-          Slider(
-            value: _selectedQuantity.toDouble(),
-            min: 1,
-            max: maxQuantity.toDouble(),
-            divisions: maxQuantity > 1 ? maxQuantity - 1 : 1,
-            activeColor: const Color(0xFF5D4037),
-            inactiveColor: const Color(0xFFD7CCC8),
-            label: '$_selectedQuantity',
-            onChanged: (value) {
-              setState(() {
-                _selectedQuantity = value.round();
-              });
-            },
+          Row(
+            children: [
+              PaperButton(
+                onPressed: _selectedQuantity > 1 ? () {
+                  setState(() {
+                    _selectedQuantity = (max(1, _selectedQuantity - 10)).toInt();
+                  });
+                } : null,
+                label: '-10',
+                style: PaperButtonStyle.square,
+                width: 28,
+                height: 28,
+                textStyle: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Color(0xFF4E342E)),
+              ),
+              const SizedBox(width: 4),
+              PaperButton(
+                onPressed: _selectedQuantity > 1 ? () {
+                  setState(() {
+                    _selectedQuantity = (max(1, _selectedQuantity - 1)).toInt();
+                  });
+                } : null,
+                label: '-1',
+                style: PaperButtonStyle.square,
+                width: 28,
+                height: 28,
+                textStyle: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Color(0xFF4E342E)),
+              ),
+              Expanded(
+                child: Slider(
+                  value: _selectedQuantity.toDouble(),
+                  min: 1,
+                  max: maxQuantity.toDouble(),
+                  divisions: maxQuantity > 1 ? maxQuantity - 1 : 1,
+                  activeColor: const Color(0xFF5D4037),
+                  inactiveColor: const Color(0xFFD7CCC8),
+                  label: '$_selectedQuantity',
+                  onChanged: (value) {
+                    setState(() {
+                      _selectedQuantity = value.round();
+                    });
+                  },
+                ),
+              ),
+              PaperButton(
+                onPressed: _selectedQuantity < maxQuantity ? () {
+                  setState(() {
+                    _selectedQuantity = (min(maxQuantity, _selectedQuantity + 1)).toInt();
+                  });
+                } : null,
+                label: '+1',
+                style: PaperButtonStyle.square,
+                width: 28,
+                height: 28,
+                textStyle: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Color(0xFF4E342E)),
+              ),
+              const SizedBox(width: 4),
+              PaperButton(
+                onPressed: _selectedQuantity < maxQuantity ? () {
+                  setState(() {
+                    _selectedQuantity = (min(maxQuantity, _selectedQuantity + 10)).toInt();
+                  });
+                } : null,
+                label: '+10',
+                style: PaperButtonStyle.square,
+                width: 28,
+                height: 28,
+                textStyle: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Color(0xFF4E342E)),
+              ),
+            ],
           ),
           Row(
             mainAxisAlignment: MainAxisAlignment.end,

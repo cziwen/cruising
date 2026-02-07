@@ -7,6 +7,7 @@ enum PaperButtonStyle {
   blue,   // 4.png, 5.png
   red,    // 6.png, 7.png
   gold,   // 8.png, 9.png
+  square, // Small square button without image asset
 }
 
 class PaperButton extends StatefulWidget {
@@ -19,6 +20,7 @@ class PaperButton extends StatefulWidget {
   final double height;
   final EdgeInsets? padding;
   final TextStyle? textStyle;
+  final Alignment alignment;
 
   const PaperButton({
     super.key,
@@ -31,6 +33,7 @@ class PaperButton extends StatefulWidget {
     this.height = 32,
     this.padding,
     this.textStyle,
+    this.alignment = Alignment.center,
   });
 
   @override
@@ -58,6 +61,9 @@ class _PaperButtonState extends State<PaperButton> {
       case PaperButtonStyle.gold:
         index = _isPressed ? 9 : 8;
         break;
+      case PaperButtonStyle.square:
+        index = 0; // Fallback, though we won't use it for square
+        break;
     }
     return 'assets/paper_ui/Sprites/Content/4_Buttons/$index.png';
   }
@@ -65,10 +71,11 @@ class _PaperButtonState extends State<PaperButton> {
   @override
   Widget build(BuildContext context) {
     final bool enabled = widget.onPressed != null;
+    final bool isSquare = widget.style == PaperButtonStyle.square;
     
     // 如果只有图标没有文字，且宽度较小，则减小内边距
-    final defaultPadding = (widget.label == null && widget.width != null && widget.width! <= 60)
-        ? const EdgeInsets.all(4)
+    final defaultPadding = (isSquare || (widget.label == null && widget.width != null && widget.width! <= 60))
+        ? const EdgeInsets.all(2)
         : const EdgeInsets.symmetric(horizontal: 12, vertical: 4);
 
     return Opacity(
@@ -86,14 +93,23 @@ class _PaperButtonState extends State<PaperButton> {
           width: widget.width,
           height: widget.height,
           padding: widget.padding ?? defaultPadding,
-          decoration: BoxDecoration(
-            image: DecorationImage(
-              image: AssetImage(_getAssetPath()),
-              fit: BoxFit.fill,
-              filterQuality: FilterQuality.none,
-            ),
-          ),
-          child: Center(
+          decoration: isSquare
+              ? BoxDecoration(
+                  color: enabled
+                      ? (_isPressed ? const Color(0xFFBCAAA4) : const Color(0xFFD7CCC8))
+                      : const Color(0xFFD7CCC8).withValues(alpha: 0.5),
+                  border: Border.all(color: const Color(0xFF8D6E63), width: 1.5),
+                  borderRadius: BorderRadius.circular(4),
+                )
+              : BoxDecoration(
+                  image: DecorationImage(
+                    image: AssetImage(_getAssetPath()),
+                    fit: BoxFit.fill,
+                    filterQuality: FilterQuality.none,
+                  ),
+                ),
+          child: Align(
+            alignment: widget.alignment,
             child: FittedBox(
               fit: BoxFit.scaleDown,
               child: widget.child ?? Row(

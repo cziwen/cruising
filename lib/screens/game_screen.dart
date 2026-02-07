@@ -248,6 +248,8 @@ class _GameScreenState extends State<GameScreen> {
         _gameState.setPortUnlocked(portId, true);
       } else if (action == "combat.unlock") {
         _gameState.setCombatUnlocked(true);
+      } else if (action == "port.unlockAllExceptHome") {
+        _gameState.unlockAllPortsExceptHome();
       } else if (action.startsWith("homeIsland.setTax(") && action.endsWith(")")) {
         final valueStr = action.substring(18, action.length - 1);
         final value = int.tryParse(valueStr) ?? 0;

@@ -172,7 +172,7 @@ class _ShipyardDialogState extends State<ShipyardDialog>
           const Icon(Icons.anchor, color: Color(0xFF4E342E), size: 24),
           const SizedBox(width: 10),
           const Text(
-            '船厂 Shipyard',
+            '船厂',
             style: TextStyle(
               color: Color(0xFF4E342E),
               fontSize: 22,

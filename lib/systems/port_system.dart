@@ -351,7 +351,7 @@ class _PortSelectDialogState extends State<_PortSelectDialog> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               const Text(
-                '选择目的地 Select Destination',
+                '选择目的地',
                 style: TextStyle(
                   fontSize: 20,
                   fontWeight: FontWeight.bold,

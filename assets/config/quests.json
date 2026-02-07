@@ -144,7 +144,7 @@
     "highlight": null,
     "text": "现在你已经掌握了贸易的基础。去广阔的大海自由航行吧！",
     "complete_when": "tap_anywhere",
-    "action": "combat.unlock",
+    "action": "combat.unlock && port.unlockAllExceptHome",
     "is_mandatory": true
   },
   {

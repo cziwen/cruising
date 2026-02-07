@@ -155,7 +155,7 @@ class _TavernDialogState extends State<TavernDialog> {
                 const Icon(Icons.local_bar, color: Color(0xFF4E342E), size: 24),
                 const SizedBox(width: 10),
                 const Text(
-                  '港口酒馆 Tavern',
+                  '酒馆',
                   style: TextStyle(
                     color: Color(0xFF4E342E),
                     fontSize: 22,

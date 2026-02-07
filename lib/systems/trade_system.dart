@@ -980,7 +980,7 @@ class _TradeDialogState extends State<_TradeDialog> {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        const Text('玩家库存 Player', style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Color(0xFF5D4037))),
+        const Text('我的库存', style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Color(0xFF5D4037))),
         Text(
           '${previewWeight.toStringAsFixed(1)}/$capacity kg',
           style: TextStyle(
@@ -1110,23 +1110,83 @@ class _TradeDialogState extends State<_TradeDialog> {
                 ],
               ),
             ),
-            QuestTarget(
-              id: 'ui.quantitySliderTrack',
-              child: Slider(
-                value: _selectedQuantity.toDouble(),
-                min: 1,
-                max: availableMaxQuantity.toDouble(),
-                divisions: availableMaxQuantity > 1 ? availableMaxQuantity - 1 : 1,
-                activeColor: const Color(0xFF5D4037),
-                inactiveColor: const Color(0xFF8D6E63).withValues(alpha: 0.3),
-                onChangeStart: (_) => widget.tradeSystem.gameState.setSliderInteracted(false),
-                onChanged: (v) {
-                  final qty = v.round();
-                  setState(() => _selectedQuantity = qty);
-                  widget.tradeSystem.gameState.setSliderValue(qty);
-                },
-                onChangeEnd: (_) => widget.tradeSystem.gameState.setSliderInteracted(true),
-              ),
+            Row(
+              children: [
+                PaperButton(
+                  onPressed: _selectedQuantity > 1 ? () {
+                    setState(() {
+                      _selectedQuantity = (max(1, _selectedQuantity - 10)).toInt();
+                    });
+                    widget.tradeSystem.gameState.setSliderValue(_selectedQuantity);
+                  } : null,
+                  label: '-10',
+                  style: PaperButtonStyle.square,
+                  width: 28,
+                  height: 28,
+                  textStyle: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Color(0xFF4E342E)),
+                ),
+                const SizedBox(width: 4),
+                PaperButton(
+                  onPressed: _selectedQuantity > 1 ? () {
+                    setState(() {
+                      _selectedQuantity = (max(1, _selectedQuantity - 1)).toInt();
+                    });
+                    widget.tradeSystem.gameState.setSliderValue(_selectedQuantity);
+                  } : null,
+                  label: '-1',
+                  style: PaperButtonStyle.square,
+                  width: 28,
+                  height: 28,
+                  textStyle: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Color(0xFF4E342E)),
+                ),
+                Expanded(
+                  child: QuestTarget(
+                    id: 'ui.quantitySliderTrack',
+                    child: Slider(
+                      value: _selectedQuantity.toDouble(),
+                      min: 1,
+                      max: availableMaxQuantity.toDouble(),
+                      divisions: availableMaxQuantity > 1 ? availableMaxQuantity - 1 : 1,
+                      activeColor: const Color(0xFF5D4037),
+                      inactiveColor: const Color(0xFF8D6E63).withValues(alpha: 0.3),
+                      onChangeStart: (_) => widget.tradeSystem.gameState.setSliderInteracted(false),
+                      onChanged: (v) {
+                        final qty = v.round();
+                        setState(() => _selectedQuantity = qty);
+                        widget.tradeSystem.gameState.setSliderValue(qty);
+                      },
+                      onChangeEnd: (_) => widget.tradeSystem.gameState.setSliderInteracted(true),
+                    ),
+                  ),
+                ),
+                PaperButton(
+                  onPressed: _selectedQuantity < availableMaxQuantity ? () {
+                    setState(() {
+                      _selectedQuantity = (min(availableMaxQuantity, _selectedQuantity + 1)).toInt();
+                    });
+                    widget.tradeSystem.gameState.setSliderValue(_selectedQuantity);
+                  } : null,
+                  label: '+1',
+                  style: PaperButtonStyle.square,
+                  width: 28,
+                  height: 28,
+                  textStyle: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Color(0xFF4E342E)),
+                ),
+                const SizedBox(width: 4),
+                PaperButton(
+                  onPressed: _selectedQuantity < availableMaxQuantity ? () {
+                    setState(() {
+                      _selectedQuantity = (min(availableMaxQuantity, _selectedQuantity + 10)).toInt();
+                    });
+                    widget.tradeSystem.gameState.setSliderValue(_selectedQuantity);
+                  } : null,
+                  label: '+10',
+                  style: PaperButtonStyle.square,
+                  width: 28,
+                  height: 28,
+                  textStyle: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Color(0xFF4E342E)),
+                ),
+              ],
             ),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,

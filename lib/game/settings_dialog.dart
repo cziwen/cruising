@@ -87,7 +87,7 @@ class _SettingsDialogState extends State<SettingsDialog> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 const Text(
-                  '设置 Settings',
+                  '设置',
                   style: TextStyle(
                     fontSize: 22,
                     fontWeight: FontWeight.bold,

@@ -1025,6 +1025,20 @@ class GameState extends ChangeNotifier {
     }
   }
 
+  /// 解锁除主岛外的所有港口
+  void unlockAllPortsExceptHome() {
+    bool changed = false;
+    for (int i = 0; i < _ports.length; i++) {
+      if (_ports[i].id != 'home_island' && !_ports[i].unlocked) {
+        _ports[i] = _ports[i].copyWith(unlocked: true);
+        changed = true;
+      }
+    }
+    if (changed) {
+      notifyListeners();
+    }
+  }
+
   void incrementShipUpgradeCount() {
     _shipUpgradeCount++;
     notifyListeners();
