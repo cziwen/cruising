@@ -57,7 +57,7 @@ class AmbientSFXController {
   }
 
   Future<void> _playRandom() async {
-    if (tracks.isEmpty) return;
+    if (tracks.isEmpty || _volume <= 0) return;
     final track = tracks[Random().nextInt(tracks.length)];
     try {
       await _player.setVolume(_volume);
@@ -142,7 +142,13 @@ class MusicSystem {
   /// 设置全局音乐音量 (0.0 到 1.0)
   void setMusicVolume(double value) {
     _musicVolume = value.clamp(0.0, 1.0);
-    _currentPlayer.setVolume(_musicVolume);
+    // 如果没有正在进行的淡入淡出，直接更新当前播放器音量
+    if (_fadeTimer == null || !_fadeTimer!.isActive) {
+      _currentPlayer.setVolume(_musicVolume);
+      if (_musicVolume <= 0) {
+        _currentPlayer.stop();
+      }
+    }
   }
 
   /// 设置全局音效音量 (0.0 到 1.0)
@@ -150,6 +156,15 @@ class MusicSystem {
     _sfxVolume = value.clamp(0.0, 1.0);
     for (var controller in _ambientControllers.values) {
       controller.setVolume(_sfxVolume);
+      if (_sfxVolume <= 0) {
+        controller._stop();
+      }
+    }
+    for (var player in _sfxPool) {
+      player.setVolume(_sfxVolume);
+      if (_sfxVolume <= 0) {
+        player.stop();
+      }
     }
   }
 
@@ -167,10 +182,8 @@ class MusicSystem {
       }
     }
 
-    if (_currentState == stateName && _currentPlayer.state == PlayerState.playing) return;
-
-    final musicConfig = GameConfigLoader().musicConfig;
     _currentState = stateName;
+    final musicConfig = GameConfigLoader().musicConfig;
 
     if (!musicConfig.containsKey(stateName)) {
       debugPrint('MusicSystem: State "$stateName" not found in music config. Stopping BGM.');
@@ -190,7 +203,8 @@ class MusicSystem {
     final random = Random();
     final String trackPath = tracks[random.nextInt(tracks.length)];
 
-    if (_currentTrack == trackPath && _currentPlayer.state == PlayerState.playing) {
+    if (_currentTrack == trackPath && 
+        (_currentPlayer.state == PlayerState.playing || _musicVolume <= 0)) {
       return;
     }
 
@@ -199,6 +213,12 @@ class MusicSystem {
 
     if (!_isInitialized) {
       debugPrint('MusicSystem: Not initialized yet. Delaying BGM playback.');
+      return;
+    }
+
+    if (_musicVolume <= 0) {
+      debugPrint('MusicSystem: Volume is 0, skipping playback but updating state.');
+      await _fadeOutAndStop();
       return;
     }
 
@@ -211,6 +231,7 @@ class MusicSystem {
 
   /// 播放单次音效
   Future<void> playSFX(String sfxId) async {
+    if (_sfxVolume <= 0) return;
     final sfxConfig = GameConfigLoader().sfxConfig;
     if (!sfxConfig.containsKey('one_shot')) return;
 
@@ -244,6 +265,12 @@ class MusicSystem {
   Future<void> _crossFadeTo(String assetPath) async {
     _fadeTimer?.cancel();
 
+    if (_musicVolume <= 0) {
+      await _currentPlayer.stop();
+      _currentTrack = assetPath;
+      return;
+    }
+
     final nextPlayer = (_currentPlayer == _playerA) ? _playerB : _playerA;
     
     try {
@@ -261,7 +288,7 @@ class MusicSystem {
       return;
     }
 
-    const steps = 15;
+    const steps = 20; // 增加步数使淡入淡出更平滑
     const duration = Duration(milliseconds: 2000);
     final stepDuration = Duration(milliseconds: duration.inMilliseconds ~/ steps);
     int currentStep = 0;
@@ -271,6 +298,7 @@ class MusicSystem {
       final double progress = currentStep / steps;
 
       try {
+        // 使用当前最新的 _musicVolume
         await _currentPlayer.setVolume(((1 - progress) * _musicVolume).clamp(0.0, 1.0));
         await nextPlayer.setVolume((progress * _musicVolume).clamp(0.0, 1.0));
       } catch (e) {
@@ -282,7 +310,7 @@ class MusicSystem {
         try {
           await _currentPlayer.stop();
           _currentPlayer = nextPlayer;
-          debugPrint('MusicSystem: Current track: $assetPath');
+          debugPrint('MusicSystem: Current track finalized: $assetPath');
         } catch (e) {
           debugPrint('MusicSystem Error: Error stopping old player: $e');
         }
@@ -294,22 +322,21 @@ class MusicSystem {
   Future<void> _fadeOutAndStop() async {
     _fadeTimer?.cancel();
     
-    if (_musicVolume <= 0) {
+    if (_musicVolume <= 0 || _currentPlayer.state != PlayerState.playing) {
       await _currentPlayer.stop();
       return;
     }
 
-    const steps = 15;
+    const steps = 20;
     const duration = Duration(milliseconds: 1000);
     final stepDuration = Duration(milliseconds: duration.inMilliseconds ~/ steps);
     int currentStep = 0;
 
-    final initialVolume = _musicVolume;
-
     _fadeTimer = Timer.periodic(stepDuration, (timer) async {
       currentStep++;
       final double progress = currentStep / steps;
-      final double newVolume = ((1 - progress) * initialVolume).clamp(0.0, 1.0);
+      // 动态使用当前音量进行淡出
+      final double newVolume = ((1 - progress) * _musicVolume).clamp(0.0, 1.0);
 
       try {
         await _currentPlayer.setVolume(newVolume);
@@ -317,7 +344,7 @@ class MusicSystem {
         debugPrint('MusicSystem Warning: Error setting volume during fade out: $e');
       }
 
-      if (currentStep >= steps) {
+      if (currentStep >= steps || _musicVolume <= 0) {
         timer.cancel();
         try {
           await _currentPlayer.stop();
@@ -331,7 +358,7 @@ class MusicSystem {
 
   /// 尝试恢复播放当前音乐 (常用于 Web 端用户交互后)
   Future<void> resumeMusic() async {
-    if (!_isInitialized) return;
+    if (!_isInitialized || _musicVolume <= 0) return;
 
     if (_currentPlayer.state != PlayerState.playing && _currentTrack != null) {
       try {
