@@ -224,7 +224,7 @@ class _UILayerState extends State<UILayer> {
                 left: islandCenterX - 250,
                 top: islandCenterY - 180,
                 child: _buildIslandButton(
-                  '港口酒馆',
+                  '酒馆',
                   widget.onCrewMarketPressed,
                   Colors.purple,
                 ),
