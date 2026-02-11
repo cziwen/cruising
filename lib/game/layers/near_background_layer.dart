@@ -59,8 +59,9 @@ class _NearBackgroundLayerState extends State<NearBackgroundLayer> {
             final progress = widget.gameState.dayNightSystem.dayCycleProgress;
             final colorFilter = DayNightVisualUtils.getColorFilter(progress, layerType: VisualLayerType.island);
 
-            // 计算离开动画的偏移量
+            // 计算离开动画的偏移量和缩放
             double? exitOffset;
+            double? exitScale;
             if (isAtSea && previousPort != null) {
               // 直接使用 accumulatedDistance，在切换目的地时它不再归零，因此动画会平滑继续
               final exitDistance = widget.gameState.accumulatedDistance;
@@ -71,11 +72,18 @@ class _NearBackgroundLayerState extends State<NearBackgroundLayer> {
                 // 动态滚动速度与当前航速正相关
                 final dynamicScrollSpeed = _scrollSpeed * (currentSpeed / 8.0);
                 exitOffset = -timeElapsedHours * dynamicScrollSpeed;
+                
+                // 计算退出缩放：从 0.9 逐渐缩小到 0.7
+                if (_screenWidth > 0) {
+                  final progress = (exitOffset.abs() / _screenWidth).clamp(0.0, 1.0);
+                  exitScale = 0.9 - (0.2 * progress);
+                }
               }
             }
 
-            // 计算进入动画的偏移量
+            // 计算进入动画的偏移量和缩放
             double? enterOffset;
+            double? enterScale;
             if (isAtSea && destinationPort != null) {
               final totalDistance = widget.gameState.totalTravelDistance;
               final accumulatedDistance = widget.gameState.accumulatedDistance;
@@ -88,6 +96,12 @@ class _NearBackgroundLayerState extends State<NearBackgroundLayer> {
                 // 动态滚动速度与当前航速正相关
                 final dynamicScrollSpeed = _scrollSpeed * (currentSpeed / 8.0);
                 enterOffset = remainingTimeSeconds * dynamicScrollSpeed;
+                
+                // 计算进入缩放：从 0.7 逐渐放大到 0.9
+                if (_screenWidth > 0) {
+                  final progress = (1.0 - (enterOffset / _screenWidth)).clamp(0.0, 1.0);
+                  enterScale = 0.7 + (0.2 * progress);
+                }
               }
             }
 
@@ -104,7 +118,7 @@ class _NearBackgroundLayerState extends State<NearBackgroundLayer> {
                       bottom: 0,
                       child: SizedBox(
                         width: _screenWidth,
-                        child: _buildPortImage(previousPort),
+                        child: _buildPortImage(previousPort, scale: exitScale),
                       ),
                     ),
                   
@@ -117,7 +131,7 @@ class _NearBackgroundLayerState extends State<NearBackgroundLayer> {
                       bottom: 0,
                       child: SizedBox(
                         width: _screenWidth,
-                        child: _buildPortImage(destinationPort),
+                        child: _buildPortImage(destinationPort, scale: enterScale),
                       ),
                     ),
                   
@@ -133,7 +147,7 @@ class _NearBackgroundLayerState extends State<NearBackgroundLayer> {
     );
   }
 
-  Widget _buildPortImage(Port port) {
+  Widget _buildPortImage(Port port, {double? scale}) {
     final imagePath = port.backgroundImage;
     
     if (_failedImagePaths.contains(imagePath)) {
@@ -141,22 +155,25 @@ class _NearBackgroundLayerState extends State<NearBackgroundLayer> {
     }
     
     return SizedBox.expand(
-      child: Image.asset(
-        imagePath,
-        fit: BoxFit.cover,
-        alignment: Alignment.center,
-        gaplessPlayback: true,
-        filterQuality: FilterQuality.medium,
-        errorBuilder: (context, error, stackTrace) {
-          if (!_failedImagePaths.contains(imagePath)) {
-            _failedImagePaths.add(imagePath);
-            debugPrint('Failed to load port image: $imagePath');
-            if (kDebugMode) {
-              debugPrint('Error: $error');
+      child: Transform.scale(
+        scale: scale ?? widget.gameState.islandScale,
+        child: Image.asset(
+          imagePath,
+          fit: BoxFit.cover,
+          alignment: Alignment.center,
+          gaplessPlayback: true,
+          filterQuality: FilterQuality.high,
+          errorBuilder: (context, error, stackTrace) {
+            if (!_failedImagePaths.contains(imagePath)) {
+              _failedImagePaths.add(imagePath);
+              debugPrint('Failed to load port image: $imagePath');
+              if (kDebugMode) {
+                debugPrint('Error: $error');
+              }
             }
-          }
-          return _buildPlaceholder();
-        },
+            return _buildPlaceholder();
+          },
+        ),
       ),
     );
   }

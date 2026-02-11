@@ -250,6 +250,7 @@ class GameState extends ChangeNotifier {
   double _debugRepairBonus = 0.0;
   double _debugFireRateBonus = 0.0;
   double _debugSpeedBonus = 0.0;
+  double _debugIslandScale = 0.9; // 岛屿缩放比例，默认0.9以解决模糊问题
 
   Port? get currentPort => _currentPort;
   Port? get previousPort => _previousPort;
@@ -911,6 +912,12 @@ class GameState extends ChangeNotifier {
   double get debugFireRateBonus => _debugFireRateBonus;
   void setDebugFireRateBonus(double value) {
     _debugFireRateBonus = value;
+    notifyListeners();
+  }
+
+  double get islandScale => _debugIslandScale;
+  void setDebugIslandScale(double value) {
+    _debugIslandScale = value;
     notifyListeners();
   }
 

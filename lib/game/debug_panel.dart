@@ -307,6 +307,15 @@ class _DebugPanelState extends State<DebugPanel>
                       onChanged: (val) => widget.gameState!.setDebugSpeedBonus(val),
                       displayValue: '${widget.gameState!.currentSpeed.toStringAsFixed(1)}节',
                     ),
+                    // 岛屿缩放调节
+                    _buildSlider(
+                      label: '岛屿缩放',
+                      value: widget.gameState!.islandScale,
+                      min: 0.0,
+                      max: 1.5,
+                      onChanged: (val) => widget.gameState!.setDebugIslandScale(val),
+                      displayValue: widget.gameState!.islandScale.toStringAsFixed(2),
+                    ),
                     const SizedBox(height: 8),
                     // 立即触发战斗按钮
                     SizedBox(
