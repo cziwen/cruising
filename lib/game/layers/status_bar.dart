@@ -17,36 +17,29 @@ class StatusBar extends StatelessWidget {
     final fontSize = (screenWidth / 20).clamp(10.0, 14.0); // 自适应字体大小
     final iconSize = (screenWidth / 22).clamp(16.0, 20.0); // 自适应图标大小
 
-    return Stack(
-      alignment: Alignment.bottomCenter,
-      children: [
-        SizedBox(
-          height: 86,
-          width: double.infinity,
-          child: Image.asset(
-            'assets/images/UI/HUD_Item_Holder.png',
-            fit: BoxFit.fill,
+    return Container(
+      decoration: const BoxDecoration(
+        image: DecorationImage(
+          image: AssetImage('assets/images/UI/HUD_Item_Holder.png'),
+          fit: BoxFit.none,
+          repeat: ImageRepeat.noRepeat,
+        ),
+      ),
+      child: SafeArea(
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // 第一行：核心资源
+              _buildFirstRow(context, fontSize, iconSize),
+              const SizedBox(height: 6),
+              // 第二行：运营与航行状态
+              _buildSecondRow(context, fontSize, iconSize),
+            ],
           ),
         ),
-        Positioned.fill(
-          child: SafeArea(
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  // 第一行：核心资源
-                  _buildFirstRow(context, fontSize, iconSize),
-                  const SizedBox(height: 2),
-                  // 第二行：运营与航行状态
-                  _buildSecondRow(context, fontSize, iconSize),
-                ],
-              ),
-            ),
-          ),
-        ),
-      ],
+      ),
     );
   }
 
