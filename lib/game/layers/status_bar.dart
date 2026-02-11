@@ -17,27 +17,32 @@ class StatusBar extends StatelessWidget {
     final fontSize = (screenWidth / 20).clamp(10.0, 14.0); // 自适应字体大小
     final iconSize = (screenWidth / 22).clamp(16.0, 20.0); // 自适应图标大小
 
-    return Container(
-      decoration: const BoxDecoration(
-        image: DecorationImage(
-          image: AssetImage('assets/images/UI/HUD_Item_Holder.png'),
-          fit: BoxFit.none,
-          repeat: ImageRepeat.noRepeat,
-        ),
-      ),
-      child: SafeArea(
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              // 第一行：核心资源
-              _buildFirstRow(context, fontSize, iconSize),
-              const SizedBox(height: 6),
-              // 第二行：运营与航行状态
-              _buildSecondRow(context, fontSize, iconSize),
-            ],
+    return SafeArea(
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        decoration: BoxDecoration(
+          color: Colors.black.withValues(alpha: 0.2),
+          borderRadius: const BorderRadius.only(
+            topLeft: Radius.circular(12),
+            topRight: Radius.circular(12),
           ),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.3),
+              blurRadius: 8,
+              offset: const Offset(0, -2),
+            ),
+          ],
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // 第一行：核心资源
+            _buildFirstRow(context, fontSize, iconSize),
+            const SizedBox(height: 6),
+            // 第二行：运营与航行状态
+            _buildSecondRow(context, fontSize, iconSize),
+          ],
         ),
       ),
     );
@@ -56,7 +61,7 @@ class StatusBar extends StatelessWidget {
             label: '${gameState.gold}',
             iconSize: iconSize,
             fontSize: fontSize,
-            valueColor: Colors.orange.shade900,
+            valueColor: Colors.amber,
           ),
         ),
         
@@ -79,7 +84,7 @@ class StatusBar extends StatelessWidget {
             label: '${gameState.usedCargoWeight.toStringAsFixed(1)}/${gameState.ship.cargoCapacity}kg',
             iconSize: iconSize,
             fontSize: fontSize,
-            valueColor: Colors.blue.shade900,
+            valueColor: Colors.blue,
           ),
         ),
         
@@ -91,7 +96,7 @@ class StatusBar extends StatelessWidget {
             label: '${gameState.crewCount}/${gameState.maxCrewCount}(${gameState.morale})',
             iconSize: iconSize,
             fontSize: fontSize * 0.85, // 稍微小一点以适应更多文本
-            valueColor: Colors.green.shade900,
+            valueColor: Colors.green,
           ),
         ),
       ],
@@ -111,7 +116,7 @@ class StatusBar extends StatelessWidget {
             label: '${gameState.ship.durability}/${gameState.ship.maxDurability}',
             iconSize: iconSize,
             fontSize: fontSize,
-            valueColor: Colors.deepOrange.shade900,
+            valueColor: Colors.orange,
           ),
         ),
         
@@ -123,7 +128,7 @@ class StatusBar extends StatelessWidget {
             label: '${gameState.autoRepairPerSecond.toStringAsFixed(1)}/秒',
             iconSize: iconSize,
             fontSize: fontSize,
-            valueColor: Colors.orange.shade800,
+            valueColor: Colors.orangeAccent,
           ),
         ),
         
@@ -135,7 +140,7 @@ class StatusBar extends StatelessWidget {
             label: '${gameState.fireRatePerSecond.toStringAsFixed(1)} 炮/秒',
             iconSize: iconSize,
             fontSize: fontSize,
-            valueColor: Colors.red.shade900,
+            valueColor: Colors.red,
           ),
         ),
         
@@ -147,7 +152,7 @@ class StatusBar extends StatelessWidget {
             label: '${gameState.currentSpeed.toStringAsFixed(1)}节',
             iconSize: iconSize,
             fontSize: fontSize,
-            valueColor: Colors.cyan.shade900,
+            valueColor: Colors.cyan,
           ),
         ),
       ],
@@ -162,7 +167,6 @@ class StatusBar extends StatelessWidget {
     required double fontSize,
     required Color valueColor,
   }) {
-    const inkColor = Color(0xFF4E342E);
     return Row(
       mainAxisSize: MainAxisSize.min,
       mainAxisAlignment: MainAxisAlignment.center,
@@ -170,7 +174,7 @@ class StatusBar extends StatelessWidget {
         Icon(
           icon,
           size: iconSize,
-          color: inkColor,
+          color: Colors.white.withValues(alpha: 0.9),
         ),
         const SizedBox(width: 3),
         Flexible(
@@ -195,7 +199,6 @@ class StatusBar extends StatelessWidget {
     required double fontSize,
     required double iconSize,
   }) {
-    const inkColor = Color(0xFF4E342E);
     String locationText;
     if (gameState.isAtSea) {
       locationText = '海上';
@@ -211,14 +214,14 @@ class StatusBar extends StatelessWidget {
         Icon(
           Icons.location_on,
           size: iconSize,
-          color: inkColor,
+          color: Colors.white.withValues(alpha: 0.9),
         ),
         const SizedBox(width: 4),
         Flexible(
           child: Text(
             locationText,
             style: TextStyle(
-              color: inkColor,
+              color: Colors.white,
               fontSize: fontSize,
               fontWeight: FontWeight.bold,
             ),
