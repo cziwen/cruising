@@ -44,7 +44,7 @@
   {
     "id": "port_1",
     "name": "灯塔岛",
-    "backgroundImage": "assets/images/buildings/village_stone_0.png",
+    "backgroundImage": "assets/images/buildings/light_house.png",
     "description": "港口周围密布林地与简易码头，是新人最先接触的“资源补给站”。",
     "unlocked": true,
     "mapX": 201,
@@ -134,7 +134,7 @@
   {
     "id": "port_4",
     "name": "铁炉岛",
-    "backgroundImage": "assets/images/buildings/stone_castle.png",
+    "backgroundImage": "assets/images/buildings/iron_forge.png",
     "description": "烟囱林立、火炉终日不熄的工业岛，矿脉与石场支撑着重工贸易。",
     "unlocked": false,
     "mapX": 669.0,
@@ -162,7 +162,7 @@
   {
     "id": "port_5",
     "name": "织梦湾",
-    "backgroundImage": "assets/images/buildings/two_towers.png",
+    "backgroundImage": "assets/images/buildings/dreamweaver_Bay.png",
     "description": "纺机声与染坊香交织的海湾，帆布与丝线从这里流向各地。",
     "unlocked": false,
     "mapX": 552.0,
@@ -191,7 +191,7 @@
   {
     "id": "port_6",
     "name": "翡翠领",
-    "backgroundImage": "assets/images/buildings/two_towers.png",
+    "backgroundImage": "assets/images/buildings/emerald_collar.png",
     "description": "田野与水渠铺展的绿色群岛，是远航队伍最可靠的补给腹地。",
     "unlocked": false,
     "mapX": 837.0,
@@ -219,7 +219,7 @@
   {
     "id": "port_7",
     "name": "远古遗址",
-    "backgroundImage": "assets/images/buildings/village_stone_1.png",
+    "backgroundImage": "assets/images/buildings/ancient_ruins_port.png",
     "description": "被风沙与藤蔓覆盖的遗迹群岛，少量高价值遗物在暗市中流通。",
     "unlocked": false,
     "mapX": 723.0,

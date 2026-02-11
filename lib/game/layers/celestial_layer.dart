@@ -58,6 +58,10 @@ class CelestialLayer extends StatelessWidget {
     bool isDaytime,
     Size screenSize,
   ) {
+    // 太阳放大至1.5倍 (90)，月亮保持原样 (60)
+    final double size = isDaytime ? 90 : 60;
+    final double offset = size / 2;
+
     final position = CelestialBodyPosition.calculatePosition(
       progress,
       screenSize.width,
@@ -68,14 +72,14 @@ class CelestialLayer extends StatelessWidget {
     final opacity = CelestialBodyPosition.getOpacity(progress, isDaytime);
 
     return Positioned(
-      left: position.dx - 30, // 图标大小约60x60，居中
-      top: position.dy - 30,
+      left: position.dx - offset,
+      top: position.dy - offset,
       child: Opacity(
         opacity: opacity,
         child: Image.asset(
           imagePath,
-          width: 60,
-          height: 60,
+          width: size,
+          height: size,
           fit: BoxFit.contain,
           errorBuilder: (context, error, stackTrace) {
             return const SizedBox.shrink();
