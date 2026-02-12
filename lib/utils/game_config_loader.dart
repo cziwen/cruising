@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 import '../models/goods.dart';
 import '../models/port.dart';
 import '../models/quest.dart';
+import '../models/sea_event.dart';
 
 /// 游戏配置加载器，用于从 JSON 文件中读取基础配置信息
 class GameConfigLoader {
@@ -14,6 +15,7 @@ class GameConfigLoader {
   List<Goods>? _goodsList;
   List<Port>? _portsList;
   List<Quest>? _questsList;
+  List<SeaEvent>? _seaEventsList;
   Map<String, dynamic>? _crewConfig;
   Map<String, dynamic>? _musicConfig;
   Map<String, dynamic>? _sfxConfig;
@@ -76,6 +78,15 @@ class GameConfigLoader {
     return _questsList!;
   }
 
+  /// 获取所有海上事件列表
+  List<SeaEvent> get seaEventsList {
+    if (_seaEventsList == null) {
+      debugPrint('⚠ Warning: Accessing seaEventsList before it is loaded.');
+      return [];
+    }
+    return _seaEventsList!;
+  }
+
   /// 加载所有配置文件
   Future<void> loadConfig() async {
     if (_isLoading) return;
@@ -87,6 +98,7 @@ class GameConfigLoader {
         _loadGoodsConfig(),
         _loadPortsConfig(),
         _loadQuestsConfig(),
+        _loadSeaEventsConfig(),
         _loadCrewConfig(),
         _loadMusicConfig(),
         _loadSfxConfig(),
@@ -171,6 +183,17 @@ class GameConfigLoader {
     } catch (e) {
       debugPrint('✗ Error loading sfx config: $e');
       _sfxConfig = {};
+    }
+  }
+
+  Future<void> _loadSeaEventsConfig() async {
+    try {
+      final String response = await rootBundle.loadString('assets/config/sea_events.json');
+      final List<dynamic> data = json.decode(response);
+      _seaEventsList = data.map((json) => SeaEvent.fromJson(json)).toList();
+    } catch (e) {
+      debugPrint('✗ Error loading sea events config: $e');
+      _seaEventsList = [];
     }
   }
 

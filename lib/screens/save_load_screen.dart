@@ -116,7 +116,7 @@ class _SaveLoadScreenState extends State<SaveLoadScreen> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => PaperDialog(
-        assetPath: 'assets/paper_ui/Sprites/Book Desk/4.png',
+        assetPath: 'assets/paper_ui/Sprites/Book_Desk/4.png',
         width: 400,
         height: 250,
         child: Column(

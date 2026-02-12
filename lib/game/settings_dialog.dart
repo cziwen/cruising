@@ -73,7 +73,7 @@ class _SettingsDialogState extends State<SettingsDialog> {
     final bool isInGame = widget.gameState != null;
 
     return PaperDialog(
-      assetPath: 'assets/paper_ui/Sprites/Book Desk/4.png',
+      assetPath: 'assets/paper_ui/Sprites/Book_Desk/4.png',
       width: 500,
       height: 600,
       child: Column(
@@ -312,7 +312,7 @@ class _SettingsDialogState extends State<SettingsDialog> {
     showDialog(
       context: context,
       builder: (context) => PaperDialog(
-        assetPath: 'assets/paper_ui/Sprites/Book Desk/4.png',
+        assetPath: 'assets/paper_ui/Sprites/Book_Desk/4.png',
         width: 400,
         height: 250,
         child: Column(

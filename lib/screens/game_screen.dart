@@ -15,8 +15,10 @@ import '../systems/trade_system.dart';
 import '../systems/port_system.dart';
 import '../systems/music_system.dart';
 import '../systems/save_system.dart';
+import '../systems/sea_event_system.dart';
 import '../game/shipyard_dialog.dart';
 import '../game/settings_dialog.dart';
+import '../game/sea_event_dialog.dart';
 import '../utils/game_config_loader.dart';
 import '../systems/quest_system.dart';
 import 'save_load_screen.dart';
@@ -172,6 +174,9 @@ class _GameScreenState extends State<GameScreen> {
     // 监听任务系统的动作
     QuestSystem.instance.addListener(_handleQuestAction);
     
+    // 监听海上事件系统
+    SeaEventSystem.instance.addListener(_handleSeaEvent);
+    
     // 初始化游戏状态逻辑（如果是主菜单模式，尝试加载最近存档作为背景）
     _initGameState();
 
@@ -260,6 +265,18 @@ class _GameScreenState extends State<GameScreen> {
     }
 
     QuestSystem.instance.clearPendingAction();
+  }
+
+  void _handleSeaEvent() {
+    final activeEvent = SeaEventSystem.instance.activeEvent;
+    if (activeEvent != null) {
+      // 延迟一帧显示，确保不会在 build 过程中触发
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) {
+          SeaEventDialog.show(context, activeEvent);
+        }
+      });
+    }
   }
 
   void _onGameStateChanged() {

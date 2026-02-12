@@ -68,7 +68,7 @@ class _TavernDialogState extends State<TavernDialog> {
     showDialog(
       context: context,
       builder: (context) => PaperDialog(
-        assetPath: 'assets/paper_ui/Sprites/Book Desk/4.png',
+        assetPath: 'assets/paper_ui/Sprites/Book_Desk/4.png',
         width: 400,
         height: 300,
         child: Column(
@@ -142,7 +142,7 @@ class _TavernDialogState extends State<TavernDialog> {
   Widget build(BuildContext context) {
     final availableCrew = widget.gameState.availableTavernCrew;
     return PaperDialog(
-      assetPath: 'assets/paper_ui/Sprites/Book Desk/6.png',
+      assetPath: 'assets/paper_ui/Sprites/Book_Desk/6.png',
       width: 1000,
       height: 800,
       child: Column(

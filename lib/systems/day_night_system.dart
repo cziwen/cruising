@@ -51,6 +51,25 @@ class DayNightSystem {
   bool get isPaused => _isPaused;
   int get currentDay => _currentDay;
   double get timeMultiplier => _timeMultiplier;
+
+  /// 获取累计的游戏总分钟数
+  double get accumulatedTotalMinutes => _accumulatedGameMinutes;
+
+  /// 增加指定分钟数
+  void addMinutes(int minutes) {
+    final double previousAccumulated = _accumulatedGameMinutes;
+    _accumulatedGameMinutes += minutes;
+    _gameMinutes = _accumulatedGameMinutes.round();
+
+    final int previousTotalDays = (previousAccumulated / minutesPerDay).floor();
+    final int currentTotalDays = (_accumulatedGameMinutes / minutesPerDay).floor();
+    if (currentTotalDays > previousTotalDays) {
+      _currentDay += (currentTotalDays - previousTotalDays);
+      while (_currentDay > daysPerYear) {
+        _currentDay -= daysPerYear;
+      }
+    }
+  }
   
   /// 设置游戏时间（用于初始化）
   void setGameMinutes(int value) {

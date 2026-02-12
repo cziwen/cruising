@@ -95,7 +95,7 @@ class _NotificationItemState extends State<NotificationItem> {
               // 背景或动画
               if (_state == NotificationState.exiting)
                 FrameAnimationWidget(
-                  basePath: 'assets/paper_ui/Sprites/Content Appear Animation/Folding & Cutout/4 Notification/1/',
+                  basePath: 'assets/paper_ui/Sprites/Content_Appear_Animation/Folding_Cutout/4_Notification/1/',
                   frameCount: 23,
                   onComplete: widget.onDismissed,
                   width: itemWidth,
@@ -103,7 +103,7 @@ class _NotificationItemState extends State<NotificationItem> {
                 )
               else
                 Image.asset(
-                  'assets/paper_ui/Sprites/Paper UI Pack/Folding & Cutout/4 Notification/1.png',
+                  'assets/paper_ui/Sprites/Paper_UI_Pack/Folding_Cutout/4_Notification/1.png',
                   width: itemWidth,
                   height: itemHeight,
                   fit: BoxFit.fill,

@@ -340,7 +340,7 @@ class _PortSelectDialogState extends State<_PortSelectDialog> {
     final currentPort = widget.portSystem.gameState.currentPort;
 
     return PaperDialog(
-      assetPath: 'assets/paper_ui/Sprites/Book Desk/4.png',
+      assetPath: 'assets/paper_ui/Sprites/Book_Desk/4.png',
       width: 500,
       height: 500,
       child: Column(

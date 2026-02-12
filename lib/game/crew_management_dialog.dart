@@ -42,7 +42,7 @@ class _CrewManagementDialogState extends State<CrewManagementDialog> {
     final fireRateBonus = crewManager.calculateFireRateBonus(); // 直接返回每秒炮数
 
     return PaperDialog(
-      assetPath: 'assets/paper_ui/Sprites/Book Desk/5.png',
+      assetPath: 'assets/paper_ui/Sprites/Book_Desk/5.png',
       width: 800,
       height: 800,
       child: Column(
@@ -353,7 +353,7 @@ class _CrewManagementDialogState extends State<CrewManagementDialog> {
     showDialog(
       context: context,
       builder: (context) => PaperDialog(
-        assetPath: 'assets/paper_ui/Sprites/Book Desk/4.png',
+        assetPath: 'assets/paper_ui/Sprites/Book_Desk/4.png',
         width: 400,
         height: 250,
         child: Column(

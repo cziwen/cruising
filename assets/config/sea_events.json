@@ -1,0 +1,160 @@
+[
+  {
+    "id": "sea_storm",
+    "title": "暴风雨来袭！",
+    "description": "天色骤变，狂风卷起巨浪，一团漆黑的积雨云正迅速笼罩这片海域。船只在波涛中剧烈颠簸，你必须立刻做出决定。",
+    "type": "decision",
+    "probability": 0.08,
+    "cooldownHours": 12,
+    "minProgress": 0.1,
+    "maxProgress": 0.9,
+    "assetPath": "assets/images/effects/storm_rain.png",
+    "choices": [
+      {
+        "id": "storm_full_speed",
+        "label": "全速冲刺：保持航速，强行穿越风暴。",
+        "effects": [
+          { "type": "durabilityChange", "value": [-20, -50] },
+          { "type": "progressChange", "value": 0.05 }
+        ]
+      },
+      {
+        "id": "storm_slow_down",
+        "label": "收帆减速：将航速降至 50%，寻找安全航道。",
+        "effects": [
+          { "type": "durabilityChange", "value": [-5, -10] },
+          { "type": "speedMultiplier", "value": 0.5, "durationHours": 6 }
+        ]
+      },
+      {
+        "id": "storm_nearest_port",
+        "label": "寻找避风港：立即转向最近的已知港口。",
+        "effects": [
+          { "type": "changeDestination", "value": "nearest" }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "sea_distress_call",
+    "title": "遇难求救信号",
+    "description": "远处海面上漂浮着一些残骸，几名落水者正拼命向你挥手求救。他们看起来已经精疲力竭了。",
+    "type": "decision",
+    "probability": 0.07,
+    "cooldownHours": 48,
+    "choices": [
+      {
+        "id": "distress_rescue",
+        "label": "立即营救：放下救生艇，接纳幸存者。",
+        "effects": [
+          { "type": "timeSkip", "value": 2 },
+          { "type": "goldChange", "value": [100, 300] }
+        ]
+      },
+      {
+        "id": "distress_salvage",
+        "label": "打捞残骸：只收集漂浮的物资，不理会求救。",
+        "effects": [
+          { "type": "addRandomGoods", "value": [5, 15] }
+        ]
+      },
+      {
+        "id": "distress_ignore",
+        "label": "冷酷拒绝：保持航向，不要多管闲事。",
+        "effects": []
+      }
+    ]
+  },
+  {
+    "id": "sea_reef_grounding",
+    "title": "暗礁搁浅",
+    "description": "伴随着一声沉闷的撞击声，船底剧烈震动。糟糕，我们撞上了海图上没有标明的暗礁！",
+    "type": "decision",
+    "probability": 0.05,
+    "cooldownHours": 72,
+    "choices": [
+      {
+        "id": "reef_force_off",
+        "label": "强行脱困：尝试冲出礁石区。",
+        "effects": [
+          { "type": "durabilityChange", "value": [-30, -60] },
+          { "type": "timeSkip", "value": 1 }
+        ]
+      },
+      {
+        "id": "reef_wait_tide",
+        "label": "等待涨潮：原地等待水位上升，安全脱困。",
+        "effects": [
+          { "type": "timeSkip", "value": 6 },
+          { "type": "durabilityChange", "value": [-5, -10] }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "sea_merchant_ship",
+    "title": "商船邂逅",
+    "description": "在波平如镜的海面上，一艘挂着中立旗帜的商船正缓缓驶近。对方发出了旗语，似乎想要进行一些物资交换。",
+    "type": "decision",
+    "probability": 0.10,
+    "cooldownHours": 24,
+    "minProgress": 0.2,
+    "maxProgress": 0.8,
+    "choices": [
+      {
+        "id": "merchant_trade",
+        "label": "停船交易：进入临时的交易界面。",
+        "effects": [
+          { "type": "timeSkip", "value": 1 }
+        ]
+      },
+      {
+        "id": "merchant_ignore",
+        "label": "礼貌拒绝：继续航行，不浪费时间。",
+        "effects": []
+      },
+      {
+        "id": "merchant_raid",
+        "label": "武力洗劫：进入战斗，掠夺物资（危险！）。",
+        "condition": "combat_unlocked",
+        "effects": [
+          { "type": "triggerCombat", "value": "merchant" }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "sea_tailwind",
+    "title": "顺风航行",
+    "description": "一阵强劲而稳定的信风从船艉吹来，鼓满了风帆。这正是加速航行的好机会！",
+    "type": "notification",
+    "probability": 0.12,
+    "cooldownHours": 8,
+    "choices": [
+      {
+        "id": "tailwind_ok",
+        "label": "太棒了！",
+        "effects": [
+          { "type": "speedMultiplier", "value": 1.5, "durationHours": 4 }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "sea_headwind",
+    "title": "逆风航行",
+    "description": "风向突然转为逆风，风力强劲。船只的航行变得困难，推进速度大幅下降。",
+    "type": "notification",
+    "probability": 0.12,
+    "cooldownHours": 8,
+    "choices": [
+      {
+        "id": "headwind_ok",
+        "label": "真倒霉...",
+        "effects": [
+          { "type": "speedMultiplier", "value": 0.7, "durationHours": 4 }
+        ]
+      }
+    ]
+  }
+]

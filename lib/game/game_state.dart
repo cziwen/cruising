@@ -15,6 +15,7 @@ import '../systems/save_system.dart';
 import '../systems/music_system.dart';
 import '../systems/notification_system.dart';
 import '../systems/quest_system.dart';
+import '../systems/sea_event_system.dart';
 import '../utils/game_config_loader.dart';
 
 /// 天气状况枚举
@@ -171,6 +172,17 @@ class GameState extends ChangeNotifier {
   bool _isFadeOut = false; // 是否正在渐变黑屏
   Port? _previousPortBeforeCombat; // 战斗前的港口（用于失败重生）
 
+  // 视觉效果
+  String? _currentVisualEffect;
+  String? get currentVisualEffect => _currentVisualEffect;
+
+  void setVisualEffect(String? effect) {
+    if (_currentVisualEffect != effect) {
+      _currentVisualEffect = effect;
+      notifyListeners();
+    }
+  }
+
   // 战斗事件计数器（用于触发视觉反馈）
   int _playerFireCount = 0;
   int _enemyFireCount = 0;
@@ -251,6 +263,10 @@ class GameState extends ChangeNotifier {
   double _debugFireRateBonus = 0.0;
   double _debugSpeedBonus = 0.0;
   double _debugIslandScale = 0.9; // 岛屿缩放比例，默认0.9以解决模糊问题
+
+  // 海上事件加成
+  double _eventSpeedMultiplier = 1.0;
+  double _eventSpeedMultiplierRemainingHours = 0.0;
 
   Port? get currentPort => _currentPort;
   Port? get previousPort => _previousPort;
@@ -343,7 +359,7 @@ class GameState extends ChangeNotifier {
     final crewBonus = _crewManager.calculateSailingBonus();
 
     // 移除上限限制，只保留最小值为1节
-    final finalSpeed = baseSpeed + crewBonus + weatherModifier + _debugSpeedBonus;
+    final finalSpeed = (baseSpeed + crewBonus + weatherModifier + _debugSpeedBonus) * _eventSpeedMultiplier;
     _cachedCurrentSpeed = finalSpeed < 1.0 ? 1.0 : finalSpeed;
     _cachedSpeedWeather = _weather;
     return _cachedCurrentSpeed!;
@@ -509,6 +525,9 @@ class GameState extends ChangeNotifier {
     _lastTavernRefreshDay = -1;
     refreshTavernCrew();
 
+    // 初始化海上事件系统
+    SeaEventSystem.instance.initialize(this);
+
     // 根据状态播放音乐，不再自动暂停/恢复时间
     if (_currentPort != null) {
       MusicSystem().playState('port');
@@ -519,6 +538,44 @@ class GameState extends ChangeNotifier {
     // 确保船只耐久度为满
     _ship.durability = _ship.maxDurability;
 
+    notifyListeners();
+  }
+
+  /// 应用海上事件带来的进度变化
+  void applyEventProgressDelta(double delta) {
+    if (!_isAtSea || _totalTravelDistance <= 0) return;
+    
+    final currentDistance = _accumulatedDistance;
+    final totalDistance = _totalTravelDistance.toDouble();
+    final deltaDistance = totalDistance * delta;
+    
+    _accumulatedDistance = (currentDistance + deltaDistance).clamp(0.0, totalDistance);
+    
+    // 重新计算 accumulatedGameHours 以匹配新的距离
+    if (currentSpeed > 0) {
+      _accumulatedGameHours = _accumulatedDistance / currentSpeed;
+    }
+    
+    notifyListeners();
+  }
+
+  /// 应用海上事件带来的速度倍率
+  void applyEventSpeedMultiplier(double multiplier, int durationHours) {
+    _eventSpeedMultiplier = multiplier;
+    _eventSpeedMultiplierRemainingHours = durationHours.toDouble();
+    _cachedCurrentSpeed = null; // 清除缓存
+    notifyListeners();
+  }
+
+  /// 应用海上事件带来的时间跳跃
+  void applyEventTimeSkip(int hours) {
+    _dayNightSystem.addMinutes(hours * 60);
+    // 同时也需要推进航行时间累积，否则会导致距离回退或进度停滞
+    if (_isAtSea && !_isInCombat) {
+      _accumulatedGameHours += hours;
+      final newDistance = currentSpeed * _accumulatedGameHours;
+      _accumulatedDistance = newDistance.clamp(0.0, _totalTravelDistance.toDouble());
+    }
     notifyListeners();
   }
 
@@ -533,6 +590,17 @@ class GameState extends ChangeNotifier {
     if (isMenuMode || _isQuestPaused) {
       notifyListeners();
       return;
+    }
+
+    // 更新海上事件速度加成持续时间
+    if (_eventSpeedMultiplierRemainingHours > 0) {
+      final dtGameHours = dtRealSeconds * (currentTimeScale / 60.0); // 将现实秒转换为游戏小时
+      _eventSpeedMultiplierRemainingHours -= dtGameHours;
+      if (_eventSpeedMultiplierRemainingHours <= 0) {
+        _eventSpeedMultiplierRemainingHours = 0;
+        _eventSpeedMultiplier = 1.0;
+        _cachedCurrentSpeed = null;
+      }
     }
 
     // totalSailingOffset 仅在航行且不在战斗时增加，用于驱动背景滚动
@@ -1295,17 +1363,11 @@ class GameState extends ChangeNotifier {
               _travelProgress = 1.0;
             }
             
-            // 检查是否触发战斗（在航行10%-90%之间随机触发）
-            if (!_isInCombat && _travelProgress > 0.1 && _travelProgress < 0.9) {
-              // 每20%进度检查一次
-              final progressStep = (_travelProgress * 5).floor();
-              final previousProgress = _travelProgress - (dtGameHours * currentSpeed / _totalTravelDistance);
-              final lastProgressStep = (previousProgress * 5).floor();
-              
-              // 如果跨越了20%的进度点，检查是否触发战斗
-              if (progressStep != lastProgressStep && progressStep > 0) {
-                _triggerCombat();
-              }
+            // 检查是否触发随机事件（每 1 游戏小时检查一次）
+            final currentTotalHours = _accumulatedGameHours;
+            final previousTotalHours = _accumulatedGameHours - dtGameHours;
+            if (currentTotalHours.floor() > previousTotalHours.floor()) {
+              _checkRandomEvents();
             }
             
             notifyListeners();
@@ -1383,6 +1445,9 @@ class GameState extends ChangeNotifier {
 
     // 显示到港提示
     NotificationSystem.instance.showNotification('已到达 ${port.name}');
+
+    // 重置海上事件航程统计
+    SeaEventSystem.instance.resetVoyageStats();
 
     notifyListeners();
 
@@ -2313,15 +2378,11 @@ class GameState extends ChangeNotifier {
           _travelProgress = 1.0;
         }
 
-        // 检查是否触发战斗（在航行10%-90%之间随机触发）
-        if (!_isInCombat && _travelProgress > 0.1 && _travelProgress < 0.9) {
-          final progressStep = (_travelProgress * 5).floor();
-          final previousProgress = _travelProgress - (dtGameHours * currentSpeed / _totalTravelDistance);
-          final lastProgressStep = (previousProgress * 5).floor();
-
-          if (progressStep != lastProgressStep && progressStep > 0) {
-            _triggerCombat();
-          }
+        // 检查是否触发随机事件（每 1 游戏小时检查一次）
+        final currentTotalHours = _accumulatedGameHours;
+        final previousTotalHours = _accumulatedGameHours - dtGameHours;
+        if (currentTotalHours.floor() > previousTotalHours.floor()) {
+          _checkRandomEvents();
         }
 
         notifyListeners();
@@ -2340,13 +2401,29 @@ class GameState extends ChangeNotifier {
     _enemyAttackTimer = 0.0;
     _playerRepairTimer = 0.0;
     _enemyRepairTimer = 0.0;
+    
+    // 战斗结束后重置航行事件计数，或者根据需求保留
+    // SeaEventSystem.instance.resetVoyageStats(); 
   }
 
-  /// 触发战斗（在航行过程中随机触发）
-  void _triggerCombat() {
-    if (_isInCombat || !_isAtSea || !_isCombatUnlocked) return;
+  /// 检查随机事件（包括战斗和海上随机事件）
+  void _checkRandomEvents() {
+    if (_isInCombat || !_isAtSea || SeaEventSystem.instance.activeEvent != null) return;
 
-    // 随机触发战斗（每20%进度5%概率）
+    // 1. 优先尝试触发海上随机事件
+    final gameHours = _dayNightSystem.accumulatedTotalMinutes / 60.0;
+    final seaEvent = SeaEventSystem.instance.checkAndTriggerEvent(_travelProgress, gameHours);
+    
+    if (seaEvent != null) {
+      // 触发了海上事件，不再检查战斗
+      notifyListeners();
+      return;
+    }
+
+    // 2. 如果没触发海上事件，且战斗已解锁，检查战斗触发
+    if (!_isCombatUnlocked) return;
+
+    // 随机触发战斗（每 1 游戏小时约 5% 概率，保持原有逻辑密度）
     final random = Random();
     if (random.nextDouble() < 0.05) {
       startCombat();

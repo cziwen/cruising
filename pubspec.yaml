@@ -50,8 +50,8 @@ flutter:
   uses-material-design: true
   
   assets:
-    - assets/paper_ui/Sprites/Paper UI Pack/Folding & Cutout/4 Notification/
-    - assets/paper_ui/Sprites/Content Appear Animation/Folding & Cutout/4 Notification/1/
+    - assets/paper_ui/Sprites/Paper_UI_Pack/Folding_Cutout/4_Notification/
+    - assets/paper_ui/Sprites/Content_Appear_Animation/Folding_Cutout/4_Notification/1/
     - assets/config/
     - assets/images/
     - assets/images/onsky/
@@ -63,10 +63,15 @@ flutter:
     - assets/images/ships/
     - assets/images/avatar/
     - assets/images/goods/
-    - assets/paper_ui/Sprites/Book Desk/
+    - assets/paper_ui/Sprites/Book_Desk/
     - assets/paper_ui/Sprites/Content/4_Buttons/
     - assets/paper_ui/Sprites/Content/5_Holders/
     - assets/paper_ui/Sprites/Content/3_Progress_Bars/
+    - assets/paper_ui/Sprites/Paper_UI_Pack/Plain/1_Paper/
+    - assets/paper_ui/Sprites/Paper_UI_Pack/Plain/2_Headers/
+    - assets/paper_ui/Sprites/Paper_UI_Pack/Plain/6_Player_HUD/
+    - assets/paper_ui/Sprites/Paper_UI_Pack/Plain/3_Item_Holder/
+    - assets/paper_ui/Sprites/Paper_UI_Pack/Plain/8_Shop/
     - assets/music/main_menu/
     - assets/music/combat/
     - assets/music/cruising/

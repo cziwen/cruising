@@ -16,13 +16,30 @@ class ScreenEffectLayer extends StatelessWidget {
     return AnimatedBuilder(
       animation: gameState,
       builder: (context, child) {
+        final isStorm = gameState.currentVisualEffect == 'sea_storm';
+        
         return IgnorePointer(
           // 始终忽略点击，仅作为视觉层
           ignoring: true,
-          child: AnimatedContainer(
-            duration: const Duration(seconds: 2),
-            curve: Curves.easeInOut,
-            color: Colors.black.withValues(alpha: gameState.isFadeOut ? 1.0 : 0.0),
+          child: Stack(
+            children: [
+              // 渐变黑屏效果
+              AnimatedContainer(
+                duration: const Duration(seconds: 2),
+                curve: Curves.easeInOut,
+                color: Colors.black.withValues(alpha: gameState.isFadeOut ? 1.0 : 0.0),
+              ),
+              
+              // 风暴效果（全屏灰色滤镜）
+              if (isStorm)
+                AnimatedOpacity(
+                  opacity: isStorm ? 1.0 : 0.0,
+                  duration: const Duration(seconds: 1),
+                  child: Container(
+                    color: Colors.blueGrey.withValues(alpha: 0.3),
+                  ),
+                ),
+            ],
           ),
         );
       },

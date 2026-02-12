@@ -630,7 +630,7 @@ class _TradeDialogState extends State<_TradeDialog> {
 
     return PaperDialog(
       questId: 'ui.marketPanel',
-      assetPath: 'assets/paper_ui/Sprites/Book Desk/7.png',
+      assetPath: 'assets/paper_ui/Sprites/Book_Desk/7.png',
       width: 1000,
       height: 800,
       child: Column(

@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import 'game_state.dart';
 import '../systems/save_system.dart';
 import '../systems/quest_system.dart';
+import '../systems/sea_event_system.dart';
+import '../utils/game_config_loader.dart';
 
 /// 调试面板组件
 class DebugPanel extends StatefulWidget {
@@ -17,6 +19,7 @@ class DebugPanel extends StatefulWidget {
 class _DebugPanelState extends State<DebugPanel>
     with SingleTickerProviderStateMixin {
   bool _isExpanded = false;
+  bool _showEventsList = false;
   late AnimationController _controller;
   late Animation<double> _animation;
 
@@ -337,6 +340,79 @@ class _DebugPanelState extends State<DebugPanel>
                         ),
                       ),
                     ),
+                    const SizedBox(height: 8),
+                    // 海上随机事件列表
+                    const Text(
+                      '海上随机事件',
+                      style: TextStyle(color: Colors.white70, fontSize: 10, fontWeight: FontWeight.bold),
+                    ),
+                    const SizedBox(height: 4),
+                    SizedBox(
+                      width: double.infinity,
+                      child: OutlinedButton(
+                        onPressed: () {
+                          setState(() {
+                            _showEventsList = !_showEventsList;
+                          });
+                        },
+                        style: OutlinedButton.styleFrom(
+                          foregroundColor: Colors.orange,
+                          side: const BorderSide(color: Colors.orange, width: 1),
+                          padding: const EdgeInsets.symmetric(vertical: 4),
+                        ),
+                        child: Text(
+                          _showEventsList ? '隐藏事件列表' : '展开事件列表',
+                          style: const TextStyle(fontSize: 10),
+                        ),
+                      ),
+                    ),
+                    if (_showEventsList) ...[
+                      const SizedBox(height: 4),
+                      Container(
+                        constraints: const BoxConstraints(maxHeight: 150),
+                        padding: const EdgeInsets.symmetric(horizontal: 4),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withValues(alpha: 0.1),
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                        child: ListView(
+                          shrinkWrap: true,
+                          padding: EdgeInsets.zero,
+                          children: GameConfigLoader().seaEventsList.map((event) {
+                            return Padding(
+                              padding: const EdgeInsets.symmetric(vertical: 2.0),
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Expanded(
+                                    child: Text(
+                                      event.title,
+                                      style: const TextStyle(color: Colors.white, fontSize: 10),
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 4),
+                                  ElevatedButton(
+                                    onPressed: widget.gameState!.isAtSea 
+                                        ? () {
+                                            SeaEventSystem.instance.triggerEventById(event.id);
+                                          }
+                                        : null,
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: Colors.orange,
+                                      foregroundColor: Colors.white,
+                                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 0),
+                                      minimumSize: const Size(40, 20),
+                                    ),
+                                    child: const Text('触发', style: TextStyle(fontSize: 9)),
+                                  ),
+                                ],
+                              ),
+                            );
+                          }).toList(),
+                        ),
+                      ),
+                    ],
                     const SizedBox(height: 8),
                     // 添加金币按钮
                     SizedBox(
