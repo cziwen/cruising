@@ -66,18 +66,14 @@ class _NearBackgroundLayerState extends State<NearBackgroundLayer> {
               // 直接使用 accumulatedDistance，在切换目的地时它不再归零，因此动画会平滑继续
               final exitDistance = widget.gameState.accumulatedDistance;
               
-              final currentSpeed = widget.gameState.currentSpeed;
-              if (currentSpeed > 0) {
-                final timeElapsedHours = exitDistance / currentSpeed;
-                // 动态滚动速度与当前航速正相关
-                final dynamicScrollSpeed = _scrollSpeed * (currentSpeed / 8.0);
-                exitOffset = -timeElapsedHours * dynamicScrollSpeed;
-                
-                // 计算退出缩放：从 0.9 逐渐缩小到 0.7
-                if (_screenWidth > 0) {
-                  final progress = (exitOffset.abs() / _screenWidth).clamp(0.0, 1.0);
-                  exitScale = 0.9 - (0.2 * progress);
-                }
+              // 动态滚动速度与当前航速正相关，但为了避免速度跳变导致位置跳变，
+              // 我们直接基于距离计算偏移。基础航速 8 节对应标准滚动。
+              exitOffset = -exitDistance * (_scrollSpeed / 8.0);
+              
+              // 计算退出缩放：从 0.9 逐渐缩小到 0.7
+              if (_screenWidth > 0) {
+                final progress = (exitOffset.abs() / _screenWidth).clamp(0.0, 1.0);
+                exitScale = 0.9 - (0.2 * progress);
               }
             }
 
@@ -87,15 +83,11 @@ class _NearBackgroundLayerState extends State<NearBackgroundLayer> {
             if (isAtSea && destinationPort != null) {
               final totalDistance = widget.gameState.totalTravelDistance;
               final accumulatedDistance = widget.gameState.accumulatedDistance;
-              final currentSpeed = widget.gameState.currentSpeed;
               
-              if (totalDistance > 0 && currentSpeed > 0) {
+              if (totalDistance > 0) {
                 final remainingDistance = totalDistance - accumulatedDistance;
-                // 1现实秒 = 1游戏小时，所以剩余时间（小时）即为剩余时间（秒）
-                final remainingTimeSeconds = remainingDistance / currentSpeed;
-                // 动态滚动速度与当前航速正相关
-                final dynamicScrollSpeed = _scrollSpeed * (currentSpeed / 8.0);
-                enterOffset = remainingTimeSeconds * dynamicScrollSpeed;
+                // 动态滚动速度与当前航速正相关，直接基于剩余距离计算偏移
+                enterOffset = remainingDistance * (_scrollSpeed / 8.0);
                 
                 // 计算进入缩放：从 0.7 逐渐放大到 0.9
                 if (_screenWidth > 0) {

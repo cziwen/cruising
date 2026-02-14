@@ -6,16 +6,16 @@
     "type": "decision",
     "probability": 0.08,
     "cooldownHours": 12,
-    "minProgress": 0.1,
-    "maxProgress": 0.9,
+    "minProgress": 0.2,
+    "maxProgress": 0.8,
     "assetPath": "assets/images/events/sea_storm.png",
     "choices": [
       {
         "id": "storm_full_speed",
         "label": "全速冲刺：保持航速，强行穿越风暴。",
         "effects": [
-          { "type": "durabilityChange", "value": [-20, -50] },
-          { "type": "progressChange", "value": 0.05 }
+          { "type": "durabilityChange", "value": [-30, -60] },
+          { "type": "progressChange", "value": 0.1 }
         ]
       },
       {

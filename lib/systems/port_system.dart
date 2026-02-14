@@ -15,19 +15,6 @@ class PortSystem {
   List<Port> getAvailablePorts() {
     var ports = gameState.ports.where((port) => port.unlocked).toList();
 
-    // 如果当前在海上，过滤掉“海上”目的地和上一个出发港口
-    if (gameState.isAtSea) {
-      ports = ports.where((port) {
-        // 不允许在海上时再次选择“海上”
-        if (port.isSeaLocation) return false;
-        // 不允许选择上一个出发的港口
-        if (gameState.previousPort != null && port.id == gameState.previousPort!.id) {
-          return false;
-        }
-        return true;
-      }).toList();
-    }
-
     // 将主岛放在第一个选项
     ports.sort((a, b) {
       if (a.id == 'home_island') return -1;

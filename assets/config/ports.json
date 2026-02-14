@@ -249,6 +249,8 @@
     "backgroundImage": "",
     "description": "离开港口，进入广阔的海域。在这里你可以随时选择新的目的地。",
     "unlocked": true,
+    "mapX": 881.0,
+    "mapY": 525.0,
     "distances": {},
     "isSeaLocation": true
   }

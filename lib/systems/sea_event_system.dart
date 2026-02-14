@@ -268,15 +268,13 @@ class SeaEventSystem extends ChangeNotifier {
   void _handleChangeDestination() {
     if (_gameState == null) return;
     // 寻找最近的港口
-    final ports = _gameState!.ports.where((p) => p.unlocked && !p.isSeaLocation).toList();
-    if (ports.isEmpty) return;
+    final targetPortId = _gameState!.findNearestPortId();
+    if (targetPortId == null) return;
 
-    // 简单起见，随机选一个已解锁港口（或者最近的）
-    final random = Random();
-    final targetPort = ports[random.nextInt(ports.length)];
+    final targetPort = _gameState!.ports.firstWhere((p) => p.id == targetPortId);
     
-    NotificationSystem.instance.showNotification('航道改变，正转向 ${targetPort.name}');
-    _gameState!.startTravelToPort(targetPort.id);
+    NotificationSystem.instance.showNotification('航道改变，正转向最近的港口：${targetPort.name}');
+    _gameState!.startTravelToPort(targetPortId, minDistance: 480);
   }
 
   /// 重置单次航行计数

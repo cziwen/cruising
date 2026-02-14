@@ -559,16 +559,10 @@ class GameState extends ChangeNotifier {
   void applyEventProgressDelta(double delta) {
     if (!_isAtSea || _totalTravelDistance <= 0) return;
     
-    final currentDistance = _accumulatedDistance;
     final totalDistance = _totalTravelDistance.toDouble();
     final deltaDistance = totalDistance * delta;
     
-    _accumulatedDistance = (currentDistance + deltaDistance).clamp(0.0, totalDistance);
-    
-    // 重新计算 accumulatedGameHours 以匹配新的距离
-    if (currentSpeed > 0) {
-      _accumulatedGameHours = _accumulatedDistance / currentSpeed;
-    }
+    _accumulatedDistance = (_accumulatedDistance + deltaDistance).clamp(0.0, totalDistance);
     
     notifyListeners();
   }
@@ -586,9 +580,8 @@ class GameState extends ChangeNotifier {
     _dayNightSystem.addMinutes(hours * 60);
     // 同时也需要推进航行时间累积，否则会导致距离回退或进度停滞
     if (_isAtSea && !_isInCombat) {
-      _accumulatedGameHours += hours;
-      final newDistance = currentSpeed * _accumulatedGameHours;
-      _accumulatedDistance = newDistance.clamp(0.0, _totalTravelDistance.toDouble());
+      final dtDistance = currentSpeed * hours;
+      _accumulatedDistance = (_accumulatedDistance + dtDistance).clamp(0.0, _totalTravelDistance.toDouble());
     }
     notifyListeners();
   }
@@ -1154,8 +1147,71 @@ class GameState extends ChangeNotifier {
     notifyListeners();
   }
 
+  /// 寻找最近的港口 ID
+  String? findNearestPortId() {
+    double currentX = 0;
+    double currentY = 0;
+    bool hasCoords = false;
+
+    if (_isAtSea) {
+      // 在海上，通过上一个港口和目标港口插值估算当前坐标
+      final startPort = _previousPort;
+      final endPort = _destinationPort;
+
+      if (startPort != null && endPort != null && startPort.mapX != null && startPort.mapY != null && endPort.mapX != null && endPort.mapY != null) {
+        currentX = startPort.mapX! + (endPort.mapX! - startPort.mapX!) * _travelProgress;
+        currentY = startPort.mapY! + (endPort.mapY! - startPort.mapY!) * _travelProgress;
+        hasCoords = true;
+      } else if (startPort != null && startPort.mapX != null && startPort.mapY != null) {
+        currentX = startPort.mapX!;
+        currentY = startPort.mapY!;
+        hasCoords = true;
+      } else if (endPort != null && endPort.mapX != null && endPort.mapY != null) {
+        currentX = endPort.mapX!;
+        currentY = endPort.mapY!;
+        hasCoords = true;
+      }
+    } else {
+      // 在港口，直接使用当前港口坐标
+      final port = _currentPort ?? _previousPort;
+      if (port != null && port.mapX != null && port.mapY != null) {
+        currentX = port.mapX!;
+        currentY = port.mapY!;
+        hasCoords = true;
+      }
+    }
+
+    String? nearestId;
+    double minDistanceSq = double.infinity;
+
+    // 获取所有候选港口（已解锁且非海上地点）
+    final candidates = _ports.where((p) => !p.isSeaLocation && p.unlocked).toList();
+    if (candidates.isEmpty) return null;
+
+    if (hasCoords) {
+      for (final port in candidates) {
+        // 排除当前所在港口（如果已经在某个港口）
+        if (!_isAtSea && port.id == (_currentPort?.id)) continue;
+
+        if (port.mapX != null && port.mapY != null) {
+          final dx = port.mapX! - currentX;
+          final dy = port.mapY! - currentY;
+          final distSq = dx * dx + dy * dy;
+
+          if (distSq < minDistanceSq) {
+            minDistanceSq = distSq;
+            nearestId = port.id;
+          }
+        }
+      }
+    }
+
+    // 如果无法通过坐标找到最近港口，则回退到第一个可用的已解锁港口
+    return nearestId ?? candidates.first.id;
+  }
+
   /// 开始航行到目标港口
-  Future<void> startTravelToPort(String portId) async {
+  Future<void> startTravelToPort(String portId, {int? minDistance}) async {
     final port = _ports.firstWhere(
       (p) => p.id == portId,
       orElse: () => throw Exception('Port not found: $portId'),
@@ -1218,17 +1274,21 @@ class GameState extends ChangeNotifier {
           _lastProgressUpdateTime = now;
           
           final dtGameHours = dtRealSeconds;
+          
+          // 累积游戏内时间
           _accumulatedGameHours += dtGameHours;
           
-          final currentSpeed = this.currentSpeed;
-          _accumulatedDistance = currentSpeed * _accumulatedGameHours;
+          // 计算已航行距离：当前航速（节） × 这一帧的游戏小时数
+          // 注意：当前航速可能变化（天气、船员变化），所以需要实时计算
+          final currentSpeed = this.currentSpeed; // 获取当前航速（节）
+          final dtDistance = currentSpeed * dtGameHours;
+          _accumulatedDistance += dtDistance;
           
-          // 进度计算（从本段起点开始计算）
-          final legTotal = _totalTravelDistance - _legStartDistance;
-          if (legTotal > 0) {
-            _travelProgress = ((_accumulatedDistance - _legStartDistance) / legTotal).clamp(0.0, 1.0);
+          // 进度计算（海上无尽航行时，进度逐渐增加到 0.5 以便触发事件）
+          if (_accumulatedDistance < 240) {
+            _travelProgress = (_accumulatedDistance / 480).clamp(0.0, 0.5);
           } else {
-            _travelProgress = 0.0;
+            _travelProgress = 0.5;
           }
           
           notifyListeners();
@@ -1249,8 +1309,8 @@ class GameState extends ChangeNotifier {
 
     // 保存当前港口用于计算航行时间
     Port? previousPort;
-    // 检查是否从海上选择新目的地（需要在设置状态之前检查）
-    final isFromSea = _isAtSea && _destinationPort == null;
+    // 检查是否在海上（如果是从海上选择新目的地或被事件重定向）
+    final isFromSea = _isAtSea;
     if (isFromSea) {
       // 从海上选择其他港口时，使用 _previousPort
       previousPort = _previousPort;
@@ -1270,10 +1330,20 @@ class GameState extends ChangeNotifier {
     MusicSystem().playState('cruising');
 
     // 获取航行距离（节）
-    int travelDistance = 240; // 默认 240 节（初始从海上选择目的地时的最小距离）
+    int travelDistance = 240; // 如果 prev port 为 null，则 traveldistance 可以fallback 到 240
     if (previousPort != null) {
       // 获取航行距离（节）
-      travelDistance = previousPort.getDistanceTo(portId) ?? 240;
+      travelDistance = previousPort.getDistanceTo(portId) ?? 480;
+
+      // 否则（prev port 不为 null），非海上地点的最小航行距离为 480 节
+      if (!port.isSeaLocation && travelDistance < 480) {
+        travelDistance = 480;
+      }
+    }
+
+    // 应用传入的最小距离限制（如果有）
+    if (minDistance != null && travelDistance < minDistance) {
+      travelDistance = minDistance;
     }
 
     // 初始化进度（基于距离）
@@ -1352,10 +1422,11 @@ class GameState extends ChangeNotifier {
           // 累积游戏内时间
           _accumulatedGameHours += dtGameHours;
           
-          // 计算已航行距离：当前航速（节） × 累积的游戏小时数
+          // 计算已航行距离：当前航速（节） × 这一帧的游戏小时数
           // 注意：当前航速可能变化（天气、船员变化），所以需要实时计算
           final currentSpeed = this.currentSpeed; // 获取当前航速（节）
-          _accumulatedDistance = currentSpeed * _accumulatedGameHours;
+          final dtDistance = currentSpeed * dtGameHours;
+          _accumulatedDistance += dtDistance;
           
           // 根据已航行距离计算进度
           final legTotal = _totalTravelDistance - _legStartDistance;
@@ -2369,9 +2440,10 @@ class GameState extends ChangeNotifier {
       // 累积游戏内时间
       _accumulatedGameHours += dtGameHours;
 
-      // 计算已航行距离：当前航速（节） × 累积的游戏小时数
+      // 计算已航行距离：当前航速（节） × 这一帧的游戏小时数
       final currentSpeed = this.currentSpeed;
-      _accumulatedDistance = currentSpeed * _accumulatedGameHours;
+      final dtDistance = currentSpeed * dtGameHours;
+      _accumulatedDistance += dtDistance;
 
       // 根据已航行距离计算进度
       final legTotal = _totalTravelDistance - _legStartDistance;

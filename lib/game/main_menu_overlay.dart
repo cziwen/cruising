@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
+import '../utils/version_constants.dart';
 import 'paper_button.dart';
 
 class MainMenuOverlay extends StatelessWidget {
@@ -22,70 +23,95 @@ class MainMenuOverlay extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          // 标题
-          const Text(
-            'Cruising',
+    return Stack(
+      children: [
+        Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              // 标题
+              const Text(
+                'Cruising',
+                style: TextStyle(
+                  fontSize: 72,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
+                  shadows: [
+                    Shadow(
+                      blurRadius: 10.0,
+                      color: Colors.black,
+                      offset: Offset(5.0, 5.0),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 60),
+              
+              // 菜单按钮
+              _buildMenuButton(
+                context,
+                label: '新游戏',
+                onPressed: onNewGame,
+              ),
+              const SizedBox(height: 20),
+              
+              if (canContinue) ...[
+                _buildMenuButton(
+                  context,
+                  label: '继续游戏',
+                  onPressed: onContinueGame,
+                  isSecondary: true,
+                ),
+                const SizedBox(height: 20),
+              ],
+              
+              _buildMenuButton(
+                context,
+                label: '读取存档',
+                onPressed: onLoadGame,
+                isSecondary: true,
+              ),
+              const SizedBox(height: 20),
+              
+              _buildMenuButton(
+                context,
+                label: '设置',
+                onPressed: onSettings,
+              ),
+              const SizedBox(height: 20),
+              
+              // 仅在非 Web 平台显示退出按钮
+              if (!kIsWeb) 
+                _buildMenuButton(
+                  context,
+                  label: '退出',
+                  onPressed: onExit,
+                ),
+            ],
+          ),
+        ),
+        
+        // 版本号 - 左下角
+        Positioned(
+          left: 20,
+          bottom: 20,
+          child: Text(
+            'v${VersionConstants.gameVersion}',
             style: TextStyle(
-              fontSize: 72,
-              fontWeight: FontWeight.bold,
-              color: Colors.white,
-              shadows: [
+              color: Colors.white.withValues(alpha: 0.7),
+              fontSize: 14,
+              fontWeight: FontWeight.w500,
+              shadows: const [
                 Shadow(
-                  blurRadius: 10.0,
+                  blurRadius: 4.0,
                   color: Colors.black,
-                  offset: Offset(5.0, 5.0),
+                  offset: Offset(1.0, 1.0),
                 ),
               ],
             ),
           ),
-          const SizedBox(height: 60),
-          
-          // 菜单按钮
-          _buildMenuButton(
-            context,
-            label: '新游戏',
-            onPressed: onNewGame,
-          ),
-          const SizedBox(height: 20),
-          
-          if (canContinue) ...[
-            _buildMenuButton(
-              context,
-              label: '继续游戏',
-              onPressed: onContinueGame,
-              isSecondary: true,
-            ),
-            const SizedBox(height: 20),
-          ],
-          
-          _buildMenuButton(
-            context,
-            label: '读取存档',
-            onPressed: onLoadGame,
-            isSecondary: true,
-          ),
-          const SizedBox(height: 20),
-          
-          _buildMenuButton(
-            context,
-            label: '设置',
-            onPressed: onSettings,
-          ),
-          const SizedBox(height: 20),
-          
-          // 仅在非 Web 平台显示退出按钮
-          if (!kIsWeb) 
-            _buildMenuButton(
-              context,
-              label: '退出',
-              onPressed: onExit,
-            ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 
