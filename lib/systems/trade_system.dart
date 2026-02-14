@@ -1,4 +1,4 @@
-import 'dart:math';
+﻿import 'dart:math';
 import 'package:flutter/material.dart';
 import '../models/goods.dart';
 import '../models/port.dart';
@@ -7,6 +7,7 @@ import '../utils/game_config_loader.dart';
 import '../game/paper_dialog.dart';
 import '../game/paper_button.dart';
 import 'quest_system.dart';
+import 'sea_event_system.dart';
 
 /// 待交易物品
 class PendingTradeItem {
@@ -347,11 +348,11 @@ class TradeSystem {
   }
 
   /// 购买商品
-  bool buyGoods(String goodsId, int quantity) {
-    if (gameState.currentPort == null) return false;
+  bool buyGoods(String goodsId, int quantity, {String? portId}) {
+    final effectivePortId = portId ?? gameState.currentPort?.id;
+    if (effectivePortId == null) return false;
     
-    final portId = gameState.currentPort!.id;
-    final price = getPortGoodsPrice(portId, goodsId);
+    final price = getPortGoodsPrice(effectivePortId, goodsId);
     final totalCost = (price.buyPrice * quantity).round();
     
     // 检查金币
@@ -378,13 +379,13 @@ class TradeSystem {
       final success = gameState.addToInventory(goodsId, quantity, getGoodsById: _getGoods);
       if (success) {
         // 购买成功后，减少港口库存
-        final port = gameState.ports.firstWhere((p) => p.id == portId);
+        final port = gameState.ports.firstWhere((p) => p.id == effectivePortId);
         final currentStock = port.getGoodsStock(goodsId);
         final newStock = (currentStock - quantity).clamp(0, double.infinity).toInt();
-        gameState.updatePortGoodsStock(portId, goodsId, newStock);
+        gameState.updatePortGoodsStock(effectivePortId, goodsId, newStock);
         
         // 商人获得金币
-        gameState.updatePortMerchantMoney(portId, port.merchantMoney + totalCost);
+        gameState.updatePortMerchantMoney(effectivePortId, port.merchantMoney + totalCost);
       }
       return success;
     }
@@ -393,10 +394,9 @@ class TradeSystem {
   }
 
   /// 出售商品
-  bool sellGoods(String goodsId, int quantity) {
-    if (gameState.currentPort == null) return false;
-    
-    final portId = gameState.currentPort!.id;
+  bool sellGoods(String goodsId, int quantity, {String? portId}) {
+    final effectivePortId = portId ?? gameState.currentPort?.id;
+    if (effectivePortId == null) return false;
     
     // 检查库存
     final inventoryQuantity = gameState.getInventoryQuantity(goodsId);
@@ -404,21 +404,21 @@ class TradeSystem {
       return false;
     }
     
-    final price = getPortGoodsPrice(portId, goodsId);
+    final price = getPortGoodsPrice(effectivePortId, goodsId);
     final totalEarn = (price.sellPrice * quantity).round();
     
     // 执行出售
     if (gameState.removeFromInventory(goodsId, quantity)) {
       gameState.addGold(totalEarn);
       // 出售成功后，增加港口库存
-      final port = gameState.ports.firstWhere((p) => p.id == portId);
+      final port = gameState.ports.firstWhere((p) => p.id == effectivePortId);
       final currentStock = port.getGoodsStock(goodsId);
       final newStock = currentStock + quantity;
-      gameState.updatePortGoodsStock(portId, goodsId, newStock);
+      gameState.updatePortGoodsStock(effectivePortId, goodsId, newStock);
       
       // 商人支付金币（确保不为负）
       final newMerchantMoney = (port.merchantMoney - totalEarn).clamp(0, double.infinity).toInt();
-      gameState.updatePortMerchantMoney(portId, newMerchantMoney);
+      gameState.updatePortMerchantMoney(effectivePortId, newMerchantMoney);
       return true;
     }
     
@@ -427,9 +427,10 @@ class TradeSystem {
 
   /// 执行pending交易（基于交换机制）
   /// 返回执行结果消息，如果失败返回错误消息
-  String? executePendingTrade(PendingTrade pendingTrade) {
-    if (gameState.currentPort == null) {
-      return '当前不在港口';
+  String? executePendingTrade(PendingTrade pendingTrade, {String? portId}) {
+    final effectivePortId = portId ?? gameState.currentPort?.id;
+    if (effectivePortId == null) {
+      return '当前不在港口且未指定交易对象';
     }
 
     // 检查交易是否可接受
@@ -437,8 +438,7 @@ class TradeSystem {
       return '商人拒绝此交易（交易偏向玩家）';
     }
 
-    final portId = gameState.currentPort!.id;
-    final port = gameState.ports.firstWhere((p) => p.id == portId);
+    final port = gameState.ports.firstWhere((p) => p.id == effectivePortId);
 
     // 检查玩家是否有足够的物品换出
     for (final item in pendingTrade.itemsToGive) {
@@ -498,16 +498,16 @@ class TradeSystem {
       if (item.goodsId == 'gold') {
         gameState.spendGold(item.quantity);
         // 获取最新的port对象
-        final updatedPort = gameState.ports.firstWhere((p) => p.id == portId);
-        gameState.updatePortMerchantMoney(portId, updatedPort.merchantMoney + item.quantity);
+        final updatedPort = gameState.ports.firstWhere((p) => p.id == effectivePortId);
+        gameState.updatePortMerchantMoney(effectivePortId, updatedPort.merchantMoney + item.quantity);
       } else {
         if (gameState.removeFromInventory(item.goodsId, item.quantity)) {
           // 获取最新的port对象
-          final updatedPort = gameState.ports.firstWhere((p) => p.id == portId);
+          final updatedPort = gameState.ports.firstWhere((p) => p.id == effectivePortId);
           // 使用实际库存（goodsStock），如果不存在则从0开始
           final currentStock = updatedPort.getGoodsStock(item.goodsId);
           final newStock = currentStock + item.quantity;
-          gameState.updatePortGoodsStock(portId, item.goodsId, newStock);
+          gameState.updatePortGoodsStock(effectivePortId, item.goodsId, newStock);
         }
       }
     }
@@ -517,18 +517,18 @@ class TradeSystem {
       if (item.goodsId == 'gold') {
         gameState.addGold(item.quantity);
         // 获取最新的port对象
-        final updatedPort = gameState.ports.firstWhere((p) => p.id == portId);
-        gameState.updatePortMerchantMoney(portId, updatedPort.merchantMoney - item.quantity);
+        final updatedPort = gameState.ports.firstWhere((p) => p.id == effectivePortId);
+        gameState.updatePortMerchantMoney(effectivePortId, updatedPort.merchantMoney - item.quantity);
       } else {
         // 计算本次买入的平均单价
         final purchasePrice = item.totalPrice / item.quantity;
         if (gameState.addToInventory(item.goodsId, item.quantity, getGoodsById: _getGoods, purchasePrice: purchasePrice)) {
           // 获取最新的port对象
-          final updatedPort = gameState.ports.firstWhere((p) => p.id == portId);
+          final updatedPort = gameState.ports.firstWhere((p) => p.id == effectivePortId);
           // 使用实际库存（goodsStock），确保库存不会为负
           final currentStock = updatedPort.getGoodsStock(item.goodsId);
           final newStock = (currentStock - item.quantity).clamp(0, double.infinity).toInt();
-          gameState.updatePortGoodsStock(portId, item.goodsId, newStock);
+          gameState.updatePortGoodsStock(effectivePortId, item.goodsId, newStock);
         }
       }
     }
@@ -539,7 +539,7 @@ class TradeSystem {
   }
 
   /// 显示交易界面
-  static void showTradeDialog(BuildContext context, TradeSystem tradeSystem) {
+  static void showTradeDialog(BuildContext context, TradeSystem tradeSystem, {String? portId}) {
     // 检查任务配置是否允许关闭弹窗
     final activeQuest = QuestSystem.instance.activeQuest;
     final bool barrierDismissible = activeQuest?.barrierDismissible ?? true;
@@ -547,7 +547,7 @@ class TradeSystem {
     showDialog(
       context: context,
       barrierDismissible: barrierDismissible,
-      builder: (context) => _TradeDialog(tradeSystem: tradeSystem),
+      builder: (context) => _TradeDialog(tradeSystem: tradeSystem, portId: portId),
     );
   }
 }
@@ -555,8 +555,9 @@ class TradeSystem {
 /// 交易界面对话框
 class _TradeDialog extends StatefulWidget {
   final TradeSystem tradeSystem;
+  final String? portId;
 
-  const _TradeDialog({required this.tradeSystem});
+  const _TradeDialog({required this.tradeSystem, this.portId});
 
   @override
   State<_TradeDialog> createState() => _TradeDialogState();
@@ -601,6 +602,12 @@ class _TradeDialogState extends State<_TradeDialog> {
       // 同步关闭滑块状态
       gs.setQuantitySliderOpened(false);
       gs.clearPendingTradeQuantities();
+
+      // 如果是临时商船，在关闭时从港口列表中移除
+      if (widget.portId == 'sea_merchant_ship') {
+        gs.removePort('sea_merchant_ship');
+        SeaEventSystem.instance.clearActiveEvent();
+      }
     });
     super.dispose();
   }
@@ -609,18 +616,22 @@ class _TradeDialogState extends State<_TradeDialog> {
   Widget build(BuildContext context) {
     final gameState = widget.tradeSystem.gameState;
     final goodsList = widget.tradeSystem.getGoodsList();
-    final currentPort = gameState.currentPort;
+    
+    final effectivePortId = widget.portId ?? gameState.currentPort?.id;
 
-    if (currentPort == null) {
+    if (effectivePortId == null) {
       return const Dialog(
         child: Padding(
           padding: EdgeInsets.all(16),
-          child: Text('当前不在港口'),
+          child: Text('当前不在港口且未指定交易对象'),
         ),
       );
     }
 
-    final port = gameState.ports.firstWhere((p) => p.id == currentPort.id);
+    final port = gameState.ports.firstWhere(
+      (p) => p.id == effectivePortId,
+      orElse: () => throw Exception('Trade port not found: $effectivePortId'),
+    );
     final favor = _pendingTrade.calculateTradeFavor();
     final isAcceptable = _pendingTrade.isTradeAcceptable();
 
@@ -641,7 +652,7 @@ class _TradeDialogState extends State<_TradeDialog> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                '市场 - ${currentPort.name}',
+                '市场 - ${port.name}',
                 style: const TextStyle(
                   fontSize: 22,
                   fontWeight: FontWeight.bold,
@@ -683,7 +694,7 @@ class _TradeDialogState extends State<_TradeDialog> {
                           _selectedMerchantGoodsId!,
                           _getMerchantStock(port, _selectedMerchantGoodsId!),
                           true,
-                          currentPort.id,
+                          effectivePortId,
                         ),
                     ],
                   ),
@@ -723,7 +734,7 @@ class _TradeDialogState extends State<_TradeDialog> {
                           _selectedPlayerGoodsId!,
                           _getPlayerStock(_selectedPlayerGoodsId!),
                           false,
-                          currentPort.id,
+                          effectivePortId,
                         ),
                     ],
                   ),
@@ -741,7 +752,7 @@ class _TradeDialogState extends State<_TradeDialog> {
             child: QuestTarget(
               id: 'ui.balanceButton',
               child: PaperButton(
-                onPressed: _canBalanceTrade() ? () => _balanceTrade() : null,
+                onPressed: _canBalanceTrade(effectivePortId) ? () => _balanceTrade(effectivePortId) : null,
                 label: '平衡报价',
                 style: PaperButtonStyle.brown,
                 width: 100,
@@ -749,7 +760,7 @@ class _TradeDialogState extends State<_TradeDialog> {
                 textStyle: TextStyle(
                   fontSize: 14,
                   fontWeight: FontWeight.bold,
-                  color: _canBalanceTrade() ? const Color(0xFF4E342E) : Colors.grey.withValues(alpha: 0.5),
+                  color: _canBalanceTrade(effectivePortId) ? const Color(0xFF4E342E) : Colors.grey.withValues(alpha: 0.5),
                 ),
               ),
             ),
@@ -764,7 +775,7 @@ class _TradeDialogState extends State<_TradeDialog> {
                 onPressed: (_pendingTrade.itemsToReceive.isNotEmpty ||
                             _pendingTrade.itemsToGive.isNotEmpty) &&
                         isAcceptable
-                    ? () => _executeTrade()
+                    ? () => _executeTrade(effectivePortId)
                     : null,
                 label: isAcceptable ? '确认交易' : '交易不公平',
                 style: isAcceptable ? PaperButtonStyle.green : PaperButtonStyle.brown,
@@ -1275,8 +1286,8 @@ class _TradeDialogState extends State<_TradeDialog> {
     _syncPendingQuantitiesToGameState();
   }
 
-  void _executeTrade() {
-    final result = widget.tradeSystem.executePendingTrade(_pendingTrade);
+  void _executeTrade(String portId) {
+    final result = widget.tradeSystem.executePendingTrade(_pendingTrade, portId: portId);
     if (result == null) {
       setState(() {});
       // 交易成功后，标记为不再平衡（因为列表已空，直到下一次操作）
@@ -1291,7 +1302,7 @@ class _TradeDialogState extends State<_TradeDialog> {
   }
 
   /// 判断是否可以平衡报价
-  bool _canBalanceTrade() {
+  bool _canBalanceTrade(String portId) {
     // 1. 至少有一方提供了物品或金币
     if (_pendingTrade.itemsToReceive.isEmpty && _pendingTrade.itemsToGive.isEmpty) return false;
     
@@ -1300,7 +1311,6 @@ class _TradeDialogState extends State<_TradeDialog> {
     if (favor == 0) return false; // 已经公平
     
     final gameState = widget.tradeSystem.gameState;
-    final portId = gameState.currentPort!.id;
     final port = gameState.ports.firstWhere((p) => p.id == portId);
 
     if (favor > 0) {
@@ -1329,10 +1339,9 @@ class _TradeDialogState extends State<_TradeDialog> {
   }
 
   /// 执行平衡报价逻辑
-  void _balanceTrade() {
+  void _balanceTrade(String portId) {
     setState(() {
       final gameState = widget.tradeSystem.gameState;
-      final portId = gameState.currentPort!.id;
       final port = gameState.ports.firstWhere((p) => p.id == portId);
       double deficit = _pendingTrade.playerReceivedValue - _pendingTrade.playerGivenValue;
       
@@ -1584,3 +1593,5 @@ class TradeBalanceBar extends StatelessWidget {
     );
   }
 }
+
+

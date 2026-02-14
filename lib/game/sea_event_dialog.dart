@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import '../models/sea_event.dart';
+import '../models/port.dart';
 import '../systems/sea_event_system.dart';
+import '../systems/trade_system.dart';
 import 'paper_dialog.dart';
 
 /// 海上随机事件对话框
@@ -131,8 +133,20 @@ class SeaEventDialog extends StatelessWidget {
                         color: Colors.transparent,
                         child: InkWell(
                           onTap: () {
-                            SeaEventSystem.instance.executeChoice(choice);
+                            final result = SeaEventSystem.instance.executeChoice(choice);
                             Navigator.of(context).pop();
+                            
+                            // 如果返回了港口对象，说明需要打开交易界面
+                            if (result is Port) {
+                              final gameState = SeaEventSystem.instance.gameState;
+                              if (gameState != null) {
+                                TradeSystem.showTradeDialog(
+                                  context, 
+                                  TradeSystem(gameState),
+                                  portId: result.id,
+                                );
+                              }
+                            }
                           },
                           child: Container(
                             width: double.infinity,

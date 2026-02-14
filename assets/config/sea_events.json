@@ -23,7 +23,7 @@
         "label": "收帆减速：将航速降至 50%，寻找安全航道。",
         "effects": [
           { "type": "durabilityChange", "value": [-5, -10] },
-          { "type": "speedMultiplier", "value": 0.5, "durationHours": 6 }
+          { "type": "speedMultiplier", "value": 0.5, "durationHours": 12 }
         ]
       },
       {
@@ -49,7 +49,7 @@
         "label": "立即营救：放下救生艇，接纳幸存者。",
         "effects": [
           { "type": "timeSkip", "value": 2 },
-          { "type": "goldChange", "value": [100, 300] }
+          { "type": "goldChange", "value": [200, 500] }
         ]
       },
       {

@@ -1,6 +1,7 @@
 import 'dart:math';
 import 'package:flutter/foundation.dart';
 import '../models/sea_event.dart';
+import '../models/port.dart';
 import '../game/game_state.dart';
 import '../utils/game_config_loader.dart';
 import 'notification_system.dart';
@@ -106,16 +107,17 @@ class SeaEventSystem extends ChangeNotifier {
   }
 
   /// 执行选项效果
-  void executeChoice(SeaEventChoice choice) {
-    if (_gameState == null || _activeEvent == null) return;
+  dynamic executeChoice(SeaEventChoice choice) {
+    if (_gameState == null || _activeEvent == null) return null;
 
     final random = Random();
     // 清除视觉效果
     _gameState?.setVisualEffect(null);
     
+    dynamic result;
     // 如果是商船交易，触发特殊逻辑
     if (choice.id == 'merchant_trade') {
-      _handleMerchantTrade();
+      result = _handleMerchantTrade();
     }
 
     for (final effect in choice.effects) {
@@ -185,16 +187,58 @@ class SeaEventSystem extends ChangeNotifier {
       }
     }
 
-    _activeEvent = null;
+    // 如果返回了结果（目前只有 Port），则不立即清除 activeEvent，以便保持暂停
+    if (result == null) {
+      _activeEvent = null;
+    }
     notifyListeners();
+    return result;
   }
 
-  void _handleMerchantTrade() {
+  Port _handleMerchantTrade() {
     // 触发海上商船交易界面
-    // 我们可以通过 GameState 弹出一个受限的交易对话框
-    // 这里暂时简单处理为提示，后续可以扩展
-    NotificationSystem.instance.showNotification('正在与商船进行秘密交易...');
-    // TODO: 实现专门的海上交易对话框
+    NotificationSystem.instance.showNotification('正在与商船进行物资交换...');
+    
+    final merchantPort = _generateMerchantPort();
+    _gameState?.addPort(merchantPort);
+    
+    return merchantPort;
+  }
+
+  Port _generateMerchantPort() {
+    final random = Random();
+    final allGoods = GameConfigLoader().goodsList.where((g) => g.id != 'gold').toList();
+    
+    // 随机选择 4-7 种货物
+    final selectedGoodsCount = 4 + random.nextInt(4);
+    final selectedGoods = <String, int>{};
+    final selectedConfigs = <String, PortGoodsConfig>{};
+    
+    // 洗牌并选择前 N 个
+    allGoods.shuffle(random);
+    for (int i = 0; i < min(selectedGoodsCount, allGoods.length); i++) {
+      final goods = allGoods[i];
+      // 随机库存 20-100
+      selectedGoods[goods.id] = 20 + random.nextInt(81);
+      // 随机配置：alpha 0.1-0.3, s0 与当前库存一致以保持价格稳定
+      selectedConfigs[goods.id] = PortGoodsConfig(
+        alpha: 0.1 + random.nextDouble() * 0.2,
+        s0: selectedGoods[goods.id]!,
+        basePrice: 50.0 + random.nextInt(151).toDouble(), // 基础价格 50-200
+      );
+    }
+    
+    return Port(
+      id: 'sea_merchant_ship',
+      name: '遭遇的商船',
+      backgroundImage: 'assets/images/events/merchant_ship.png',
+      description: '一艘在公海上航行的商船，愿意交换各种物资。',
+      goodsStock: selectedGoods,
+      goodsConfig: selectedConfigs,
+      merchantMoney: 2000 + random.nextInt(3001), // 2000-5000 金币
+      initialMerchantMoney: 2000,
+      isSeaLocation: true,
+    );
   }
 
   void _handleAddRandomGoods(dynamic value) {

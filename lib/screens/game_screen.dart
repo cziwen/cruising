@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
@@ -154,6 +154,7 @@ class _GameScreenState extends State<GameScreen> {
   // 过渡动画相关状态
   bool _isTransitioningToGame = false;
   bool _showCoverOverlay = false;
+  bool _isShowingSeaEventDialog = false;
   int? _currentBackgroundSaveId; // 当前背景对应的存档 ID，-1 表示新游戏场景
 
   @override
@@ -182,8 +183,8 @@ class _GameScreenState extends State<GameScreen> {
 
     if (_isShowingMainMenu) {
       MusicSystem().playState('main_menu');
-      // 延迟一帧让菜单按钮淡入
-      WidgetsBinding.instance.addPostFrameCallback((_) {
+    // Delay one frame to avoid showing dialog during build
+    WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted) {
           setState(() {
             _isTransitioningToGame = false;
@@ -266,17 +267,23 @@ class _GameScreenState extends State<GameScreen> {
 
     QuestSystem.instance.clearPendingAction();
   }
-
   void _handleSeaEvent() {
     final activeEvent = SeaEventSystem.instance.activeEvent;
-    if (activeEvent != null) {
-      // 延迟一帧显示，确保不会在 build 过程中触发
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (mounted) {
-          SeaEventDialog.show(context, activeEvent);
-        }
-      });
-    }
+    if (activeEvent == null) return;
+    if (_isShowingSeaEventDialog || _gameState.isMarketOpened) return;
+
+    // å»¶è¿Ÿä¸€å¸§æ˜¾ç¤ºï¼Œç¡®ä¿ä¸ä¼šåœ¨ build è¿‡ç¨‹ä¸­è§¦å‘
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      if (!mounted) return;
+      if (_isShowingSeaEventDialog || _gameState.isMarketOpened) return;
+
+      _isShowingSeaEventDialog = true;
+      try {
+        await SeaEventDialog.show(context, activeEvent);
+      } finally {
+        _isShowingSeaEventDialog = false;
+      }
+    });
   }
 
   void _onGameStateChanged() {
@@ -697,3 +704,5 @@ class _GameScreenState extends State<GameScreen> {
     );
   }
 }
+
+

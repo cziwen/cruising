@@ -215,6 +215,20 @@ class GameState extends ChangeNotifier {
       notifyListeners();
     }
   }
+
+  /// 添加一个新港口（通常用于动态生成的商船）
+  void addPort(Port port) {
+    if (!_ports.any((p) => p.id == port.id)) {
+      _ports.add(port);
+      notifyListeners();
+    }
+  }
+
+  /// 移除一个港口
+  void removePort(String portId) {
+    _ports.removeWhere((p) => p.id == portId);
+    notifyListeners();
+  }
   
   // 调试辅助：是否显示地图坐标
   bool _showMapCoordinates = false;
