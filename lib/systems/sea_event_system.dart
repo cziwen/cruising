@@ -123,7 +123,9 @@ class SeaEventSystem extends ChangeNotifier {
         case SeaEventEffectType.durabilityChange:
           int delta = 0;
           if (effect.value is List) {
-            delta = (effect.value[0] as int) + random.nextInt(((effect.value[1] as int) - (effect.value[0] as int)).abs() + 1);
+            final v0 = effect.value[0] as int;
+            final v1 = effect.value[1] as int;
+            delta = min(v0, v1) + random.nextInt((v1 - v0).abs() + 1);
           } else {
             delta = effect.value as int;
           }
@@ -138,7 +140,9 @@ class SeaEventSystem extends ChangeNotifier {
         case SeaEventEffectType.goldChange:
           int delta = 0;
           if (effect.value is List) {
-            delta = (effect.value[0] as int) + random.nextInt(((effect.value[1] as int) - (effect.value[0] as int)).abs() + 1);
+            final v0 = effect.value[0] as int;
+            final v1 = effect.value[1] as int;
+            delta = min(v0, v1) + random.nextInt((v1 - v0).abs() + 1);
           } else {
             delta = effect.value as int;
           }
@@ -202,7 +206,9 @@ class SeaEventSystem extends ChangeNotifier {
     final goods = allGoods[random.nextInt(allGoods.length)];
     int count = 1;
     if (value is List) {
-      count = value[0] + random.nextInt((value[1] - value[0]).abs() + 1);
+      final v0 = value[0] as int;
+      final v1 = value[1] as int;
+      count = min(v0, v1) + random.nextInt((v1 - v0).abs() + 1);
     } else if (value is int) {
       count = value;
     }

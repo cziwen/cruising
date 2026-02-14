@@ -39,6 +39,16 @@ class _NotificationItemState extends State<NotificationItem> {
         setState(() {
           _state = NotificationState.displayed;
         });
+        // 5秒后自动消失
+        _startAutoDismissTimer();
+      }
+    });
+  }
+
+  void _startAutoDismissTimer() {
+    _dismissTimer = Timer(const Duration(seconds: 5), () {
+      if (mounted && _state == NotificationState.displayed) {
+        _startExitAnimation();
       }
     });
   }
@@ -112,14 +122,13 @@ class _NotificationItemState extends State<NotificationItem> {
 
               // 文字内容
               if (_state != NotificationState.exiting)
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(25, 15, 25, 15),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Text(
+                Positioned.fill(
+                  child: Padding(
+                    padding: const EdgeInsets.fromLTRB(25, 15, 25, 15),
+                    child: Center(
+                      child: Text(
                         widget.hint.message,
+                        textAlign: TextAlign.center,
                         style: const TextStyle(
                           color: Color(0xFF4E342E),
                           fontSize: 14,
@@ -128,7 +137,7 @@ class _NotificationItemState extends State<NotificationItem> {
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
                       ),
-                    ],
+                    ),
                   ),
                 ),
             ],

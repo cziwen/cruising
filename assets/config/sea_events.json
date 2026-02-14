@@ -8,7 +8,7 @@
     "cooldownHours": 12,
     "minProgress": 0.1,
     "maxProgress": 0.9,
-    "assetPath": "assets/images/effects/storm_rain.png",
+    "assetPath": "assets/images/events/sea_storm.png",
     "choices": [
       {
         "id": "storm_full_speed",
@@ -42,6 +42,7 @@
     "type": "decision",
     "probability": 0.07,
     "cooldownHours": 48,
+    "assetPath": "assets/images/events/distress_call.png",
     "choices": [
       {
         "id": "distress_rescue",
@@ -72,6 +73,7 @@
     "type": "decision",
     "probability": 0.05,
     "cooldownHours": 72,
+    "assetPath": "assets/images/events/reef_grounding.png",
     "choices": [
       {
         "id": "reef_force_off",
@@ -100,6 +102,7 @@
     "cooldownHours": 24,
     "minProgress": 0.2,
     "maxProgress": 0.8,
+    "assetPath": "assets/images/events/merchant_ship.png",
     "choices": [
       {
         "id": "merchant_trade",
@@ -130,12 +133,13 @@
     "type": "notification",
     "probability": 0.12,
     "cooldownHours": 8,
+    "assetPath": "assets/images/events/tailwind.png",
     "choices": [
       {
         "id": "tailwind_ok",
         "label": "太棒了！",
         "effects": [
-          { "type": "speedMultiplier", "value": 1.5, "durationHours": 4 }
+          { "type": "speedMultiplier", "value": 1.5, "durationHours": 12 }
         ]
       }
     ]
@@ -147,12 +151,13 @@
     "type": "notification",
     "probability": 0.12,
     "cooldownHours": 8,
+    "assetPath": "assets/images/events/headwind.png",
     "choices": [
       {
         "id": "headwind_ok",
         "label": "真倒霉...",
         "effects": [
-          { "type": "speedMultiplier", "value": 0.7, "durationHours": 4 }
+          { "type": "speedMultiplier", "value": 0.7, "durationHours": 12 }
         ]
       }
     ]

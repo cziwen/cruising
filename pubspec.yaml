@@ -63,6 +63,7 @@ flutter:
     - assets/images/ships/
     - assets/images/avatar/
     - assets/images/goods/
+    - assets/images/events/
     - assets/paper_ui/Sprites/Book_Desk/
     - assets/paper_ui/Sprites/Content/4_Buttons/
     - assets/paper_ui/Sprites/Content/5_Holders/

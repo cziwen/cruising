@@ -110,7 +110,7 @@ class SeaEvent {
       minProgress: (json['minProgress'] as num?)?.toDouble() ?? 0.1,
       maxProgress: (json['maxProgress'] as num?)?.toDouble() ?? 0.9,
       choices: (json['choices'] as List).map((c) => SeaEventChoice.fromJson(c)).toList(),
-      assetPath: json['assetPath'],
+      assetPath: json['assetPath'] ?? json['image'],
     );
   }
 
