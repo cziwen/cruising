@@ -36,6 +36,24 @@ class SeaEventSystem extends ChangeNotifier {
     _eventsThisVoyage = 0;
   }
 
+  /// 语言切换后刷新事件文案，保持冷却与当前事件状态
+  void reloadForLocale() {
+    final activeId = _activeEvent?.id;
+    _allEvents
+      ..clear()
+      ..addAll(GameConfigLoader().seaEventsList);
+
+    _activeEvent = null;
+    if (activeId != null) {
+      try {
+        _activeEvent = _allEvents.firstWhere((e) => e.id == activeId);
+      } catch (_) {
+        _activeEvent = null;
+      }
+    }
+    notifyListeners();
+  }
+
   /// 检查并尝试触发海上事件
   /// [currentProgress] 航行进度 (0.0 - 1.0)
   /// [gameHours] 当前游戏内累计小时数
@@ -133,9 +151,17 @@ class SeaEventSystem extends ChangeNotifier {
           }
           _gameState!.ship.durability = (_gameState!.ship.durability + delta).clamp(0, _gameState!.ship.maxDurability);
           if (delta < 0) {
-            NotificationSystem.instance.showNotification('船只受损：耐久度下降了 ${delta.abs()}');
+            NotificationSystem.instance.showNotification(
+              _isEnglish
+                  ? 'Ship damaged: durability -${delta.abs()}'
+                  : '船只受损：耐久度下降了 ${delta.abs()}',
+            );
           } else if (delta > 0) {
-            NotificationSystem.instance.showNotification('船只修复：耐久度恢复了 $delta');
+            NotificationSystem.instance.showNotification(
+              _isEnglish
+                  ? 'Ship repaired: durability +$delta'
+                  : '船只修复：耐久度恢复了 $delta',
+            );
           }
           break;
           
@@ -150,10 +176,14 @@ class SeaEventSystem extends ChangeNotifier {
           }
           if (delta > 0) {
             _gameState!.addGold(delta);
-            NotificationSystem.instance.showNotification('获得金币：$delta 💰');
+            NotificationSystem.instance.showNotification(
+              _isEnglish ? 'Gold gained: $delta 💰' : '获得金币：$delta 💰',
+            );
           } else if (delta < 0) {
             _gameState!.spendGold(delta.abs());
-            NotificationSystem.instance.showNotification('损失金币：${delta.abs()} 💰');
+            NotificationSystem.instance.showNotification(
+              _isEnglish ? 'Gold lost: ${delta.abs()} 💰' : '损失金币：${delta.abs()} 💰',
+            );
           }
           break;
           
@@ -197,7 +227,9 @@ class SeaEventSystem extends ChangeNotifier {
 
   Port _handleMerchantTrade() {
     // 触发海上商船交易界面
-    NotificationSystem.instance.showNotification('正在与商船进行物资交换...');
+    NotificationSystem.instance.showNotification(
+      _isEnglish ? 'Trading with a merchant ship...' : '正在与商船进行物资交换...',
+    );
     
     final merchantPort = _generateMerchantPort();
     _gameState?.addPort(merchantPort);
@@ -230,9 +262,11 @@ class SeaEventSystem extends ChangeNotifier {
     
     return Port(
       id: 'sea_merchant_ship',
-      name: '遭遇的商船',
+      name: _isEnglish ? 'Encountered Merchant Ship' : '遭遇的商船',
       backgroundImage: 'assets/images/events/merchant_ship.png',
-      description: '一艘在公海上航行的商船，愿意交换各种物资。',
+      description: _isEnglish
+          ? 'A merchant vessel sailing the open sea, willing to exchange supplies.'
+          : '一艘在公海上航行的商船，愿意交换各种物资。',
       goodsStock: selectedGoods,
       goodsConfig: selectedConfigs,
       merchantMoney: 2000 + random.nextInt(3001), // 2000-5000 金币
@@ -259,9 +293,13 @@ class SeaEventSystem extends ChangeNotifier {
 
     bool success = _gameState!.addToInventory(goods.id, count);
     if (success) {
-      NotificationSystem.instance.showNotification('获得物资：${goods.name} x$count');
+      NotificationSystem.instance.showNotification(
+        _isEnglish ? 'Gained: ${goods.name} x$count' : '获得物资：${goods.name} x$count',
+      );
     } else {
-      NotificationSystem.instance.showNotification('货舱已满，无法获取物资');
+      NotificationSystem.instance.showNotification(
+        _isEnglish ? 'Cargo is full. Cannot obtain goods.' : '货舱已满，无法获取物资',
+      );
     }
   }
 
@@ -275,7 +313,9 @@ class SeaEventSystem extends ChangeNotifier {
     final random = Random();
     final targetPort = ports[random.nextInt(ports.length)];
     
-    NotificationSystem.instance.showNotification('航道改变，正转向 ${targetPort.name}');
+    NotificationSystem.instance.showNotification(
+      _isEnglish ? 'Route changed. Turning toward ${targetPort.name}' : '航道改变，正转向 ${targetPort.name}',
+    );
     _gameState!.startTravelToPort(targetPort.id);
   }
 
@@ -289,4 +329,6 @@ class SeaEventSystem extends ChangeNotifier {
     _activeEvent = null;
     notifyListeners();
   }
+
+  bool get _isEnglish => GameConfigLoader().currentLanguageCode == 'en';
 }

@@ -3,13 +3,10 @@ import 'package:flutter/material.dart';
 
 /// 季节枚举
 enum Season {
-  spring('春'),
-  summer('夏'),
-  autumn('秋'),
-  winter('冬');
-
-  final String displayName;
-  const Season(this.displayName);
+  spring,
+  summer,
+  autumn,
+  winter;
 }
 
 /// 昼夜系统管理器
@@ -127,11 +124,6 @@ class DayNightSystem {
     return ((_currentDay - 1) % daysPerSeason) + 1;
   }
 
-  /// 获取格式化的季节日期字符串（如"春 15日"）
-  String get seasonDateString {
-    return '${currentSeason.displayName} $currentDayOfSeason日';
-  }
-  
   /// 获取当前昼夜周期进度（0.0-1.0）
   /// 0.0 = 日出（6:00），0.5 = 日落（18:00），1.0 = 下一个日出
   /// 将6:00（360分钟）映射到0.0，18:00（1080分钟）映射到0.5
@@ -329,7 +321,6 @@ class CelestialBodyPosition {
     }
   }
 }
-
 
 
 

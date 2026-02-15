@@ -1,0 +1,253 @@
+{
+  "@@locale": "en",
+  "appTitle": "Cruising",
+  "loading": "Loading...",
+  "settings": "Settings",
+  "close": "Close",
+  "cancel": "Cancel",
+  "confirm": "Confirm",
+  "delete": "Delete",
+  "save": "Save",
+  "load": "Load",
+  "overwrite": "Overwrite",
+  "ok": "OK",
+  "newGame": "New Game",
+  "continueGame": "Continue",
+  "loadSave": "Load Save",
+  "exitGame": "Exit",
+  "saveGame": "Save Game",
+  "loadGame": "Load Game",
+  "soundSettings": "Audio",
+  "musicVolume": "Music Volume",
+  "sfxVolume": "SFX Volume",
+  "displaySettings": "Display",
+  "fullscreenMode": "Fullscreen",
+  "wallpaperMode": "Wallpaper Mode",
+  "windowResolution": "Resolution",
+  "languageSettings": "Language",
+  "language": "Language",
+  "languageEnglish": "English",
+  "languageChinese": "Chinese",
+  "returnMainMenu": "Return to Main Menu",
+  "returnMainMenuConfirm": "Unsaved progress will be lost. Return to main menu?",
+  "saveListLoadFailed": "Failed to load save list: {error}",
+  "@saveListLoadFailed": {
+    "placeholders": {
+      "error": {}
+    }
+  },
+  "autoSlotManualBlocked": "Auto-save slot cannot be overwritten manually",
+  "saveSuccess": "Save successful",
+  "saveFailed": "Save failed: {error}",
+  "@saveFailed": {
+    "placeholders": {
+      "error": {}
+    }
+  },
+  "loadFailed": "Load failed: {error}",
+  "@loadFailed": {
+    "placeholders": {
+      "error": {}
+    }
+  },
+  "deleteSaveTitle": "Delete Save",
+  "deleteSaveConfirm": "Delete this save? This action cannot be undone.",
+  "slotEmpty": "This slot is empty",
+  "emptySlot": "Empty Slot",
+  "autoSaveSlot": "Auto Save",
+  "saveSlotLabel": "Save {id}",
+  "@saveSlotLabel": {
+    "placeholders": {
+      "id": {}
+    }
+  },
+  "locationLabel": "Location: {name}",
+  "@locationLabel": {
+    "placeholders": {
+      "name": {}
+    }
+  },
+  "timeLabel": "Time: {time}",
+  "@timeLabel": {
+    "placeholders": {
+      "time": {}
+    }
+  },
+  "goldDayLabel": "Gold: {gold} | Day: {day}",
+  "@goldDayLabel": {
+    "placeholders": {
+      "gold": {},
+      "day": {}
+    }
+  },
+  "shipUpgrade": "Ship Upgrade",
+  "shipUpgradeInDev": "Upgrade feature is under development...",
+  "crewLeftNoPay": "Crew {names} left quietly at port because they were unpaid...",
+  "@crewLeftNoPay": {
+    "placeholders": {
+      "names": {}
+    }
+  },
+  "market": "Market",
+  "hall": "Hall",
+  "tavern": "Tavern",
+  "shipyard": "Shipyard",
+  "manage": "Manage",
+  "map": "Map",
+  "headingTo": "Heading to: {name}",
+  "@headingTo": {
+    "placeholders": {
+      "name": {}
+    }
+  },
+  "remaining": "Remaining: {time}",
+  "@remaining": {
+    "placeholders": {
+      "time": {}
+    }
+  },
+  "daysHours": "{days}d {hours}h",
+  "@daysHours": {
+    "placeholders": {
+      "days": {},
+      "hours": {}
+    }
+  },
+  "daysOnly": "{days}d",
+  "@daysOnly": {
+    "placeholders": {
+      "days": {}
+    }
+  },
+  "hoursOnly": "{hours}h",
+  "@hoursOnly": {
+    "placeholders": {
+      "hours": {}
+    }
+  },
+  "atSea": "At Sea",
+  "unknown": "Unknown",
+  "perSecond": "/s",
+  "shotsPerSecond": "shots/s",
+  "knots": "kt",
+  "tapAnywhereToContinue": "-- Tap anywhere to continue --",
+  "spring": "Spring",
+  "summer": "Summer",
+  "autumn": "Autumn",
+  "winter": "Winter",
+  "seasonDay": "{season} Day {day}",
+  "@seasonDay": {
+    "placeholders": {
+      "season": {},
+      "day": {}
+    }
+  },
+  "selectDestination": "Select Destination",
+  "depart": "Depart",
+  "currentPort": "Current Port",
+  "tradeDialogNoPort": "Not at a port and no trade target specified",
+  "marketTitle": "Market - {port}",
+  "@marketTitle": {
+    "placeholders": {
+      "port": {}
+    }
+  },
+  "merchantInventory": "Merchant Inventory",
+  "myInventory": "My Inventory",
+  "playerReceives": "Player Receives",
+  "playerPays": "Player Pays",
+  "tradeIn": "Receive",
+  "tradeOut": "Give",
+  "balanceOffer": "Balance Offer",
+  "confirmTrade": "Confirm Trade",
+  "tradeUnfair": "Unfair Trade",
+  "buyAction": "Buy: {name}",
+  "@buyAction": {
+    "placeholders": {
+      "name": {}
+    }
+  },
+  "sellAction": "Sell: {name}",
+  "@sellAction": {
+    "placeholders": {
+      "name": {}
+    }
+  },
+  "holdingAverage": "Holding Avg: {price}",
+  "@holdingAverage": {
+    "placeholders": {
+      "price": {}
+    }
+  },
+  "buyAverage": "Buy Avg: {price}",
+  "@buyAverage": {
+    "placeholders": {
+      "price": {}
+    }
+  },
+  "sellAverage": "Sell Avg: {price}",
+  "@sellAverage": {
+    "placeholders": {
+      "price": {}
+    }
+  },
+  "estimatedValue": "Est: {value}",
+  "@estimatedValue": {
+    "placeholders": {
+      "value": {}
+    }
+  },
+  "tradeSuccess": "Trade successful!",
+  "tradeFailed": "Trade failed: {reason}",
+  "@tradeFailed": {
+    "placeholders": {
+      "reason": {}
+    }
+  },
+  "merchantFavor": "<- Merchant",
+  "playerFavor": "Player ->",
+  "fairTrade": "Fair Trade",
+  "seaEventMerchantTrading": "Trading with a merchant ship...",
+  "shipDamaged": "Ship damaged: durability -{value}",
+  "@shipDamaged": {
+    "placeholders": {
+      "value": {}
+    }
+  },
+  "shipRepaired": "Ship repaired: durability +{value}",
+  "@shipRepaired": {
+    "placeholders": {
+      "value": {}
+    }
+  },
+  "goldGained": "Gold gained: {value} 💰",
+  "@goldGained": {
+    "placeholders": {
+      "value": {}
+    }
+  },
+  "goldLost": "Gold lost: {value} 💰",
+  "@goldLost": {
+    "placeholders": {
+      "value": {}
+    }
+  },
+  "goodsGained": "Gained: {name} x{count}",
+  "@goodsGained": {
+    "placeholders": {
+      "name": {},
+      "count": {}
+    }
+  },
+  "cargoFullNoGoods": "Cargo is full. Cannot obtain goods.",
+  "rerouteToPort": "Route changed. Turning toward {port}",
+  "@rerouteToPort": {
+    "placeholders": {
+      "port": {}
+    }
+  },
+  "roleSailor": "Sailor",
+  "roleShipwright": "Shipwright",
+  "roleGunner": "Gunner",
+  "roleUnassigned": "Unassigned"
+}

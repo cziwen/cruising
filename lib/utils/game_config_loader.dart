@@ -21,8 +21,10 @@ class GameConfigLoader {
   Map<String, dynamic>? _sfxConfig;
   bool _isLoading = false;
   bool _isLoaded = false;
+  String _currentLanguageCode = 'zh';
 
   bool get isLoaded => _isLoaded;
+  String get currentLanguageCode => _currentLanguageCode;
 
   /// 获取船员配置
   Map<String, dynamic> get crewConfig {
@@ -88,11 +90,15 @@ class GameConfigLoader {
   }
 
   /// 加载所有配置文件
-  Future<void> loadConfig() async {
+  Future<void> loadConfig({String? languageCode, bool forceReload = false}) async {
+    if (languageCode != null) {
+      _currentLanguageCode = _normalizeLanguageCode(languageCode);
+    }
     if (_isLoading) return;
-    if (_isLoaded) return;
+    if (_isLoaded && !forceReload) return;
 
     _isLoading = true;
+    _isLoaded = false;
     try {
       await Future.wait([
         _loadGoodsConfig(),
@@ -109,9 +115,16 @@ class GameConfigLoader {
     }
   }
 
+  Future<void> reloadForLocale(String languageCode) async {
+    final normalized = _normalizeLanguageCode(languageCode);
+    if (_isLoaded && _currentLanguageCode == normalized) return;
+    _currentLanguageCode = normalized;
+    await loadConfig(forceReload: true);
+  }
+
   Future<void> _loadGoodsConfig() async {
     try {
-      final String response = await rootBundle.loadString('assets/config/goods.json');
+      final String response = await _loadLocalizedConfigString('goods.json');
       final List<dynamic> data = json.decode(response);
       _goodsList = data.map((json) => Goods.fromJson(json)).toList();
     } catch (e) {
@@ -122,7 +135,7 @@ class GameConfigLoader {
 
   Future<void> _loadPortsConfig() async {
     try {
-      final String response = await rootBundle.loadString('assets/config/ports.json');
+      final String response = await _loadLocalizedConfigString('ports.json');
       final List<dynamic> data = json.decode(response);
       
       // 1. 查找并解析 base 配置
@@ -147,7 +160,7 @@ class GameConfigLoader {
 
   Future<void> _loadQuestsConfig() async {
     try {
-      final String response = await rootBundle.loadString('assets/config/quests.json');
+      final String response = await _loadLocalizedConfigString('quests.json');
       final List<dynamic> data = json.decode(response);
       _questsList = data.map((json) => Quest.fromJson(json)).toList();
     } catch (e) {
@@ -158,7 +171,7 @@ class GameConfigLoader {
 
   Future<void> _loadCrewConfig() async {
     try {
-      final String response = await rootBundle.loadString('assets/config/crew.json');
+      final String response = await _loadLocalizedConfigString('crew.json');
       _crewConfig = json.decode(response);
     } catch (e) {
       debugPrint('✗ Error loading crew config: $e');
@@ -188,7 +201,7 @@ class GameConfigLoader {
 
   Future<void> _loadSeaEventsConfig() async {
     try {
-      final String response = await rootBundle.loadString('assets/config/sea_events.json');
+      final String response = await _loadLocalizedConfigString('sea_events.json');
       final List<dynamic> data = json.decode(response);
       _seaEventsList = data.map((json) => SeaEvent.fromJson(json)).toList();
     } catch (e) {
@@ -204,5 +217,25 @@ class GameConfigLoader {
       orElse: () => throw Exception('Goods not found in config: $goodsId'),
     );
   }
-}
 
+  String _normalizeLanguageCode(String languageCode) {
+    final code = languageCode.toLowerCase();
+    return code == 'en' ? 'en' : 'zh';
+  }
+
+  Future<String> _loadLocalizedConfigString(String fileName) async {
+    final String localizedPath = 'assets/config/i18n/$_currentLanguageCode/$fileName';
+    final String zhPath = 'assets/config/i18n/zh/$fileName';
+    final String legacyPath = 'assets/config/$fileName';
+
+    try {
+      return await rootBundle.loadString(localizedPath);
+    } catch (_) {
+      try {
+        return await rootBundle.loadString(zhPath);
+      } catch (_) {
+        return await rootBundle.loadString(legacyPath);
+      }
+    }
+  }
+}

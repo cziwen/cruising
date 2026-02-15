@@ -3,6 +3,7 @@ import '../models/port.dart';
 import '../game/game_state.dart';
 import '../game/paper_dialog.dart';
 import '../game/paper_button.dart';
+import '../l10n/l10n.dart';
 import 'quest_system.dart';
 
 /// 港口系统 - 管理港口列表和切换
@@ -256,7 +257,7 @@ class _MapPortSelectDialogState extends State<_MapPortSelectDialog> {
                             }
                           });
                         },
-                        label: '出发',
+                        label: context.l10n.depart,
                         style: PaperButtonStyle.brown,
                         width: 100,
                         height: 48,
@@ -350,8 +351,8 @@ class _PortSelectDialogState extends State<_PortSelectDialog> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text(
-                '选择目的地',
+              Text(
+                context.l10n.selectDestination,
                 style: TextStyle(
                   fontSize: 20,
                   fontWeight: FontWeight.bold,
@@ -421,9 +422,9 @@ class _PortSelectDialogState extends State<_PortSelectDialog> {
                       style: const TextStyle(color: Color(0xFF5D4037), fontSize: 12),
                     ),
                     trailing: isCurrentPort
-                        ? const Text(
-                            '当前港口',
-                            style: TextStyle(
+                        ? Text(
+                            context.l10n.currentPort,
+                            style: const TextStyle(
                               color: Color(0xFF5D4037),
                               fontWeight: FontWeight.bold,
                             ),
@@ -442,7 +443,7 @@ class _PortSelectDialogState extends State<_PortSelectDialog> {
                                   }
                                 });
                               },
-                              label: '出发',
+                              label: context.l10n.depart,
                               style: PaperButtonStyle.brown,
                               width: 80,
                               height: 32,
@@ -477,4 +478,3 @@ class _PortSelectDialogState extends State<_PortSelectDialog> {
     );
   }
 }
-

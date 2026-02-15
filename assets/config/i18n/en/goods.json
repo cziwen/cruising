@@ -1,0 +1,93 @@
+[
+  {
+    "id": "gold",
+    "name": "Gold",
+    "category": "Currency",
+    "weight": 0.0,
+    "imagePath": "assets/images/goods/gold.png"
+  },
+  {
+    "id": "food",
+    "name": "Food",
+    "category": "Basic",
+    "weight": 1.0,
+    "imagePath": "assets/images/goods/food.png"
+  },
+  {
+    "id": "water",
+    "name": "Fresh Water",
+    "category": "Basic",
+    "weight": 1.0,
+    "imagePath": "assets/images/goods/water.png"
+  },
+  {
+    "id": "rum",
+    "name": "Rum",
+    "category": "Basic",
+    "weight": 1.2,
+    "imagePath": "assets/images/goods/rum.png"
+  },
+  {
+    "id": "wood",
+    "name": "Wood",
+    "category": "Material",
+    "weight": 2.0,
+    "imagePath": "assets/images/goods/wood.png"
+  },
+  {
+    "id": "metal",
+    "name": "Metal",
+    "category": "Material",
+    "weight": 5.0,
+    "imagePath": "assets/images/goods/metal.png"
+  },
+  {
+    "id": "stone",
+    "name": "Stone",
+    "category": "Material",
+    "weight": 4.0,
+    "imagePath": "assets/images/goods/stone.png"
+  },
+  {
+    "id": "cloth",
+    "name": "Cloth",
+    "category": "Material",
+    "weight": 1.5,
+    "imagePath": "assets/images/goods/cloth.png"
+  },
+  {
+    "id": "leather",
+    "name": "Leather",
+    "category": "Material",
+    "weight": 1.8,
+    "imagePath": "assets/images/goods/leather.png"
+  },
+  {
+    "id": "spice",
+    "name": "Spice",
+    "category": "Luxury",
+    "weight": 0.5,
+    "imagePath": "assets/images/goods/spice.png"
+  },
+  {
+    "id": "silk",
+    "name": "Silk",
+    "category": "Luxury",
+    "weight": 0.3,
+    "imagePath": "assets/images/goods/silk.png"
+  },
+  {
+    "id": "ivory",
+    "name": "Ivory",
+    "category": "Luxury",
+    "weight": 2.5,
+    "imagePath": "assets/images/goods/ivory.png"
+  },
+  {
+    "id": "artwork",
+    "name": "Artwork",
+    "category": "Luxury",
+    "weight": 3.0,
+    "imagePath": "assets/images/goods/artwork.png"
+  }
+]

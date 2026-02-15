@@ -1,0 +1,259 @@
+[
+  {
+    "id": "T01_welcome",
+    "trigger": "on_new_game_start",
+    "highlight": null,
+    "text": "Captain, welcome to your new life. In this world, fortune lives between the waves.",
+    "complete_when": "tap_anywhere",
+    "is_mandatory": true
+  },
+  {
+    "id": "T01b_intro",
+    "trigger": "after(T01_welcome)",
+    "highlight": null,
+    "text": "First, we need startup capital. Buy low in ports with abundant supply and sell high where goods are scarce.",
+    "complete_when": "tap_anywhere",
+    "is_mandatory": true
+  },
+  {
+    "id": "T01c_open_port_list",
+    "trigger": "after(T01b_intro)",
+    "highlight": "ui.portListButton",
+    "text": "Open [Select Destination] to begin our first voyage.",
+    "complete_when": "ui.portList.opened",
+    "is_mandatory": true
+  },
+  {
+    "id": "T01c_open_port_lis_2",
+    "trigger": "after(T01c_open_port_list)",
+    "highlight": null,
+    "text": "This is the world map. You can sail anywhere you want.",
+    "complete_when": "tap_anywhere",
+    "is_mandatory": true
+  },
+  {
+    "id": "T01d_select_lighthouse",
+    "trigger": "after(T01c_open_port_list)",
+    "highlight": "ui.mapPort('port_1')",
+    "text": "Select [Lighthouse Isle] on the map. Timber is very cheap there.",
+    "complete_when": "navigation.map_selected == 'port_1'",
+    "is_mandatory": true
+  },
+  {
+    "id": "T01e_depart_lighthouse",
+    "trigger": "after(T01d_select_lighthouse)",
+    "highlight": "ui.mapDepartButton",
+    "text": "Click [Depart] in the bottom-right corner.",
+    "complete_when": "navigation.destination == 'port_1'",
+    "is_mandatory": true
+  },
+  {
+    "id": "T02_arrival_lighthouse",
+    "trigger": "after(T01e_depart_lighthouse) && navigation.arrived",
+    "highlight": null,
+    "text": "We made it. Lighthouse Isle has a steady timber supply.",
+    "complete_when": "tap_anywhere",
+    "is_mandatory": true
+  },
+  {
+    "id": "T02_buy_goods",
+    "trigger": "after(T02_arrival_lighthouse)",
+    "highlight": "ui.marketButton",
+    "text": "Open [Market] and buy some goods.",
+    "complete_when": "ui.marketPanel.opened",
+    "is_mandatory": true
+  },
+  {
+    "id": "T02_in_market",
+    "trigger": "after(T02_buy_goods)",
+    "highlight": "ui.marketPanel",
+    "highlight_padding": -20,
+    "padding_top": -80,
+    "complete_when": "ui.tradeConfirmed",
+    "is_mandatory": true,
+    "action": "ui.marketPanel.close"
+  },
+  {
+    "id": "T03a_open_port_list",
+    "trigger": "after(T02_in_market)",
+    "highlight": "ui.portListButton",
+    "text": "Now find a place to sell. Open [Select Destination] again.",
+    "complete_when": "ui.portList.opened",
+    "is_mandatory": true
+  },
+  {
+    "id": "T03b_select_trading_port",
+    "trigger": "after(T03a_open_port_list)",
+    "highlight": "ui.mapPort('port_2')",
+    "text": "Select [Trade Port]. Timber demand is high there.",
+    "complete_when": "navigation.map_selected == 'port_2'",
+    "is_mandatory": true
+  },
+  {
+    "id": "T03c_depart_trading_port",
+    "trigger": "after(T03b_select_trading_port)",
+    "highlight": "ui.mapDepartButton",
+    "text": "Set sail.",
+    "complete_when": "navigation.destination == 'port_2'",
+    "is_mandatory": true
+  },
+  {
+    "id": "T04_arrival_trading_port",
+    "trigger": "after(T03c_depart_trading_port) && navigation.arrived",
+    "highlight": null,
+    "text": "Welcome to Trade Port. Merchants here will pay well for our timber.",
+    "complete_when": "tap_anywhere",
+    "is_mandatory": true
+  },
+  {
+    "id": "T04b_open_market",
+    "trigger": "after(T04_arrival_trading_port)",
+    "highlight": "ui.marketButton",
+    "complete_when": "ui.marketPanel.opened",
+    "is_mandatory": true
+  },
+  {
+    "id": "T04c_select_wood",
+    "trigger": "after(T04b_open_market)",
+    "highlight": "ui.playerGoodsRow('wood')",
+    "text": "Select [Wood] from your inventory.",
+    "complete_when": "ui.quantitySlider.opened",
+    "is_mandatory": true
+  },
+  {
+    "id": "T04_sell_goods_2",
+    "trigger": "after(T04c_select_wood)",
+    "highlight": "ui.marketPanel",
+    "highlight_padding": -20,
+    "padding_top": -80,
+    "complete_when": "ui.tradeConfirmed",
+    "is_mandatory": true
+  },
+  {
+    "id": "T04g_last_text",
+    "trigger": "after(T04_sell_goods_2)",
+    "highlight": null,
+    "text": "This is the heart of trade: profit from regional price differences.",
+    "complete_when": "tap_anywhere",
+    "is_mandatory": true,
+    "action": "ui.marketPanel.close"
+  },
+  {
+    "id": "T05_free_trading",
+    "trigger": "after(T04g_last_text)",
+    "highlight": null,
+    "text": "You now understand the basics. Sail freely across the open sea.",
+    "complete_when": "tap_anywhere",
+    "action": "combat.unlock && port.unlockAllExceptHome",
+    "is_mandatory": true
+  },
+  {
+    "id": "T06_messenger_encounter",
+    "trigger": "after(T05_free_trading) && navigation.arrived && !homeIsland.opened && (player.gold >= 3000 || navigation.visited_ports_count >= 5)",
+    "highlight": null,
+    "text": "A weary but elegant gentleman stops you at the docks: 'Greetings, Captain. I represent [My Island]. We stand at a turning point.'",
+    "complete_when": "tap_anywhere",
+    "is_mandatory": true
+  },
+  {
+    "id": "T06a_messenger_dialogue",
+    "trigger": "after(T06_messenger_encounter)",
+    "highlight": null,
+    "text": "'The island was once the jewel of these waters, but years of neglect left it in ruins. It needs a capable leader.'",
+    "complete_when": "tap_anywhere",
+    "is_mandatory": true
+  },
+  {
+    "id": "T06b_messenger_request",
+    "trigger": "after(T06a_messenger_dialogue)",
+    "highlight": null,
+    "text": "'Your trade talent is known across every port. Please accept the lordship and restore your land.'",
+    "complete_when": "tap_anywhere",
+    "action": "port.unlock('home_island')",
+    "is_mandatory": true
+  },
+  {
+    "id": "T06c_open_port_list",
+    "trigger": "after(T06b_messenger_request)",
+    "highlight": "ui.portListButton",
+    "text": "Open [Select Destination].",
+    "complete_when": "ui.portList.opened",
+    "is_mandatory": true
+  },
+  {
+    "id": "T06d_select_home_island",
+    "trigger": "after(T06c_open_port_list)",
+    "highlight": "ui.mapPort('home_island')",
+    "text": "Select [My Island] on the map.",
+    "complete_when": "navigation.map_selected == 'home_island'",
+    "is_mandatory": true,
+    "action": "homeIsland.setTax(0)"
+  },
+  {
+    "id": "T06e_depart_home_island",
+    "trigger": "after(T06d_select_home_island)",
+    "highlight": "ui.mapDepartButton",
+    "text": "Then click [Depart].",
+    "complete_when": "navigation.destination == 'home_island'",
+    "is_mandatory": true
+  },
+  {
+    "id": "T06f_collect_tax_intro",
+    "trigger": "after(T06e_depart_home_island) && navigation.arrived",
+    "highlight": null,
+    "text": "My lord, welcome home at last!",
+    "complete_when": "tap_anywhere",
+    "is_mandatory": true,
+    "action": "homeIsland.unlockTax && homeIsland.setTax(2000)"
+  },
+  {
+    "id": "T06g_tax_idle",
+    "trigger": "after(T06f_collect_tax_intro)",
+    "highlight": null,
+    "text": "Taxes collected from villagers have been idle for too long. It is time to put them to use.",
+    "complete_when": "tap_anywhere",
+    "is_mandatory": true
+  },
+  {
+    "id": "T06h_collect_tax_action",
+    "trigger": "after(T06g_tax_idle)",
+    "highlight": "ui.collectTaxButton",
+    "text": "Click the coin icon above the island to collect the first reconstruction fund.",
+    "complete_when": "homeIsland.tax_collected_today == true",
+    "is_mandatory": true
+  },
+  {
+    "id": "T06i_open_hall",
+    "trigger": "after(T06h_collect_tax_action)",
+    "highlight": "ui.hallButton",
+    "text": "Click [Hall] to enter the island management center.",
+    "complete_when": "ui.hallPanel.opened",
+    "is_mandatory": true
+  },
+  {
+    "id": "T06j_explain_upgrade",
+    "trigger": "after(T06i_open_hall)",
+    "highlight": null,
+    "text": "In the Hall, invest gold to upgrade infrastructure. As tax, economy, merchant capital, and restock capacity improve, this island will thrive under your rule.",
+    "complete_when": "tap_anywhere",
+    "is_mandatory": true
+  },
+  {
+    "id": "T06k_upgrade_logic",
+    "trigger": "after(T06j_explain_upgrade)",
+    "highlight": "ui.upgradeTab",
+    "padding_top": -20,
+    "text": "Try your first infrastructure upgrade and begin the island's new era of prosperity.",
+    "complete_when": "ui.homeIslandUpgraded",
+    "is_mandatory": true,
+    "action": "ui.hallPanel.close"
+  },
+  {
+    "id": "T10_tutorial_complete",
+    "trigger": "after(T06k_upgrade_logic)",
+    "highlight": null,
+    "text": "Whether you become a legendary merchant or build the most prosperous domain is your choice. Fair winds, my lord.",
+    "complete_when": "tap_anywhere",
+    "is_mandatory": true
+  }
+]

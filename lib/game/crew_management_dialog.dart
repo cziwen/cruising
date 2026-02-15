@@ -3,6 +3,7 @@ import '../models/crew_member.dart';
 import 'game_state.dart';
 import 'paper_dialog.dart';
 import 'paper_button.dart';
+import '../l10n/l10n.dart';
 
 /// 船员管理对话框
 class CrewManagementDialog extends StatefulWidget {
@@ -201,7 +202,7 @@ class _CrewManagementDialogState extends State<CrewManagementDialog> {
         ),
         const SizedBox(height: 4),
         Text(
-          role.displayName,
+          _roleDisplayName(context, role),
           style: const TextStyle(
             color: Color(0xFF5D4037),
             fontSize: 12,
@@ -441,7 +442,7 @@ class _CrewManagementDialogState extends State<CrewManagementDialog> {
                 Text(role.emoji, style: const TextStyle(fontSize: 18)),
                 const SizedBox(width: 6),
                 Text(
-                  role.displayName,
+                  _roleDisplayName(context, role),
                   style: const TextStyle(fontSize: 14),
                 ),
               ],
@@ -456,7 +457,7 @@ class _CrewManagementDialogState extends State<CrewManagementDialog> {
               children: [
                 Text(role.emoji, style: const TextStyle(fontSize: 18)),
                 const SizedBox(width: 8),
-                Text(role.displayName, style: TextStyle(color: _getRoleColor(role), fontWeight: FontWeight.bold)),
+                Text(_roleDisplayName(context, role), style: TextStyle(color: _getRoleColor(role), fontWeight: FontWeight.bold)),
               ],
             ),
           );
@@ -483,6 +484,20 @@ class _CrewManagementDialogState extends State<CrewManagementDialog> {
         return Colors.red[900]!;
       case CrewRole.unassigned:
         return const Color(0xFF8D6E63);
+    }
+  }
+
+  String _roleDisplayName(BuildContext context, CrewRole role) {
+    final l10n = context.l10n;
+    switch (role) {
+      case CrewRole.sailor:
+        return l10n.roleSailor;
+      case CrewRole.shipwright:
+        return l10n.roleShipwright;
+      case CrewRole.gunner:
+        return l10n.roleGunner;
+      case CrewRole.unassigned:
+        return l10n.roleUnassigned;
     }
   }
 

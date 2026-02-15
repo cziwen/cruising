@@ -1,0 +1,33 @@
+{
+  "firstNames": ["Jack", "Tom", "Johnny", "Edward", "William", "James", "Charles", "Robert", "Li", "Zhang", "Liu", "Wang", "Chen", "Yang", "Zhao", "Huang"],
+  "lastNames": [" Sparrow", " Sawyer", " Morgan", " Teach", " Drake", " Kidd", " Flint", " Riley", " Baker", " Smith", " Johnson"],
+  "personalities": ["brave", "careful", "optimistic", "quiet", "enthusiastic", "quirky", "loyal", "greedy", "witty", "steady"],
+  "specialties": ["sailing", "ship repair", "gunnery", "cooking", "medicine", "combat", "scouting", "command"],
+  "likedItems": ["rum", "gold", "tobacco", "nautical chart", "lucky coin", "compass", "salted fish", "old pocket watch"],
+  "descriptionFormats": [
+    "A [personality] sailor skilled at [specialty], who loves [likedItem].",
+    "[personality] defines this sailor. Their strength is [specialty], and they always carry [likedItem].",
+    "Everyone at the port knows this sailor is [personality]. They are excellent at [specialty], and get very happy with [likedItem].",
+    "This sailor seems [personality], but can talk for hours about [specialty]. Their dream is to obtain [likedItem]."
+  ],
+  "avatars": [
+    "assets/images/avatar/1_1767148766855.png",
+    "assets/images/avatar/1_1767148770287.png",
+    "assets/images/avatar/1_1767148773566.png",
+    "assets/images/avatar/1_1767148777561.png",
+    "assets/images/avatar/1_1767148785196.png",
+    "assets/images/avatar/1_1767148788896.png",
+    "assets/images/avatar/1_1767148791598.png",
+    "assets/images/avatar/1_1767148795725.png",
+    "assets/images/avatar/1_1767148799338.png",
+    "assets/images/avatar/1_1767148802533.png",
+    "assets/images/avatar/1_1767148807937.png",
+    "assets/images/avatar/1_1767148810579.png",
+    "assets/images/avatar/1_1767148813780.png",
+    "assets/images/avatar/1_1767148817392.png",
+    "assets/images/avatar/1_1767148820299.png",
+    "assets/images/avatar/1_1767148822829.png",
+    "assets/images/avatar/1_1767148827537.png",
+    "assets/images/avatar/1_1767148899954.png"
+  ]
+}

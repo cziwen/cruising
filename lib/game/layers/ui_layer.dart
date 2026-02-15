@@ -7,6 +7,7 @@ import '../paper_button.dart';
 import '../pixel_progress_bar.dart';
 import '../../systems/music_system.dart';
 import '../../systems/quest_system.dart';
+import '../../l10n/l10n.dart';
 import 'status_bar.dart';
 
 /// UI层 - 界面元素（按钮、菜单、信息显示等）
@@ -195,7 +196,7 @@ class _UILayerState extends State<UILayer> {
                 child: QuestTarget(
                   id: 'ui.marketButton',
                   child: _buildIslandButton(
-                    '市场',
+                    context.l10n.market,
                     widget.onMarketPressed ?? widget.onTradePressed,
                     Colors.blue,
                   ),
@@ -210,7 +211,7 @@ class _UILayerState extends State<UILayer> {
                   child: QuestTarget(
                     id: 'ui.hallButton',
                     child: _buildIslandButton(
-                      '大厅',
+                      context.l10n.hall,
                       () {
                         _showMainHall(context, 0);
                       },
@@ -224,7 +225,7 @@ class _UILayerState extends State<UILayer> {
                 left: islandCenterX - 250,
                 top: islandCenterY - 180,
                 child: _buildIslandButton(
-                  '酒馆',
+                  context.l10n.tavern,
                   widget.onCrewMarketPressed,
                   Colors.purple,
                 ),
@@ -234,7 +235,7 @@ class _UILayerState extends State<UILayer> {
                 left: islandCenterX + 250,
                 top: islandCenterY - 180,
                 child: _buildIslandButton(
-                  '设置',
+                  context.l10n.settings,
                   widget.onSettingsPressed,
                   Colors.blueGrey,
                 ),
@@ -246,7 +247,7 @@ class _UILayerState extends State<UILayer> {
                 child: QuestTarget(
                   id: 'ui.shipUpgradeButton',
                   child: _buildIslandButton(
-                    '船厂',
+                    context.l10n.shipyard,
                     widget.onShipyardPressed ?? widget.onUpgradePressed,
                     Colors.orange,
                   ),
@@ -257,7 +258,7 @@ class _UILayerState extends State<UILayer> {
                 left: islandCenterX + 200,
                 top: islandCenterY + 100,
                 child: _buildIslandButton(
-                  '管理',
+                  context.l10n.manage,
                   () => _showCrewManagement(context),
                   Colors.teal,
                 ),
@@ -320,7 +321,7 @@ class _UILayerState extends State<UILayer> {
     return QuestTarget(
       id: 'ui.portListButton',
       child: PaperButton(
-        label: '地图',
+        label: context.l10n.map,
         icon: const Icon(Icons.map, color: Color(0xFF4E342E), size: 24),
         onPressed: widget.onPortSelectPressed,
         style: PaperButtonStyle.green,
@@ -402,19 +403,20 @@ class _UILayerState extends State<UILayer> {
 
   /// 构建航行进度条
   Widget _buildTravelProgressBar() {
+    final l10n = context.l10n;
     final remainingHours = widget.gameState.remainingTravelHours;
-    final destinationName = widget.gameState.destinationPort?.name ?? '目的地';
+    final destinationName = widget.gameState.destinationPort?.name ?? l10n.unknown;
     
     // 将小时数转换为"X天Y小时"格式
     final days = remainingHours ~/ 24;
     final hours = remainingHours % 24;
     String remainingTimeText;
     if (days > 0 && hours > 0) {
-      remainingTimeText = '$days天$hours小时';
+      remainingTimeText = l10n.daysHours(days.toString(), hours.toString());
     } else if (days > 0) {
-      remainingTimeText = '$days天';
+      remainingTimeText = l10n.daysOnly(days.toString());
     } else {
-      remainingTimeText = '$hours小时';
+      remainingTimeText = l10n.hoursOnly(hours.toString());
     }
     
     return Container(
@@ -427,7 +429,7 @@ class _UILayerState extends State<UILayer> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                '前往: $destinationName',
+                l10n.headingTo(destinationName),
                 style: const TextStyle(
                   color: Colors.white,
                   fontSize: 14,
@@ -435,7 +437,7 @@ class _UILayerState extends State<UILayer> {
                 ),
               ),
               Text(
-                '剩余: $remainingTimeText',
+                l10n.remaining(remainingTimeText),
                 style: const TextStyle(
                   color: Colors.white70,
                   fontSize: 12,

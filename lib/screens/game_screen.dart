@@ -2,6 +2,7 @@
 import 'package:flutter/scheduler.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
+import 'package:provider/provider.dart';
 import 'dart:io' show exit;
 import 'package:audioplayers/audioplayers.dart';
 import '../game/game_state.dart';
@@ -21,6 +22,8 @@ import '../game/settings_dialog.dart';
 import '../game/sea_event_dialog.dart';
 import '../utils/game_config_loader.dart';
 import '../systems/quest_system.dart';
+import '../systems/app_settings_controller.dart';
+import '../l10n/l10n.dart';
 import 'save_load_screen.dart';
 
 class GameScreen extends StatefulWidget {
@@ -156,6 +159,9 @@ class _GameScreenState extends State<GameScreen> {
   bool _showCoverOverlay = false;
   bool _isShowingSeaEventDialog = false;
   int? _currentBackgroundSaveId; // 当前背景对应的存档 ID，-1 表示新游戏场景
+  AppSettingsController? _appSettingsController;
+  String? _lastLocaleLanguageCode;
+  bool _isRelocalizing = false;
 
   @override
   void initState() {
@@ -236,6 +242,40 @@ class _GameScreenState extends State<GameScreen> {
     _gameLoopTicker!.start();
   }
 
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final appSettings = context.read<AppSettingsController>();
+    if (_appSettingsController == appSettings) return;
+
+    _appSettingsController?.removeListener(_handleAppLocaleChanged);
+    _appSettingsController = appSettings;
+    _lastLocaleLanguageCode = appSettings.locale.languageCode;
+    _appSettingsController?.addListener(_handleAppLocaleChanged);
+  }
+
+  Future<void> _handleAppLocaleChanged() async {
+    final appSettings = _appSettingsController;
+    if (appSettings == null) return;
+    final nextCode = appSettings.locale.languageCode;
+    if (_lastLocaleLanguageCode == nextCode || _isRelocalizing) return;
+
+    _lastLocaleLanguageCode = nextCode;
+    _isRelocalizing = true;
+    try {
+      await GameConfigLoader().reloadForLocale(nextCode);
+      _gameState.relocalizeFromConfig();
+      QuestSystem.instance.reloadForLocale();
+      SeaEventSystem.instance.reloadForLocale();
+      _gameState.refreshTavernCrew(force: true);
+      if (mounted) {
+        setState(() {});
+      }
+    } finally {
+      _isRelocalizing = false;
+    }
+  }
+
   void _handleQuestAction() {
     final pendingAction = QuestSystem.instance.pendingAction;
     if (pendingAction == null) return;
@@ -296,7 +336,7 @@ class _GameScreenState extends State<GameScreen> {
       
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('船员 $names 因为得不到报酬，已经在港口悄悄离开了...'),
+          content: Text(context.l10n.crewLeftNoPay(names)),
           backgroundColor: Colors.redAccent,
           duration: const Duration(seconds: 5),
           behavior: SnackBarBehavior.floating,
@@ -465,7 +505,7 @@ class _GameScreenState extends State<GameScreen> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('读取存档失败: $e')),
+          SnackBar(content: Text(context.l10n.loadFailed(e.toString()))),
         );
         setState(() {
           _isTransitioningToGame = false;
@@ -591,12 +631,12 @@ class _GameScreenState extends State<GameScreen> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('船只升级'),
-        content: const Text('升级功能开发中...'),
+        title: Text(context.l10n.shipUpgrade),
+        content: Text(context.l10n.shipUpgradeInDev),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(),
-            child: const Text('确定'),
+            child: Text(context.l10n.ok),
           ),
         ],
       ),
@@ -640,6 +680,7 @@ class _GameScreenState extends State<GameScreen> {
 
   @override
   void dispose() {
+    _appSettingsController?.removeListener(_handleAppLocaleChanged);
     QuestSystem.instance.removeListener(_handleQuestAction);
     _gameLoopTicker?.stop();
     _gameLoopTicker = null;
@@ -704,5 +745,3 @@ class _GameScreenState extends State<GameScreen> {
     );
   }
 }
-
-

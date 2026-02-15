@@ -1,14 +1,13 @@
 /// 船员职业枚举
 enum CrewRole {
-  sailor('水手', '⛵'),
-  shipwright('船工', '🔧'),
-  gunner('炮手', '🔫'),
-  unassigned('未分配', '❌');
+  sailor('⛵'),
+  shipwright('🔧'),
+  gunner('🔫'),
+  unassigned('❌');
 
-  final String displayName;
   final String emoji;
 
-  const CrewRole(this.displayName, this.emoji);
+  const CrewRole(this.emoji);
 
   String toJson() => name;
 
@@ -135,5 +134,4 @@ class CrewMember {
     );
   }
 }
-
 

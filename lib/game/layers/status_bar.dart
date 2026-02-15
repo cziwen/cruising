@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../game_state.dart';
+import '../../l10n/l10n.dart';
 
 /// 双行状态栏组件
 /// 显示游戏核心资源和运营状态信息
@@ -70,6 +71,7 @@ class StatusBar extends StatelessWidget {
           flex: 2,
           child: Center(
             child: _buildLocationItem(
+              context: context,
               fontSize: fontSize,
               iconSize: iconSize,
             ),
@@ -105,6 +107,7 @@ class StatusBar extends StatelessWidget {
 
   /// 构建第二行：船只耐久、修复速度、炮火攻击力、航速
   Widget _buildSecondRow(BuildContext context, double fontSize, double iconSize) {
+    final l10n = context.l10n;
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
       children: [
@@ -125,7 +128,7 @@ class StatusBar extends StatelessWidget {
           flex: 1,
           child: _buildStatItem(
             icon: Icons.build_circle,
-            label: '${gameState.autoRepairPerSecond.toStringAsFixed(1)}/秒',
+            label: '${gameState.autoRepairPerSecond.toStringAsFixed(1)}${l10n.perSecond}',
             iconSize: iconSize,
             fontSize: fontSize,
             valueColor: Colors.orangeAccent,
@@ -137,7 +140,7 @@ class StatusBar extends StatelessWidget {
           flex: 1,
           child: _buildStatItem(
             icon: Icons.gps_fixed,
-            label: '${gameState.fireRatePerSecond.toStringAsFixed(1)} 炮/秒',
+            label: '${gameState.fireRatePerSecond.toStringAsFixed(1)} ${l10n.shotsPerSecond}',
             iconSize: iconSize,
             fontSize: fontSize,
             valueColor: Colors.red,
@@ -149,7 +152,7 @@ class StatusBar extends StatelessWidget {
           flex: 1,
           child: _buildStatItem(
             icon: Icons.sailing,
-            label: '${gameState.currentSpeed.toStringAsFixed(1)}节',
+            label: '${gameState.currentSpeed.toStringAsFixed(1)}${l10n.knots}',
             iconSize: iconSize,
             fontSize: fontSize,
             valueColor: Colors.cyan,
@@ -196,16 +199,18 @@ class StatusBar extends StatelessWidget {
 
   /// 构建位置显示项
   Widget _buildLocationItem({
+    required BuildContext context,
     required double fontSize,
     required double iconSize,
   }) {
+    final l10n = context.l10n;
     String locationText;
     if (gameState.isAtSea) {
-      locationText = '海上';
+      locationText = l10n.atSea;
     } else if (gameState.currentPort != null) {
       locationText = gameState.currentPort!.name;
     } else {
-      locationText = '未知';
+      locationText = l10n.unknown;
     }
 
     return Row(
@@ -234,4 +239,3 @@ class StatusBar extends StatelessWidget {
   }
 
 }
-

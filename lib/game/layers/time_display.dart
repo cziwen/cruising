@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import '../game_state.dart';
+import '../../l10n/l10n.dart';
+import '../../systems/day_night_system.dart';
 
 /// 时间显示Widget（左上角）
 class TimeDisplay extends StatelessWidget {
@@ -39,7 +41,7 @@ class TimeDisplay extends StatelessWidget {
                   ),
                   const SizedBox(width: 6),
                   Text(
-                    '${gameState.dayNightSystem.currentTime}  ${gameState.dayNightSystem.seasonDateString}',
+                    '${gameState.dayNightSystem.currentTime}  ${context.l10n.seasonDay(_seasonLabel(context), gameState.dayNightSystem.currentDayOfSeason.toString())}',
                     style: TextStyle(
                       color: Colors.white,
                       fontSize: 16,
@@ -61,5 +63,19 @@ class TimeDisplay extends StatelessWidget {
       ),
     );
   }
-}
 
+  String _seasonLabel(BuildContext context) {
+    final season = gameState.dayNightSystem.currentSeason;
+    final l10n = context.l10n;
+    switch (season) {
+      case Season.spring:
+        return l10n.spring;
+      case Season.summer:
+        return l10n.summer;
+      case Season.autumn:
+        return l10n.autumn;
+      case Season.winter:
+        return l10n.winter;
+    }
+  }
+}

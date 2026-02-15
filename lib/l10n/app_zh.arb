@@ -1,0 +1,253 @@
+{
+  "@@locale": "zh",
+  "appTitle": "Cruising",
+  "loading": "加载中...",
+  "settings": "设置",
+  "close": "关闭",
+  "cancel": "取消",
+  "confirm": "确定",
+  "delete": "删除",
+  "save": "保存",
+  "load": "读取",
+  "overwrite": "覆盖",
+  "ok": "确定",
+  "newGame": "新游戏",
+  "continueGame": "继续游戏",
+  "loadSave": "读取存档",
+  "exitGame": "退出",
+  "saveGame": "保存游戏",
+  "loadGame": "读取游戏",
+  "soundSettings": "声音设置",
+  "musicVolume": "音乐音量",
+  "sfxVolume": "音效音量",
+  "displaySettings": "显示设置",
+  "fullscreenMode": "全屏模式",
+  "wallpaperMode": "动态壁纸模式",
+  "windowResolution": "窗口分辨率",
+  "languageSettings": "语言设置",
+  "language": "语言",
+  "languageEnglish": "English",
+  "languageChinese": "中文",
+  "returnMainMenu": "返回主菜单",
+  "returnMainMenuConfirm": "未保存的进度将会丢失，确定要返回主菜单吗？",
+  "saveListLoadFailed": "加载存档列表失败: {error}",
+  "@saveListLoadFailed": {
+    "placeholders": {
+      "error": {}
+    }
+  },
+  "autoSlotManualBlocked": "自动存档位无法手动覆盖",
+  "saveSuccess": "保存成功",
+  "saveFailed": "保存失败: {error}",
+  "@saveFailed": {
+    "placeholders": {
+      "error": {}
+    }
+  },
+  "loadFailed": "读取失败: {error}",
+  "@loadFailed": {
+    "placeholders": {
+      "error": {}
+    }
+  },
+  "deleteSaveTitle": "删除存档",
+  "deleteSaveConfirm": "确定要删除这个存档吗？此操作无法撤销。",
+  "slotEmpty": "该槽位为空",
+  "emptySlot": "空槽位",
+  "autoSaveSlot": "自动存档",
+  "saveSlotLabel": "存档 {id}",
+  "@saveSlotLabel": {
+    "placeholders": {
+      "id": {}
+    }
+  },
+  "locationLabel": "位置: {name}",
+  "@locationLabel": {
+    "placeholders": {
+      "name": {}
+    }
+  },
+  "timeLabel": "时间: {time}",
+  "@timeLabel": {
+    "placeholders": {
+      "time": {}
+    }
+  },
+  "goldDayLabel": "金币: {gold} | 天数: {day}",
+  "@goldDayLabel": {
+    "placeholders": {
+      "gold": {},
+      "day": {}
+    }
+  },
+  "shipUpgrade": "船只升级",
+  "shipUpgradeInDev": "升级功能开发中...",
+  "crewLeftNoPay": "船员 {names} 因为得不到报酬，已经在港口悄悄离开了...",
+  "@crewLeftNoPay": {
+    "placeholders": {
+      "names": {}
+    }
+  },
+  "market": "市场",
+  "hall": "大厅",
+  "tavern": "酒馆",
+  "shipyard": "船厂",
+  "manage": "管理",
+  "map": "地图",
+  "headingTo": "前往: {name}",
+  "@headingTo": {
+    "placeholders": {
+      "name": {}
+    }
+  },
+  "remaining": "剩余: {time}",
+  "@remaining": {
+    "placeholders": {
+      "time": {}
+    }
+  },
+  "daysHours": "{days}天{hours}小时",
+  "@daysHours": {
+    "placeholders": {
+      "days": {},
+      "hours": {}
+    }
+  },
+  "daysOnly": "{days}天",
+  "@daysOnly": {
+    "placeholders": {
+      "days": {}
+    }
+  },
+  "hoursOnly": "{hours}小时",
+  "@hoursOnly": {
+    "placeholders": {
+      "hours": {}
+    }
+  },
+  "atSea": "海上",
+  "unknown": "未知",
+  "perSecond": "/秒",
+  "shotsPerSecond": "炮/秒",
+  "knots": "节",
+  "tapAnywhereToContinue": "-- 点击任意处继续 --",
+  "spring": "春",
+  "summer": "夏",
+  "autumn": "秋",
+  "winter": "冬",
+  "seasonDay": "{season} {day}日",
+  "@seasonDay": {
+    "placeholders": {
+      "season": {},
+      "day": {}
+    }
+  },
+  "selectDestination": "选择目的地",
+  "depart": "出发",
+  "currentPort": "当前港口",
+  "tradeDialogNoPort": "当前不在港口且未指定交易对象",
+  "marketTitle": "市场 - {port}",
+  "@marketTitle": {
+    "placeholders": {
+      "port": {}
+    }
+  },
+  "merchantInventory": "商人库存",
+  "myInventory": "我的库存",
+  "playerReceives": "玩家获得",
+  "playerPays": "玩家支付",
+  "tradeIn": "换入",
+  "tradeOut": "换出",
+  "balanceOffer": "平衡报价",
+  "confirmTrade": "确认交易",
+  "tradeUnfair": "交易不公平",
+  "buyAction": "购买: {name}",
+  "@buyAction": {
+    "placeholders": {
+      "name": {}
+    }
+  },
+  "sellAction": "出售: {name}",
+  "@sellAction": {
+    "placeholders": {
+      "name": {}
+    }
+  },
+  "holdingAverage": "持有均价: {price}",
+  "@holdingAverage": {
+    "placeholders": {
+      "price": {}
+    }
+  },
+  "buyAverage": "买入均价: {price}",
+  "@buyAverage": {
+    "placeholders": {
+      "price": {}
+    }
+  },
+  "sellAverage": "售出均价: {price}",
+  "@sellAverage": {
+    "placeholders": {
+      "price": {}
+    }
+  },
+  "estimatedValue": "估值: {value}",
+  "@estimatedValue": {
+    "placeholders": {
+      "value": {}
+    }
+  },
+  "tradeSuccess": "交易成功！",
+  "tradeFailed": "交易失败: {reason}",
+  "@tradeFailed": {
+    "placeholders": {
+      "reason": {}
+    }
+  },
+  "merchantFavor": "← 偏向商人",
+  "playerFavor": "偏向玩家 →",
+  "fairTrade": "公平交易",
+  "seaEventMerchantTrading": "正在与商船进行物资交换...",
+  "shipDamaged": "船只受损：耐久度下降了 {value}",
+  "@shipDamaged": {
+    "placeholders": {
+      "value": {}
+    }
+  },
+  "shipRepaired": "船只修复：耐久度恢复了 {value}",
+  "@shipRepaired": {
+    "placeholders": {
+      "value": {}
+    }
+  },
+  "goldGained": "获得金币：{value} 💰",
+  "@goldGained": {
+    "placeholders": {
+      "value": {}
+    }
+  },
+  "goldLost": "损失金币：{value} 💰",
+  "@goldLost": {
+    "placeholders": {
+      "value": {}
+    }
+  },
+  "goodsGained": "获得物资：{name} x{count}",
+  "@goodsGained": {
+    "placeholders": {
+      "name": {},
+      "count": {}
+    }
+  },
+  "cargoFullNoGoods": "货舱已满，无法获取物资",
+  "rerouteToPort": "航道改变，正转向 {port}",
+  "@rerouteToPort": {
+    "placeholders": {
+      "port": {}
+    }
+  },
+  "roleSailor": "水手",
+  "roleShipwright": "船工",
+  "roleGunner": "炮手",
+  "roleUnassigned": "未分配"
+}

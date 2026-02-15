@@ -1,15 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:window_manager/window_manager.dart';
 import 'package:provider/provider.dart';
 import 'screens/loading_screen.dart';
 import 'screens/game_screen.dart';
 import 'game/scale_wrapper.dart';
 import 'game/layers/quest_overlay.dart';
+import 'l10n/app_localizations.dart';
 import 'utils/game_config_loader.dart';
 import 'systems/window_controller.dart';
 import 'systems/tray_controller.dart';
 import 'systems/quest_system.dart';
+import 'systems/app_settings_controller.dart';
 
 void main(List<String> args) async {
   // 检查是否通过命令行参数以壁纸模式启动
@@ -20,9 +23,14 @@ void main(List<String> args) async {
   
   // 初始化系统托盘
   await TrayController().initialize();
+
+  final appSettings = AppSettingsController();
+  await appSettings.load();
   
   // 加载基础配置
-  await GameConfigLoader().loadConfig();
+  await GameConfigLoader().loadConfig(
+    languageCode: appSettings.locale.languageCode,
+  );
   
   // 初始化 window_manager（仅在桌面端）
   if (!kIsWeb && (defaultTargetPlatform == TargetPlatform.windows || 
@@ -57,9 +65,14 @@ void main(List<String> args) async {
   }
 
   runApp(
-    ChangeNotifierProvider.value(
-      value: QuestSystem.instance,
-      child: MainApp(isWallpaperMode: isWallpaperMode),
+    MultiProvider(
+      providers: [
+        ChangeNotifierProvider.value(value: QuestSystem.instance),
+        ChangeNotifierProvider.value(value: appSettings),
+      ],
+      child: MainApp(
+        isWallpaperMode: isWallpaperMode,
+      ),
     ),
   );
 }
@@ -78,9 +91,21 @@ class MainApp extends StatelessWidget {
     return ValueListenableBuilder<bool>(
       valueListenable: WindowController.isWallpaperModeProvider,
       builder: (context, isWallpaper, child) {
+        final appSettings = context.watch<AppSettingsController>();
         return MaterialApp(
-          title: 'Cruising',
+          locale: appSettings.locale,
+          onGenerateTitle: (context) => AppLocalizations.of(context).appTitle,
           debugShowCheckedModeBanner: false,
+          localizationsDelegates: const [
+            AppLocalizations.delegate,
+            GlobalMaterialLocalizations.delegate,
+            GlobalWidgetsLocalizations.delegate,
+            GlobalCupertinoLocalizations.delegate,
+          ],
+          supportedLocales: const [
+            Locale('en'),
+            Locale('zh'),
+          ],
           theme: ThemeData(
             colorScheme: ColorScheme.fromSeed(seedColor: Colors.blue),
             useMaterial3: true,

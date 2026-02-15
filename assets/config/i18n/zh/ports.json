@@ -1,0 +1,255 @@
+[
+  {
+    "id": "base",
+    "name": "基础配置",
+    "description": "全局货物的默认基础配置（以贸易港为基准）。",
+    "goodsConfig": {
+      "food": { "alpha": 0.15, "s0": 500, "basePrice": 12.0 },
+      "water": { "alpha": 0.10, "s0": 800, "basePrice": 8.0 },
+      "rum": { "alpha": 0.18, "s0": 300, "basePrice": 20.0 },
+      "wood": { "alpha": 0.12, "s0": 400, "basePrice": 16.0 },
+      "metal": { "alpha": 0.20, "s0": 300, "basePrice": 25.0 },
+      "stone": { "alpha": 0.15, "s0": 400, "basePrice": 18.0 },
+      "cloth": { "alpha": 0.12, "s0": 500, "basePrice": 15.0 },
+      "leather": { "alpha": 0.16, "s0": 300, "basePrice": 22.0 },
+      "spice": { "alpha": 0.25, "s0": 300, "basePrice": 30.0 },
+      "silk": { "alpha": 0.28, "s0": 200, "basePrice": 45.0 },
+      "ivory": { "alpha": 0.30, "s0": 150, "basePrice": 60.0 },
+      "artwork": { "alpha": 0.35, "s0": 100, "basePrice": 80.0 }
+    }
+  },
+  {
+    "id": "home_island",
+    "name": "我的岛屿",
+    "description": "一座尚未苏醒的荒芜海岛，补给稀薄，港口设施简陋，等待玩家重新点燃生机。",
+    "unlocked": false,
+    "mapX": 173.0,
+    "mapY": 629,
+    "restockingAggressiveness": 0.2,
+    "distances": {
+      "port_1": 480,
+      "port_2": 1440,
+      "port_3": 2370,
+      "port_4": 3530,
+      "port_5": 2080,
+      "port_6": 5040,
+      "port_7": 4220
+    },
+    "goodsConfig": {
+      "food": { "alpha": 0.30, "s0": 100, "basePrice": 9.6 },
+      "water": { "alpha": 0.20, "s0": 160, "basePrice": 6.4 },
+      "rum": { "alpha": 0.36, "s0": 60, "basePrice": 16.0 }
+    }
+  },
+  {
+    "id": "port_1",
+    "name": "灯塔岛",
+    "backgroundImage": "assets/images/buildings/light_house.png",
+    "description": "港口周围密布林地与简易码头，是新人最先接触的“资源补给站”。",
+    "unlocked": true,
+    "mapX": 201,
+    "mapY": 526,
+    "distances": {
+      "home_island": 480,
+      "port_2": 960,
+      "port_3": 1920,
+      "port_4": 3060,
+      "port_5": 1780,
+      "port_6": 4560,
+      "port_7": 3790
+    },
+    "restockingAggressiveness": 0.3,
+    "goodsConfig": {
+      "food": { "alpha": 0.18, "s0": 200, "basePrice": 18.0 },
+      "water": { "alpha": 0.10, "s0": 800, "basePrice": 8.0 },
+      "rum": { "alpha": 0.18, "s0": 300, "basePrice": 20.0 },
+      "wood": { "alpha": 0.09, "s0": 2000, "basePrice": 9.6 }
+    },
+    "merchantMoney": 10000,
+    "initialMerchantMoney": 10000
+  },
+  {
+    "id": "port_2",
+    "name": "贸易港",
+    "backgroundImage": "assets/images/buildings/business_port.png",
+    "description": "商船云集、市场成熟的中心港，价格与供需最稳定，是全球贸易的参照点。",
+    "unlocked": true,
+    "mapX": 406.0,
+    "mapY": 451.0,
+    "distances": {
+      "home_island": 1440,
+      "port_1": 960,
+      "port_3": 1080,
+      "port_4": 2150,
+      "port_5": 1500,
+      "port_6": 3600,
+      "port_7": 2980
+    },
+    "restockingAggressiveness": 0.4,
+    "goodsConfig": {
+      "food": { "alpha": 0.15, "s0": 500, "basePrice": 12.0 },
+      "water": { "alpha": 0.10, "s0": 800, "basePrice": 8.0 },
+      "rum": { "alpha": 0.18, "s0": 300, "basePrice": 20.0 },
+      "wood": { "alpha": 0.12, "s0": 400, "basePrice": 16.0 },
+      "metal": { "alpha": 0.20, "s0": 300, "basePrice": 25.0 },
+      "stone": { "alpha": 0.15, "s0": 400, "basePrice": 18.0 },
+      "cloth": { "alpha": 0.12, "s0": 500, "basePrice": 15.0 },
+      "leather": { "alpha": 0.16, "s0": 300, "basePrice": 22.0 },
+      "spice": { "alpha": 0.25, "s0": 300, "basePrice": 30.0 },
+      "silk": { "alpha": 0.28, "s0": 200, "basePrice": 45.0 },
+      "ivory": { "alpha": 0.30, "s0": 150, "basePrice": 60.0 },
+      "artwork": { "alpha": 0.35, "s0": 100, "basePrice": 80.0 }
+    },
+    "merchantMoney": 20000,
+    "initialMerchantMoney": 20000
+  },
+  {
+    "id": "port_3",
+    "name": "香料港",
+    "backgroundImage": "assets/images/buildings/exotic_village.png",
+    "description": "香气弥漫的港湾，异域商队汇聚，货摊以香料与奇珍闻名。",
+    "unlocked": false,
+    "mapX": 471,
+    "mapY": 366.0,
+    "distances": {
+      "home_island": 2370,
+      "port_1": 1920,
+      "port_2": 1080,
+      "port_4": 1200,
+      "port_5": 2340,
+      "port_6": 2880,
+      "port_7": 2930
+    },
+    "restockingAggressiveness": 0.3,
+    "goodsConfig": {
+      "food": { "alpha": 0.18, "s0": 250, "basePrice": 18.0 },
+      "water": { "alpha": 0.12, "s0": 400, "basePrice": 12.0 },
+      "rum": { "alpha": 0.18, "s0": 300, "basePrice": 20.0 },
+      "metal": { "alpha": 0.24, "s0": 150, "basePrice": 37.5 },
+      "spice": { "alpha": 0.20, "s0": 1500, "basePrice": 18.0 }
+    },
+    "merchantMoney": 15000,
+    "initialMerchantMoney": 15000
+  },
+  {
+    "id": "port_4",
+    "name": "铁炉岛",
+    "backgroundImage": "assets/images/buildings/iron_forge.png",
+    "description": "烟囱林立、火炉终日不熄的工业岛，矿脉与石场支撑着重工贸易。",
+    "unlocked": false,
+    "mapX": 669.0,
+    "mapY": 333.0,
+    "distances": {
+      "home_island": 3530,
+      "port_1": 3060,
+      "port_2": 2150,
+      "port_3": 1200,
+      "port_5": 3060,
+      "port_6": 1800,
+      "port_7": 2630
+    },
+    "goodsConfig": {
+      "food": { "alpha": 0.15, "s0": 300, "basePrice": 12.0 },
+      "water": { "alpha": 0.10, "s0": 400, "basePrice": 8.0 },
+      "rum": { "alpha": 0.216, "s0": 100, "basePrice": 30.0 },
+      "metal": { "alpha": 0.16, "s0": 1500, "basePrice": 15.0 },
+      "stone": { "alpha": 0.12, "s0": 1200, "basePrice": 10.8 },
+      "silk": { "alpha": 0.336, "s0": 80, "basePrice": 67.5 }
+    },
+    "merchantMoney": 18000,
+    "initialMerchantMoney": 18000
+  },
+  {
+    "id": "port_5",
+    "name": "织梦湾",
+    "backgroundImage": "assets/images/buildings/dreamweaver_Bay.png",
+    "description": "纺机声与染坊香交织的海湾，帆布与丝线从这里流向各地。",
+    "unlocked": false,
+    "mapX": 552.0,
+    "mapY": 429.0,
+    "distances": {
+      "home_island": 2080,
+      "port_1": 1780,
+      "port_2": 1500,
+      "port_3": 2340,
+      "port_4": 3060,
+      "port_6": 3860,
+      "port_7": 2400
+    },
+    "goodsConfig": {
+      "food": { "alpha": 0.15, "s0": 400, "basePrice": 12.0 },
+      "water": { "alpha": 0.10, "s0": 600, "basePrice": 8.0 },
+      "rum": { "alpha": 0.18, "s0": 300, "basePrice": 20.0 },
+      "wood": { "alpha": 0.144, "s0": 150, "basePrice": 24.0 },
+      "cloth": { "alpha": 0.096, "s0": 1800, "basePrice": 9.0 },
+      "leather": { "alpha": 0.192, "s0": 100, "basePrice": 33.0 },
+      "silk": { "alpha": 0.224, "s0": 1200, "basePrice": 27.0 }
+    },
+    "merchantMoney": 22000,
+    "initialMerchantMoney": 22000
+  },
+  {
+    "id": "port_6",
+    "name": "翡翠领",
+    "backgroundImage": "assets/images/buildings/emerald_collar.png",
+    "description": "田野与水渠铺展的绿色群岛，是远航队伍最可靠的补给腹地。",
+    "unlocked": false,
+    "mapX": 837.0,
+    "mapY": 225.0,
+    "distances": {
+      "home_island": 5040,
+      "port_1": 4560,
+      "port_2": 3600,
+      "port_3": 2880,
+      "port_4": 1800,
+      "port_5": 3860,
+      "port_7": 2100
+    },
+    "goodsConfig": {
+      "food": { "alpha": 0.12, "s0": 2000, "basePrice": 7.2 },
+      "water": { "alpha": 0.08, "s0": 2000, "basePrice": 4.8 },
+      "rum": { "alpha": 0.144, "s0": 1200, "basePrice": 12.0 },
+      "metal": { "alpha": 0.24, "s0": 80, "basePrice": 37.5 },
+      "stone": { "alpha": 0.18, "s0": 100, "basePrice": 27.0 }
+    },
+    "restockingAggressiveness": 1.0,
+    "merchantMoney": 15000,
+    "initialMerchantMoney": 15000
+  },
+  {
+    "id": "port_7",
+    "name": "远古遗址",
+    "backgroundImage": "assets/images/buildings/ancient_ruins_port.png",
+    "description": "被风沙与藤蔓覆盖的遗迹群岛，少量高价值遗物在暗市中流通。",
+    "unlocked": false,
+    "mapX": 723.0,
+    "mapY": 420.0,
+    "distances": {
+      "home_island": 4220,
+      "port_1": 3790,
+      "port_2": 2980,
+      "port_3": 2930,
+      "port_4": 2630,
+      "port_5": 2400,
+      "port_6": 2100
+    },
+    "goodsConfig": {
+      "food": { "alpha": 0.18, "s0": 50, "basePrice": 18.0 },
+      "water": { "alpha": 0.12, "s0": 50, "basePrice": 12.0 },
+      "rum": { "alpha": 0.18, "s0": 100, "basePrice": 25.0 },
+      "ivory": { "alpha": 0.24, "s0": 800, "basePrice": 36.0 },
+      "artwork": { "alpha": 0.28, "s0": 600, "basePrice": 48.0 }
+    },
+    "merchantMoney": 25000,
+    "initialMerchantMoney": 25000
+  },
+  {
+    "id": "sea",
+    "name": "海上",
+    "backgroundImage": "",
+    "description": "离开港口，进入广阔的海域。在这里你可以随时选择新的目的地。",
+    "unlocked": true,
+    "distances": {},
+    "isSeaLocation": true
+  }
+]

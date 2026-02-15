@@ -1,0 +1,165 @@
+[
+  {
+    "id": "sea_storm",
+    "title": "Storm Incoming!",
+    "description": "The sky darkens in moments as violent winds raise towering waves. A black storm cloud is swallowing this sea lane, and your ship is shaking hard. Decide now.",
+    "type": "decision",
+    "probability": 0.08,
+    "cooldownHours": 12,
+    "minProgress": 0.1,
+    "maxProgress": 0.9,
+    "assetPath": "assets/images/events/sea_storm.png",
+    "choices": [
+      {
+        "id": "storm_full_speed",
+        "label": "Full speed ahead: hold course and punch through the storm.",
+        "effects": [
+          { "type": "durabilityChange", "value": [-20, -50] },
+          { "type": "progressChange", "value": 0.05 }
+        ]
+      },
+      {
+        "id": "storm_slow_down",
+        "label": "Reef sails: reduce speed to 50% and search for safer water.",
+        "effects": [
+          { "type": "durabilityChange", "value": [-5, -10] },
+          { "type": "speedMultiplier", "value": 0.5, "durationHours": 12 }
+        ]
+      },
+      {
+        "id": "storm_nearest_port",
+        "label": "Seek shelter: immediately turn to the nearest known port.",
+        "effects": [
+          { "type": "changeDestination", "value": "nearest" }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "sea_distress_call",
+    "title": "Distress Signal",
+    "description": "Wreckage drifts nearby and several survivors wave desperately from the water. They look exhausted and close to collapse.",
+    "type": "decision",
+    "probability": 0.07,
+    "cooldownHours": 48,
+    "assetPath": "assets/images/events/distress_call.png",
+    "choices": [
+      {
+        "id": "distress_rescue",
+        "label": "Rescue immediately: launch boats and take survivors aboard.",
+        "effects": [
+          { "type": "timeSkip", "value": 2 },
+          { "type": "goldChange", "value": [200, 500] }
+        ]
+      },
+      {
+        "id": "distress_salvage",
+        "label": "Salvage only: recover floating cargo and ignore the pleas.",
+        "effects": [
+          { "type": "addRandomGoods", "value": [5, 15] }
+        ]
+      },
+      {
+        "id": "distress_ignore",
+        "label": "Ignore and sail on.",
+        "effects": []
+      }
+    ]
+  },
+  {
+    "id": "sea_reef_grounding",
+    "title": "Reef Grounding",
+    "description": "A heavy impact shakes the hull. Bad luck: you struck an uncharted reef.",
+    "type": "decision",
+    "probability": 0.05,
+    "cooldownHours": 72,
+    "assetPath": "assets/images/events/reef_grounding.png",
+    "choices": [
+      {
+        "id": "reef_force_off",
+        "label": "Force your way out.",
+        "effects": [
+          { "type": "durabilityChange", "value": [-30, -60] },
+          { "type": "timeSkip", "value": 1 }
+        ]
+      },
+      {
+        "id": "reef_wait_tide",
+        "label": "Wait for high tide and free the ship safely.",
+        "effects": [
+          { "type": "timeSkip", "value": 6 },
+          { "type": "durabilityChange", "value": [-5, -10] }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "sea_merchant_ship",
+    "title": "Merchant Encounter",
+    "description": "A neutral merchant vessel approaches over calm water and signals a possible exchange.",
+    "type": "decision",
+    "probability": 0.10,
+    "cooldownHours": 24,
+    "minProgress": 0.2,
+    "maxProgress": 0.8,
+    "assetPath": "assets/images/events/merchant_ship.png",
+    "choices": [
+      {
+        "id": "merchant_trade",
+        "label": "Heave to and trade.",
+        "effects": [
+          { "type": "timeSkip", "value": 1 }
+        ]
+      },
+      {
+        "id": "merchant_ignore",
+        "label": "Decline politely and continue sailing.",
+        "effects": []
+      },
+      {
+        "id": "merchant_raid",
+        "label": "Raid by force (dangerous).",
+        "condition": "combat_unlocked",
+        "effects": [
+          { "type": "triggerCombat", "value": "merchant" }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "sea_tailwind",
+    "title": "Tailwind",
+    "description": "A stable wind fills your sails from behind. Perfect chance to speed up.",
+    "type": "notification",
+    "probability": 0.12,
+    "cooldownHours": 8,
+    "assetPath": "assets/images/events/tailwind.png",
+    "choices": [
+      {
+        "id": "tailwind_ok",
+        "label": "Excellent!",
+        "effects": [
+          { "type": "speedMultiplier", "value": 1.5, "durationHours": 12 }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "sea_headwind",
+    "title": "Headwind",
+    "description": "The wind shifts against you. Progress slows significantly.",
+    "type": "notification",
+    "probability": 0.12,
+    "cooldownHours": 8,
+    "assetPath": "assets/images/events/headwind.png",
+    "choices": [
+      {
+        "id": "headwind_ok",
+        "label": "Unlucky...",
+        "effects": [
+          { "type": "speedMultiplier", "value": 0.7, "durationHours": 12 }
+        ]
+      }
+    ]
+  }
+]

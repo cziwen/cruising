@@ -9,6 +9,7 @@ import '../game/game_state.dart';
 class SaveSlot {
   final int id; // 0=Auto, 1-3=Manual
   final String timestamp; // ISO 8601 string
+  final String? portId;
   final String portName;
   final int gold;
   final String captainName; // 预留，目前使用固定名字
@@ -17,6 +18,7 @@ class SaveSlot {
   SaveSlot({
     required this.id,
     required this.timestamp,
+    this.portId,
     required this.portName,
     required this.gold,
     this.captainName = '船长',
@@ -33,12 +35,12 @@ class SaveSlot {
   }
 
   bool get isAutoSave => id == 0;
-  String get displayName => isAutoSave ? '自动存档' : '存档 $id';
 
   Map<String, dynamic> toJson() {
     return {
       'id': id,
       'timestamp': timestamp,
+      'portId': portId,
       'portName': portName,
       'gold': gold,
       'captainName': captainName,
@@ -50,6 +52,7 @@ class SaveSlot {
     return SaveSlot(
       id: json['id'] as int,
       timestamp: json['timestamp'] as String,
+      portId: json['portId'] as String?,
       portName: json['portName'] as String,
       gold: json['gold'] as int,
       captainName: json['captainName'] as String? ?? '船长',
@@ -100,6 +103,7 @@ class SaveManager {
       final meta = SaveSlot(
         id: slotId,
         timestamp: DateTime.now().toIso8601String(),
+        portId: state.currentPort?.id,
         portName: state.currentPort?.name ?? '海上',
         gold: state.gold,
         day: state.dayNightSystem.currentDay,
@@ -225,4 +229,3 @@ class SaveManager {
     }
   }
 }
-

@@ -90,6 +90,31 @@ class QuestSystem extends ChangeNotifier {
     });
   }
 
+  /// 语言切换后刷新任务文案，保持任务进度不变
+  void reloadForLocale() {
+    final activeId = _activeQuest?.id;
+    _allQuests
+      ..clear()
+      ..addAll(GameConfigLoader().questsList);
+
+    _activeQuest = null;
+    if (activeId != null) {
+      try {
+        _activeQuest = _allQuests.firstWhere((q) => q.id == activeId);
+      } catch (_) {
+        _activeQuest = null;
+      }
+    }
+
+    if (_activeQuest == null) {
+      _checkTriggers();
+    }
+    _updateGamePauseState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      notifyListeners();
+    });
+  }
+
   /// 更新游戏暂停状态：当有活跃任务且包含文本时，暂停游戏时间
   void _updateGamePauseState() {
     if (_gameState == null) return;

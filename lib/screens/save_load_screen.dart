@@ -3,6 +3,8 @@ import '../systems/save_system.dart';
 import '../game/game_state.dart';
 import '../game/paper_button.dart';
 import '../game/paper_dialog.dart';
+import '../utils/game_config_loader.dart';
+import '../l10n/l10n.dart';
 import 'game_screen.dart';
 
 enum SaveLoadMode {
@@ -52,7 +54,7 @@ class _SaveLoadScreenState extends State<SaveLoadScreen> {
       });
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('加载存档列表失败: $e')),
+          SnackBar(content: Text(context.l10n.saveListLoadFailed(e.toString()))),
         );
       }
     }
@@ -64,7 +66,7 @@ class _SaveLoadScreenState extends State<SaveLoadScreen> {
     // Auto save slot (0) cannot be manually saved to
     if (slotId == 0) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('自动存档位无法手动覆盖')),
+        SnackBar(content: Text(context.l10n.autoSlotManualBlocked)),
       );
       return;
     }
@@ -74,13 +76,13 @@ class _SaveLoadScreenState extends State<SaveLoadScreen> {
       await _loadSlots(); // Reload to show updated info
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('保存成功')),
+          SnackBar(content: Text(context.l10n.saveSuccess)),
         );
       }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('保存失败: $e')),
+          SnackBar(content: Text(context.l10n.saveFailed(e.toString()))),
         );
       }
     }
@@ -106,7 +108,7 @@ class _SaveLoadScreenState extends State<SaveLoadScreen> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('读取存档失败: $e')),
+          SnackBar(content: Text(context.l10n.loadFailed(e.toString()))),
         );
       }
     }
@@ -122,23 +124,23 @@ class _SaveLoadScreenState extends State<SaveLoadScreen> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Text('删除存档', style: TextStyle(color: Color(0xFF4E342E), fontSize: 20, fontWeight: FontWeight.bold)),
+            Text(context.l10n.deleteSaveTitle, style: const TextStyle(color: Color(0xFF4E342E), fontSize: 20, fontWeight: FontWeight.bold)),
             const SizedBox(height: 20),
-            const Text('确定要删除这个存档吗？此操作无法撤销。', 
-              style: TextStyle(color: Color(0xFF5D4037)), textAlign: TextAlign.center),
+            Text(context.l10n.deleteSaveConfirm,
+              style: const TextStyle(color: Color(0xFF5D4037)), textAlign: TextAlign.center),
             const Spacer(),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
                 PaperButton(
-                  label: '取消',
+                  label: context.l10n.cancel,
                   onPressed: () => Navigator.of(context).pop(false),
                   style: PaperButtonStyle.brown,
                   width: 80,
                   height: 32,
                 ),
                 PaperButton(
-                  label: '删除',
+                  label: context.l10n.delete,
                   onPressed: () => Navigator.of(context).pop(true),
                   style: PaperButtonStyle.red,
                   width: 80,
@@ -159,9 +161,10 @@ class _SaveLoadScreenState extends State<SaveLoadScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     return Scaffold(
       appBar: AppBar(
-        title: Text(widget.mode == SaveLoadMode.save ? '保存游戏' : '读取游戏'),
+        title: Text(widget.mode == SaveLoadMode.save ? l10n.saveGame : l10n.loadGame),
         backgroundColor: Colors.blue[900],
         foregroundColor: Colors.white,
       ),
@@ -210,7 +213,7 @@ class _SaveLoadScreenState extends State<SaveLoadScreen> {
                   orElse: () => SaveSlot(
                     id: slotId, 
                     timestamp: '', 
-                    portName: '空槽位', 
+                    portName: l10n.emptySlot,
                     gold: 0,
                     day: 1,
                   ),
@@ -245,7 +248,9 @@ class _SaveLoadScreenState extends State<SaveLoadScreen> {
                       ),
                     ),
                     title: Text(
-                      isEmpty ? '空槽位' : slotData.displayName,
+                      isEmpty
+                          ? l10n.emptySlot
+                          : (isAutoSave ? l10n.autoSaveSlot : l10n.saveSlotLabel(slotId.toString())),
                       style: const TextStyle(fontWeight: FontWeight.bold),
                     ),
                     subtitle: isEmpty 
@@ -254,9 +259,9 @@ class _SaveLoadScreenState extends State<SaveLoadScreen> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             const SizedBox(height: 4),
-                            Text('位置: ${slotData.portName}'),
-                            Text('时间: ${slotData.formattedTime}'),
-                            Text('金币: ${slotData.gold} | 天数: ${slotData.day}'),
+                            Text(l10n.locationLabel(_resolveLocalizedPortName(slotData))),
+                            Text(l10n.timeLabel(slotData.formattedTime)),
+                            Text(l10n.goldDayLabel(slotData.gold.toString(), slotData.day.toString())),
                           ],
                         ),
                     trailing: Row(
@@ -277,7 +282,7 @@ class _SaveLoadScreenState extends State<SaveLoadScreen> {
                               if (isAutoSave) {
                                 // Cannot manually save to auto slot
                                 ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(content: Text('自动存档位无法手动覆盖')),
+                                  SnackBar(content: Text(l10n.autoSlotManualBlocked)),
                                 );
                               } else {
                                 _handleSave(slotId);
@@ -285,7 +290,7 @@ class _SaveLoadScreenState extends State<SaveLoadScreen> {
                             } else {
                               if (isEmpty) {
                                 ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(content: Text('该槽位为空')),
+                                  SnackBar(content: Text(l10n.slotEmpty)),
                                 );
                               } else {
                                 _handleLoad(slotId);
@@ -293,8 +298,8 @@ class _SaveLoadScreenState extends State<SaveLoadScreen> {
                             }
                           },
                           label: widget.mode == SaveLoadMode.save 
-                                ? (isEmpty ? '保存' : '覆盖') 
-                                : '读取',
+                                ? (isEmpty ? l10n.save : l10n.overwrite)
+                                : l10n.load,
                           style: widget.mode == SaveLoadMode.save 
                                 ? (isAutoSave ? PaperButtonStyle.brown : PaperButtonStyle.blue)
                                 : (isEmpty ? PaperButtonStyle.brown : PaperButtonStyle.green),
@@ -311,5 +316,15 @@ class _SaveLoadScreenState extends State<SaveLoadScreen> {
       ),
     );
   }
-}
 
+  String _resolveLocalizedPortName(SaveSlot slot) {
+    final portId = slot.portId;
+    if (portId != null) {
+      try {
+        final port = GameConfigLoader().portsList.firstWhere((p) => p.id == portId);
+        return port.name;
+      } catch (_) {}
+    }
+    return slot.portName;
+  }
+}

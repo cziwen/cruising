@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../systems/quest_system.dart';
 import '../../models/quest.dart';
+import '../../l10n/l10n.dart';
 
 /// 任务/引导层 - 显示任务提示和高亮指引
 class QuestOverlay extends StatelessWidget {
@@ -157,8 +158,8 @@ class QuestOverlay extends StatelessWidget {
                 ),
                 if (quest.completeWhen == 'tap_anywhere') ...[
                   const SizedBox(height: 12),
-                  const Text(
-                    '-- 点击任意处继续 --',
+                  Text(
+                    context.l10n.tapAnywhereToContinue,
                     style: TextStyle(
                       color: Color(0xFF8D6E63),
                       fontSize: 14,

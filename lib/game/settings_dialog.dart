@@ -1,11 +1,14 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:window_manager/window_manager.dart';
 import 'game_state.dart';
 import '../screens/save_load_screen.dart';
 import '../screens/game_screen.dart';
 import 'paper_dialog.dart';
 import 'paper_button.dart';
+import '../l10n/l10n.dart';
+import '../systems/app_settings_controller.dart';
 import '../systems/music_system.dart';
 import '../systems/window_controller.dart';
 import '../systems/quest_system.dart';
@@ -71,6 +74,8 @@ class _SettingsDialogState extends State<SettingsDialog> {
   @override
   Widget build(BuildContext context) {
     final bool isInGame = widget.gameState != null;
+    final l10n = context.l10n;
+    final appSettings = context.watch<AppSettingsController>();
 
     return PaperDialog(
       assetPath: 'assets/paper_ui/Sprites/Book_Desk/4.png',
@@ -83,19 +88,13 @@ class _SettingsDialogState extends State<SettingsDialog> {
           // 标题栏
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                const Text(
-                  '设置',
-                  style: TextStyle(
-                    fontSize: 22,
-                    fontWeight: FontWeight.bold,
-                    color: Color(0xFF4E342E),
-                  ),
-                ),
-                // 移除右上角的 IconButton
-              ],
+            child: Text(
+              l10n.settings,
+              style: const TextStyle(
+                fontSize: 22,
+                fontWeight: FontWeight.bold,
+                color: Color(0xFF4E342E),
+              ),
             ),
           ),
           const Divider(color: Color(0xFF8D6E63), height: 1),
@@ -106,11 +105,53 @@ class _SettingsDialogState extends State<SettingsDialog> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
                     child: Text(
-                      '声音设置',
-                      style: TextStyle(
+                      l10n.languageSettings,
+                      style: const TextStyle(
+                        fontWeight: FontWeight.bold,
+                        color: Color(0xFF4E342E),
+                      ),
+                    ),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          l10n.language,
+                          style: const TextStyle(color: Color(0xFF4E342E)),
+                        ),
+                        DropdownButton<String>(
+                          value: appSettings.locale.languageCode,
+                          dropdownColor: const Color(0xFFEFEBE9),
+                          style: const TextStyle(color: Color(0xFF4E342E)),
+                          items: [
+                            DropdownMenuItem<String>(
+                              value: 'en',
+                              child: Text(l10n.languageEnglish),
+                            ),
+                            DropdownMenuItem<String>(
+                              value: 'zh',
+                              child: Text(l10n.languageChinese),
+                            ),
+                          ],
+                          onChanged: (value) async {
+                            if (value == null) return;
+                            await appSettings.setLocale(Locale(value));
+                          },
+                        ),
+                      ],
+                    ),
+                  ),
+                  const Divider(color: Color(0xFF8D6E63)),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+                    child: Text(
+                      l10n.soundSettings,
+                      style: const TextStyle(
                         fontWeight: FontWeight.bold,
                         color: Color(0xFF4E342E),
                       ),
@@ -120,7 +161,7 @@ class _SettingsDialogState extends State<SettingsDialog> {
                     padding: const EdgeInsets.symmetric(horizontal: 16.0),
                     child: Row(
                       children: [
-                        const Text('音乐音量', style: TextStyle(color: Color(0xFF4E342E))),
+                        Text(l10n.musicVolume, style: const TextStyle(color: Color(0xFF4E342E))),
                         Expanded(
                           child: Slider(
                             value: MusicSystem().musicVolume,
@@ -141,7 +182,7 @@ class _SettingsDialogState extends State<SettingsDialog> {
                     padding: const EdgeInsets.symmetric(horizontal: 16.0),
                     child: Row(
                       children: [
-                        const Text('音效音量', style: TextStyle(color: Color(0xFF4E342E))),
+                        Text(l10n.sfxVolume, style: const TextStyle(color: Color(0xFF4E342E))),
                         Expanded(
                           child: Slider(
                             value: MusicSystem().sfxVolume,
@@ -164,24 +205,24 @@ class _SettingsDialogState extends State<SettingsDialog> {
                       defaultTargetPlatform == TargetPlatform.linux || 
                       defaultTargetPlatform == TargetPlatform.macOS)) ...[
                     const Divider(color: Color(0xFF8D6E63)),
-                    const Padding(
-                      padding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
                       child: Text(
-                        '显示设置',
-                        style: TextStyle(
+                        l10n.displaySettings,
+                        style: const TextStyle(
                           fontWeight: FontWeight.bold,
                           color: Color(0xFF4E342E),
                         ),
                       ),
                     ),
-                    _buildSwitchTile('全屏模式', _isFullScreen, (value) async {
+                    _buildSwitchTile(l10n.fullscreenMode, _isFullScreen, (value) async {
                       await windowManager.setFullScreen(value);
                       setState(() {
                         _isFullScreen = value;
                       });
                     }),
                     if (defaultTargetPlatform == TargetPlatform.windows)
-                      _buildSwitchTile('动态壁纸模式', _isWallpaperMode, (value) async {
+                      _buildSwitchTile(l10n.wallpaperMode, _isWallpaperMode, (value) async {
                         if (value) {
                           WindowController.embedInDesktop();
                           await windowManager.setSkipTaskbar(true);
@@ -200,8 +241,8 @@ class _SettingsDialogState extends State<SettingsDialog> {
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            const Text(
-                              '窗口分辨率',
+                            Text(
+                              l10n.windowResolution,
                               style: TextStyle(color: Color(0xFF5D4037)),
                             ),
                             DropdownButton<Size>(
@@ -237,7 +278,7 @@ class _SettingsDialogState extends State<SettingsDialog> {
                   if (isInGame) ...[
                     const Divider(color: Color(0xFF8D6E63)),
                     // 游戏控制选项
-                    _buildActionTile(Icons.save, '保存游戏', () {
+                    _buildActionTile(Icons.save, l10n.saveGame, () {
                       Navigator.of(context).pop();
                       Navigator.of(context).push(
                         MaterialPageRoute(
@@ -248,7 +289,7 @@ class _SettingsDialogState extends State<SettingsDialog> {
                         ),
                       );
                     }),
-                    _buildActionTile(Icons.file_upload, '读取游戏', () {
+                    _buildActionTile(Icons.file_upload, l10n.loadGame, () {
                       Navigator.of(context).pop();
                       Navigator.of(context).push(
                         MaterialPageRoute(
@@ -258,7 +299,7 @@ class _SettingsDialogState extends State<SettingsDialog> {
                         ),
                       );
                     }),
-                    _buildActionTile(Icons.home, '返回主菜单', () {
+                    _buildActionTile(Icons.home, l10n.returnMainMenu, () {
                       Navigator.of(context).pop();
                       _showExitConfirmation(context);
                     }),
@@ -276,7 +317,7 @@ class _SettingsDialogState extends State<SettingsDialog> {
               mainAxisAlignment: MainAxisAlignment.end,
               children: [
                 PaperButton(
-                  label: '关闭',
+                  label: l10n.close,
                   onPressed: () => Navigator.of(context).pop(),
                   style: PaperButtonStyle.brown,
                   width: 80,
@@ -318,22 +359,22 @@ class _SettingsDialogState extends State<SettingsDialog> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Text('返回主菜单', style: TextStyle(color: Color(0xFF4E342E), fontSize: 20, fontWeight: FontWeight.bold)),
+            Text(context.l10n.returnMainMenu, style: const TextStyle(color: Color(0xFF4E342E), fontSize: 20, fontWeight: FontWeight.bold)),
             const SizedBox(height: 20),
-            const Text('未保存的进度将会丢失，确定要返回主菜单吗？', style: TextStyle(color: Color(0xFF5D4037)), textAlign: TextAlign.center),
+            Text(context.l10n.returnMainMenuConfirm, style: const TextStyle(color: Color(0xFF5D4037)), textAlign: TextAlign.center),
             const Spacer(),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
                 PaperButton(
-                  label: '取消',
+                  label: context.l10n.cancel,
                   onPressed: () => Navigator.of(context).pop(),
                   style: PaperButtonStyle.brown,
                   width: 80,
                   height: 32,
                 ),
                 PaperButton(
-                  label: '确定',
+                  label: context.l10n.confirm,
                   onPressed: () {
                     if (widget.onReturnToMainMenu != null) {
                       widget.onReturnToMainMenu!();

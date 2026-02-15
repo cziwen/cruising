@@ -20,14 +20,13 @@ import '../utils/game_config_loader.dart';
 
 /// 天气状况枚举
 enum WeatherCondition {
-  calm('平静', 0), // 无影响
-  lightWind('小风', 1), // 轻微加速
-  storm('风暴', -2); // 减速
+  calm(0), // 无影响
+  lightWind(1), // 轻微加速
+  storm(-2); // 减速
 
-  final String displayName;
   final int speedModifier;
 
-  const WeatherCondition(this.displayName, this.speedModifier);
+  const WeatherCondition(this.speedModifier);
 }
 
 /// 游戏状态管理
@@ -845,9 +844,9 @@ class GameState extends ChangeNotifier {
   }
 
   /// 刷新酒馆可招募船员
-  void refreshTavernCrew() {
+  void refreshTavernCrew({bool force = false}) {
     final currentDay = _dayNightSystem.currentDay;
-    if (_lastTavernRefreshDay == currentDay) return;
+    if (!force && _lastTavernRefreshDay == currentDay) return;
     
     _lastTavernRefreshDay = currentDay;
     final config = GameConfigLoader().crewConfig;
@@ -902,6 +901,43 @@ class GameState extends ChangeNotifier {
         assignedRole: CrewRole.unassigned,
       ));
     }
+    notifyListeners();
+  }
+
+  /// 重新应用当前语言包中的静态文案（港口名、描述等），保持运行时状态不变。
+  void relocalizeFromConfig() {
+    final localizedPorts = {
+      for (final p in GameConfigLoader().portsList) p.id: p,
+    };
+
+    for (int i = 0; i < _ports.length; i++) {
+      final existing = _ports[i];
+      final localized = localizedPorts[existing.id];
+      if (localized == null) continue;
+
+      _ports[i] = existing.copyWith(
+        name: localized.name,
+        description: localized.description,
+        backgroundImage: localized.backgroundImage,
+      );
+    }
+
+    if (_currentPort != null) {
+      try {
+        _currentPort = _ports.firstWhere((p) => p.id == _currentPort!.id);
+      } catch (_) {}
+    }
+    if (_previousPort != null) {
+      try {
+        _previousPort = _ports.firstWhere((p) => p.id == _previousPort!.id);
+      } catch (_) {}
+    }
+    if (_destinationPort != null) {
+      try {
+        _destinationPort = _ports.firstWhere((p) => p.id == _destinationPort!.id);
+      } catch (_) {}
+    }
+
     notifyListeners();
   }
 

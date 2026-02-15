@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../l10n/l10n.dart';
 
 /// 加载回调函数类型，接收 BuildContext 并返回 Future
 typedef LoadCallback = Future<void> Function(BuildContext context);
@@ -111,7 +112,7 @@ class _LoadingScreenState extends State<LoadingScreen> {
                 ),
                 const SizedBox(height: 24),
                 Text(
-                  'Loading...',
+                  context.l10n.loading,
                   style: TextStyle(
                     fontSize: 24,
                     fontWeight: FontWeight.bold,
@@ -133,4 +134,3 @@ class _LoadingScreenState extends State<LoadingScreen> {
     );
   }
 }
-
