@@ -1,0 +1,87 @@
+[
+  {
+    "id": "sea_storm",
+    "title": "Storm Coming!",
+    "description": "The sky changes suddenly, and strong winds roll up giant waves. A pitch-black cumulonimbus cloud is rapidly enveloping this sea area. The ship is tossing violently in the waves, you must make a decision immediately.",
+    "type": "decision",
+    "probability": 0.08,
+    "cooldownHours": 12,
+    "minProgress": 0.2,
+    "maxProgress": 0.8,
+    "assetPath": "assets/images/events/sea_storm.png",
+    "choices": [
+      {
+        "id": "storm_full_speed",
+        "label": "Full speed ahead: Maintain speed and force through the storm.",
+        "effects": [
+          { "type": "durabilityChange", "value": [-30, -60] },
+          { "type": "progressChange", "value": 0.1 }
+        ]
+      },
+      {
+        "id": "storm_slow_down",
+        "label": "Slow down: Reduce speed to 50% and find a safe passage.",
+        "effects": [
+          { "type": "durabilityChange", "value": [-5, -10] },
+          { "type": "speedMultiplier", "value": 0.5, "durationHours": 12 }
+        ]
+      },
+      {
+        "id": "storm_nearest_port",
+        "label": "Find haven: Immediately turn to the nearest known port.",
+        "effects": [
+          { "type": "changeDestination", "value": "nearest" }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "sea_distress_call",
+    "title": "Distress Signal",
+    "description": "There is some debris floating on the sea in the distance, and several survivors are waving desperately to you for help. They look exhausted.",
+    "type": "decision",
+    "probability": 0.07,
+    "cooldownHours": 48,
+    "assetPath": "assets/images/events/distress_call.png",
+    "choices": [
+      {
+        "id": "distress_rescue",
+        "label": "Immediate rescue: Lower the lifeboat and take in survivors.",
+        "effects": [
+          { "type": "timeSkip", "value": 2 },
+          { "type": "goldChange", "value": [200, 500] }
+        ]
+      },
+      {
+        "id": "distress_salvage",
+        "label": "Salvage debris: Only collect floating supplies, ignore calls for help.",
+        "effects": [
+          { "type": "addRandomGoods", "value": [5, 15] }
+        ]
+      },
+      {
+        "id": "distress_ignore",
+        "label": "Cold refusal: Maintain course, don't mind others' business.",
+        "effects": []
+      }
+    ]
+  },
+  {
+    "id": "sea_tailwind",
+    "title": "Tailwind",
+    "description": "A strong and steady trade wind blows from the stern, filling the sails. This is a great opportunity to speed up!",
+    "type": "notification",
+    "probability": 0.12,
+    "cooldownHours": 8,
+    "assetPath": "assets/images/events/tailwind.png",
+    "choices": [
+      {
+        "id": "tailwind_ok",
+        "label": "Great!",
+        "effects": [
+          { "type": "speedMultiplier", "value": 1.5, "durationHours": 12 }
+        ]
+      }
+    ]
+  }
+]

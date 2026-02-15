@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../l10n/app_localizations.dart';
 import '../models/crew_member.dart';
 import 'game_state.dart';
 import 'paper_dialog.dart';
@@ -36,6 +37,7 @@ class _CrewManagementDialogState extends State<CrewManagementDialog> {
   @override
   Widget build(BuildContext context) {
     final crewManager = _gameState.crewManager;
+    final l10n = AppLocalizations.of(context)!;
     // 技能值直接对应效果值
     final sailingBonusKnots = crewManager.calculateSailingBonus(); // 直接返回节数
     final autoRepair = crewManager.calculateAutoRepair(); // 直接返回每秒修复的耐久数
@@ -55,9 +57,9 @@ class _CrewManagementDialogState extends State<CrewManagementDialog> {
               children: [
                 const Icon(Icons.people, color: Color(0xFF4E342E), size: 24),
                 const SizedBox(width: 10),
-                const Text(
-                  '船员管理',
-                  style: TextStyle(
+                Text(
+                  l10n.crewManagement,
+                  style: const TextStyle(
                     color: Color(0xFF4E342E),
                     fontSize: 22,
                     fontWeight: FontWeight.bold,
@@ -115,19 +117,19 @@ class _CrewManagementDialogState extends State<CrewManagementDialog> {
                   child: Column(
                     children: [
                       _buildBonusRow(
-                        '航速加成',
+                        l10n.sailingBonus,
                         '+${sailingBonusKnots.toStringAsFixed(1)}节',
                         Colors.blue[800]!,
                       ),
                       const SizedBox(height: 6),
                       _buildBonusRow(
-                        '自动修理',
+                        l10n.autoRepair,
                         '${autoRepair.toStringAsFixed(1)} / 秒',
                         Colors.orange[900]!,
                       ),
                       const SizedBox(height: 6),
                       _buildBonusRow(
-                        '开炮速度',
+                        l10n.fireRate,
                         '${fireRateBonus.toStringAsFixed(1)} 炮/秒',
                         Colors.red[900]!,
                       ),
@@ -143,12 +145,12 @@ class _CrewManagementDialogState extends State<CrewManagementDialog> {
           // 船员列表
           Flexible(
             child: crewManager.crewMembers.isEmpty
-                ? const Padding(
-                    padding: EdgeInsets.all(32),
+                ? Padding(
+                    padding: const EdgeInsets.all(32),
                     child: Text(
-                      '暂无船员\n请在人才市场招募',
+                      l10n.noCrewHint,
                       textAlign: TextAlign.center,
-                      style: TextStyle(
+                      style: const TextStyle(
                         color: Color(0xFF5D4037),
                         fontSize: 16,
                       ),
@@ -180,7 +182,7 @@ class _CrewManagementDialogState extends State<CrewManagementDialog> {
                         ),
                         itemCount: crewManager.crewMembers.length,
                         itemBuilder: (context, index) {
-                          return _buildCrewCard(crewManager.crewMembers[index]);
+                          return _buildCrewCard(crewManager.crewMembers[index], l10n);
                         },
                       ),
                     ),
@@ -246,7 +248,7 @@ class _CrewManagementDialogState extends State<CrewManagementDialog> {
   }
 
   /// 构建船员卡片
-  Widget _buildCrewCard(CrewMember member) {
+  Widget _buildCrewCard(CrewMember member, AppLocalizations l10n) {
     return Card(
       color: const Color(0xFFD7CCC8).withValues(alpha: 0.3),
       elevation: 0,
@@ -293,7 +295,7 @@ class _CrewManagementDialogState extends State<CrewManagementDialog> {
                                   border: Border.all(color: Colors.red[800]!),
                                 ),
                                 child: Text(
-                                  '欠薪中',
+                                  l10n.unpaid,
                                   style: TextStyle(
                                     color: Colors.red[900],
                                     fontSize: 10,
@@ -305,7 +307,7 @@ class _CrewManagementDialogState extends State<CrewManagementDialog> {
                         ),
                       ),
                       Text(
-                        '工资：${member.salary} / 天',
+                        l10n.salaryPerDay(member.salary),
                         style: const TextStyle(
                           color: Color(0xFF795548),
                           fontSize: 14,
@@ -335,7 +337,7 @@ class _CrewManagementDialogState extends State<CrewManagementDialog> {
                 const SizedBox(height: 12),
                 PaperButton(
                   icon: const Icon(Icons.person_remove, color: Color(0xFF4E342E), size: 20),
-                  onPressed: () => _showDismissConfirmation(context, member),
+                  onPressed: () => _showDismissConfirmation(context, member, l10n),
                   style: PaperButtonStyle.red,
                   width: 40,
                   height: 40,
@@ -349,7 +351,7 @@ class _CrewManagementDialogState extends State<CrewManagementDialog> {
   }
 
   /// 显示解雇确认对话框
-  void _showDismissConfirmation(BuildContext context, CrewMember member) {
+  void _showDismissConfirmation(BuildContext context, CrewMember member, AppLocalizations l10n) {
     showDialog(
       context: context,
       builder: (context) => PaperDialog(
@@ -359,23 +361,23 @@ class _CrewManagementDialogState extends State<CrewManagementDialog> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Text('解雇船员', style: TextStyle(color: Color(0xFF4E342E), fontSize: 20, fontWeight: FontWeight.bold)),
+            Text(l10n.dismissCrew, style: const TextStyle(color: Color(0xFF4E342E), fontSize: 20, fontWeight: FontWeight.bold)),
             const SizedBox(height: 20),
-            Text('确定要解雇 ${member.name} 吗？\n解雇后无法撤销。', 
+            Text(l10n.dismissConfirm(member.name), 
               style: const TextStyle(color: Color(0xFF5D4037)), textAlign: TextAlign.center),
             const Spacer(),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
                 PaperButton(
-                  label: '取消',
+                  label: l10n.cancel,
                   onPressed: () => Navigator.of(context).pop(),
                   style: PaperButtonStyle.brown,
                   width: 80,
                   height: 32,
                 ),
                 PaperButton(
-                  label: '确定',
+                  label: l10n.ok,
                   onPressed: () {
                     _gameState.dismissCrewMember(member);
                     Navigator.of(context).pop();

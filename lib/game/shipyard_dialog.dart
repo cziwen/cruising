@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../l10n/app_localizations.dart';
 import 'game_state.dart';
 import '../models/ship.dart';
 import '../systems/ship_system.dart';
@@ -60,7 +61,7 @@ class _ShipyardDialogState extends State<ShipyardDialog>
     super.dispose();
   }
 
-  void _handleUpgrade(UpgradeType type) {
+  void _handleUpgrade(UpgradeType type, AppLocalizations l10n) {
     final result = _shipSystem.performUpgrade(widget.gameState, type);
     
     if (result != null) {
@@ -88,6 +89,7 @@ class _ShipyardDialogState extends State<ShipyardDialog>
   @override
   Widget build(BuildContext context) {
     final ship = widget.gameState.ship;
+    final l10n = AppLocalizations.of(context)!;
 
     return PaperDialog(
       questId: 'ui.shipyardPanel',
@@ -97,7 +99,7 @@ class _ShipyardDialogState extends State<ShipyardDialog>
       child: Column(
         children: [
           // 标题栏
-          _buildHeader(context),
+          _buildHeader(context, l10n),
           
           // 主要内容区域
           Expanded(
@@ -108,7 +110,7 @@ class _ShipyardDialogState extends State<ShipyardDialog>
                   // 左侧：船只属性
                   Expanded(
                     flex: 3,
-                    child: _buildShipAttributes(ship),
+                    child: _buildShipAttributes(ship, l10n),
                   ),
                   
                   // 中央：船只展示
@@ -148,11 +150,11 @@ class _ShipyardDialogState extends State<ShipyardDialog>
                 Expanded(
                   child: Row(
                     children: [
-                      Expanded(child: _buildUpgradeCard(ship, UpgradeType.cargo)),
+                      Expanded(child: _buildUpgradeCard(ship, UpgradeType.cargo, l10n)),
                       const SizedBox(width: 12),
-                      Expanded(child: _buildUpgradeCard(ship, UpgradeType.hull)),
+                      Expanded(child: _buildUpgradeCard(ship, UpgradeType.hull, l10n)),
                       const SizedBox(width: 12),
-                      Expanded(child: _buildUpgradeCard(ship, UpgradeType.crew)),
+                      Expanded(child: _buildUpgradeCard(ship, UpgradeType.crew, l10n)),
                     ],
                   ),
                 ),
@@ -164,16 +166,16 @@ class _ShipyardDialogState extends State<ShipyardDialog>
     );
   }
 
-  Widget _buildHeader(BuildContext context) {
+  Widget _buildHeader(BuildContext context, AppLocalizations l10n) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       child: Row(
         children: [
           const Icon(Icons.anchor, color: Color(0xFF4E342E), size: 24),
           const SizedBox(width: 10),
-          const Text(
-            '船厂',
-            style: TextStyle(
+          Text(
+            l10n.shipyard,
+            style: const TextStyle(
               color: Color(0xFF4E342E),
               fontSize: 22,
               fontWeight: FontWeight.bold,
@@ -216,7 +218,7 @@ class _ShipyardDialogState extends State<ShipyardDialog>
     );
   }
 
-  Widget _buildShipAttributes(Ship ship) {
+  Widget _buildShipAttributes(Ship ship, AppLocalizations l10n) {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -227,9 +229,9 @@ class _ShipyardDialogState extends State<ShipyardDialog>
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
-            '船只属性',
-            style: TextStyle(
+          Text(
+            l10n.shipAttributes,
+            style: const TextStyle(
               color: Color(0xFF4E342E),
               fontSize: 16,
               fontWeight: FontWeight.bold,
@@ -237,35 +239,35 @@ class _ShipyardDialogState extends State<ShipyardDialog>
           ),
           const SizedBox(height: 20),
           _buildAttributeRow(
-            '船名',
+            l10n.shipName,
             ship.name,
             Icons.directions_boat,
             Colors.blue[800]!,
           ),
           const SizedBox(height: 16),
           _buildAttributeRow(
-            '船只等级',
+            l10n.shipLevel,
             'Lv. ${_shipSystem.getShipLevel(ship)}',
             Icons.trending_up,
             Colors.purple[800]!,
           ),
           const SizedBox(height: 16),
           _buildAttributeRow(
-            '载货量',
+            l10n.cargoCapacity,
             '${widget.gameState.usedCargoWeight.toStringAsFixed(1)} / ${ship.cargoCapacity} kg',
             Icons.inventory_2,
             Colors.orange[900]!,
           ),
           const SizedBox(height: 16),
           _buildAttributeRow(
-            '耐久度',
+            l10n.durability,
             '${ship.durability} / ${ship.maxDurability}',
             Icons.shield,
             Colors.red[900]!,
           ),
           const SizedBox(height: 16),
           _buildAttributeRow(
-            '船员容量',
+            l10n.crewCapacity,
             '${widget.gameState.crewManager.crewMembers.length} / ${ship.maxCrewMemberCount}',
             Icons.people,
             Colors.green[800]!,
@@ -335,7 +337,7 @@ class _ShipyardDialogState extends State<ShipyardDialog>
     );
   }
 
-  Widget _buildUpgradeCard(Ship ship, UpgradeType type) {
+  Widget _buildUpgradeCard(Ship ship, UpgradeType type, AppLocalizations l10n) {
     final name = _shipSystem.getUpgradeName(type);
     final description = _shipSystem.getUpgradeDescription(type);
     final cost = _shipSystem.getUpgradeCost(ship, type);
@@ -416,7 +418,7 @@ class _ShipyardDialogState extends State<ShipyardDialog>
               ),
             ),
           Text(
-            level >= _shipSystem.getMaxLevel() ? '已达最高等级' : valueChange,
+            level >= _shipSystem.getMaxLevel() ? l10n.maxLevelReached : valueChange,
             style: TextStyle(
               color: level >= _shipSystem.getMaxLevel() ? Colors.orange[900] : Colors.green[800],
               fontWeight: FontWeight.bold,
@@ -425,8 +427,8 @@ class _ShipyardDialogState extends State<ShipyardDialog>
           ),
           const SizedBox(height: 4),
           PaperButton(
-            onPressed: canUpgrade ? () => _handleUpgrade(type) : null,
-            label: level < _shipSystem.getMaxLevel() ? '💰$cost 升级' : '已满级',
+            onPressed: canUpgrade ? () => _handleUpgrade(type, l10n) : null,
+            label: level < _shipSystem.getMaxLevel() ? l10n.upgradeCost(cost) : l10n.maxLevel,
             style: PaperButtonStyle.brown,
             width: 100,
             height: 40,

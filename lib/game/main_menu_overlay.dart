@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
+import '../l10n/app_localizations.dart';
 import '../utils/version_constants.dart';
 import 'paper_button.dart';
 
@@ -23,6 +24,7 @@ class MainMenuOverlay extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Stack(
       children: [
         Center(
@@ -30,9 +32,9 @@ class MainMenuOverlay extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               // 标题
-              const Text(
-                'Cruising',
-                style: TextStyle(
+              Text(
+                l10n.appTitle,
+                style: const TextStyle(
                   fontSize: 72,
                   fontWeight: FontWeight.bold,
                   color: Colors.white,
@@ -50,7 +52,7 @@ class MainMenuOverlay extends StatelessWidget {
               // 菜单按钮
               _buildMenuButton(
                 context,
-                label: '新游戏',
+                label: l10n.newGame,
                 onPressed: onNewGame,
               ),
               const SizedBox(height: 20),
@@ -58,7 +60,7 @@ class MainMenuOverlay extends StatelessWidget {
               if (canContinue) ...[
                 _buildMenuButton(
                   context,
-                  label: '继续游戏',
+                  label: l10n.continueGame,
                   onPressed: onContinueGame,
                   isSecondary: true,
                 ),
@@ -67,7 +69,7 @@ class MainMenuOverlay extends StatelessWidget {
               
               _buildMenuButton(
                 context,
-                label: '读取存档',
+                label: l10n.loadGame,
                 onPressed: onLoadGame,
                 isSecondary: true,
               ),
@@ -75,7 +77,7 @@ class MainMenuOverlay extends StatelessWidget {
               
               _buildMenuButton(
                 context,
-                label: '设置',
+                label: l10n.settings,
                 onPressed: onSettings,
               ),
               const SizedBox(height: 20),
@@ -84,7 +86,7 @@ class MainMenuOverlay extends StatelessWidget {
               if (!kIsWeb) 
                 _buildMenuButton(
                   context,
-                  label: '退出',
+                  label: l10n.exitGame,
                   onPressed: onExit,
                 ),
             ],

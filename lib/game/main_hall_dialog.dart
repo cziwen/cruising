@@ -1,5 +1,6 @@
 import 'dart:math';
 import 'package:flutter/material.dart';
+import '../l10n/app_localizations.dart';
 import 'game_state.dart';
 import '../models/goods.dart';
 import '../utils/game_config_loader.dart';
@@ -75,6 +76,7 @@ class _MainHallDialogState extends State<MainHallDialog> with SingleTickerProvid
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return PaperDialog(
       questId: 'ui.hallPanel',
       assetPath: 'assets/paper_ui/Sprites/Book_Desk/6.png',
@@ -83,15 +85,15 @@ class _MainHallDialogState extends State<MainHallDialog> with SingleTickerProvid
       child: Column(
         children: [
           // 标题栏与页签
-          _buildHeader(),
+          _buildHeader(l10n),
           
           // 内容区域
           Expanded(
             child: TabBarView(
               controller: _tabController,
               children: [
-                _buildUpgradeTab(),
-                _buildWarehouseTab(),
+                _buildUpgradeTab(l10n),
+                _buildWarehouseTab(l10n),
               ],
             ),
           ),
@@ -100,7 +102,7 @@ class _MainHallDialogState extends State<MainHallDialog> with SingleTickerProvid
     );
   }
 
-  Widget _buildHeader() {
+  Widget _buildHeader(AppLocalizations l10n) {
     return Column(
       children: [
         Padding(
@@ -110,7 +112,7 @@ class _MainHallDialogState extends State<MainHallDialog> with SingleTickerProvid
               const Icon(Icons.home, color: Color(0xFF4E342E), size: 24),
               const SizedBox(width: 10),
               Text(
-                '大厅 Main Hall - Lv. ${widget.gameState.homeIsland.level}',
+                l10n.mainHallTitle(widget.gameState.homeIsland.level),
                 style: const TextStyle(
                   color: Color(0xFF4E342E),
                   fontSize: 22,
@@ -154,9 +156,9 @@ class _MainHallDialogState extends State<MainHallDialog> with SingleTickerProvid
         ),
         TabBar(
           controller: _tabController,
-          tabs: const [
-            Tab(text: '市政厅升级'),
-            Tab(text: '岛屿仓库'),
+          tabs: [
+            Tab(text: l10n.cityHallUpgrade),
+            Tab(text: l10n.islandWarehouse),
           ],
           labelColor: const Color(0xFF4E342E),
           unselectedLabelColor: const Color(0xFF8D6E63),
@@ -168,7 +170,7 @@ class _MainHallDialogState extends State<MainHallDialog> with SingleTickerProvid
   );
 }
 
-Widget _buildUpgradeTab() {
+Widget _buildUpgradeTab(AppLocalizations l10n) {
   final island = widget.gameState.homeIsland;
   return QuestTarget(
     id: 'ui.upgradeTab',
@@ -177,14 +179,14 @@ Widget _buildUpgradeTab() {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
-            '岛屿功能升级',
-            style: TextStyle(color: Color(0xFF4E342E), fontSize: 18, fontWeight: FontWeight.bold),
+          Text(
+            l10n.islandFeatureUpgrade,
+            style: const TextStyle(color: Color(0xFF4E342E), fontSize: 18, fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 8),
-          const Text(
-            '当所有功能均升级后，岛屿视觉等级将自动提升。',
-            style: TextStyle(color: Color(0xFF5D4037), fontSize: 14),
+          Text(
+            l10n.upgradeSyncHint,
+            style: const TextStyle(color: Color(0xFF5D4037), fontSize: 14),
           ),
           const SizedBox(height: 24),
           GridView.count(
@@ -195,10 +197,10 @@ Widget _buildUpgradeTab() {
             crossAxisSpacing: 16,
             childAspectRatio: 2.5,
             children: [
-              _buildUpgradeCard('税收额度', '提升每小时产生的税收金额', 'tax', island.taxLevel),
-              _buildUpgradeCard('本地经济', '降低岛屿商店买入价格', 'economy', island.economyLevel),
-              _buildUpgradeCard('商人资金', '提升本地商人最大默认金额', 'funds', island.merchantFundsLevel),
-              _buildUpgradeCard('补货速度', '提升本地商人货物刷新速度与库存', 'restock', island.restockSpeedLevel),
+              _buildUpgradeCard(l10n.taxQuota, l10n.taxQuotaDesc, 'tax', island.taxLevel, l10n),
+              _buildUpgradeCard(l10n.localEconomy, l10n.localEconomyDesc, 'economy', island.economyLevel, l10n),
+              _buildUpgradeCard(l10n.merchantFunds, l10n.merchantFundsDesc, 'funds', island.merchantFundsLevel, l10n),
+              _buildUpgradeCard(l10n.restockSpeed, l10n.restockSpeedDesc, 'restock', island.restockSpeedLevel, l10n),
             ],
           ),
         ],
@@ -207,7 +209,7 @@ Widget _buildUpgradeTab() {
   );
 }
 
-  Widget _buildUpgradeCard(String title, String desc, String type, int level) {
+  Widget _buildUpgradeCard(String title, String desc, String type, int level, AppLocalizations l10n) {
     final island = widget.gameState.homeIsland;
     final cost = 1000 * (level + 1);
     final canAfford = widget.gameState.gold >= cost;
@@ -240,9 +242,9 @@ Widget _buildUpgradeTab() {
                 const SizedBox(height: 4),
                 Text(desc, style: const TextStyle(color: Color(0xFF5D4037), fontSize: 12)),
                 if (needsSync && !isMaxLevel)
-                  const Padding(
-                    padding: EdgeInsets.only(top: 4),
-                    child: Text('需先升级其他项', style: TextStyle(color: Colors.red, fontSize: 11, fontWeight: FontWeight.bold)),
+                  Padding(
+                    padding: const EdgeInsets.only(top: 4),
+                    child: Text(l10n.needsOtherUpgrades, style: const TextStyle(color: Colors.red, fontSize: 11, fontWeight: FontWeight.bold)),
                   ),
               ],
             ),
@@ -256,13 +258,13 @@ Widget _buildUpgradeTab() {
                 const SizedBox(height: 8),
                 PaperButton(
                   onPressed: canUpgrade ? () => _handleUpgrade(type) : null,
-                  label: '升级',
+                  label: l10n.upgradeOptions.split(' ')[0], // Using '升级' part from '升级选项' or just 'Upgrade'
                   style: PaperButtonStyle.brown,
                   width: 80,
                   height: 32,
                 ),
               ] else
-                const Text('已满级', style: TextStyle(color: Colors.green, fontWeight: FontWeight.bold)),
+                Text(l10n.maxLevel, style: const TextStyle(color: Colors.green, fontWeight: FontWeight.bold)),
             ],
           ),
         ],
@@ -270,7 +272,7 @@ Widget _buildUpgradeTab() {
     );
   }
 
-  Widget _buildQuantitySlider(String goodsId, int maxQuantity, bool isDepositing) {
+  Widget _buildQuantitySlider(String goodsId, int maxQuantity, bool isDepositing, AppLocalizations l10n) {
     if (maxQuantity <= 0) return const SizedBox.shrink();
 
     Goods? goods;
@@ -300,7 +302,7 @@ Widget _buildUpgradeTab() {
                     const SizedBox(width: 8),
                   ],
                   Text(
-                    '${isDepositing ? "存入仓库" : "取出到船"}: ${goods?.name ?? goodsId}',
+                    '${isDepositing ? l10n.depositToWarehouse : l10n.withdrawFromWarehouse}: ${goods?.name ?? goodsId}',
                     style: const TextStyle(color: Color(0xFF4E342E), fontWeight: FontWeight.bold),
                   ),
                 ],
@@ -390,7 +392,7 @@ Widget _buildUpgradeTab() {
                     _selectedGoodsId = null;
                   });
                 },
-                label: '取消',
+                label: l10n.cancel,
                 style: PaperButtonStyle.brown,
                 width: 80,
                 height: 32,
@@ -411,7 +413,7 @@ Widget _buildUpgradeTab() {
                     });
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
-                        content: Text(isDepositing ? '存入成功！' : '取出成功！'),
+                        content: Text(isDepositing ? l10n.depositSuccess : l10n.withdrawSuccess),
                         backgroundColor: Colors.green,
                         duration: const Duration(milliseconds: 500),
                       ),
@@ -419,14 +421,14 @@ Widget _buildUpgradeTab() {
                   } else {
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
-                        content: Text(isDepositing ? '存入失败' : '取出失败（可能载重不足）'),
+                        content: Text(isDepositing ? '存入失败' : l10n.withdrawFail),
                         backgroundColor: Colors.red,
                         duration: const Duration(milliseconds: 1000),
                       ),
                     );
                   }
                 },
-                label: isDepositing ? '确认存入' : '确认取出',
+                label: isDepositing ? l10n.confirmDeposit : l10n.confirmWithdraw,
                 style: PaperButtonStyle.green,
                 width: 80,
                 height: 32,
@@ -438,7 +440,7 @@ Widget _buildUpgradeTab() {
     );
   }
 
-  Widget _buildWarehouseTab() {
+  Widget _buildWarehouseTab(AppLocalizations l10n) {
     return Padding(
       padding: const EdgeInsets.all(16),
       child: Column(
@@ -449,20 +451,22 @@ Widget _buildUpgradeTab() {
                 // 船只库存
                 Expanded(
                   child: _buildStorageColumn(
-                    '我的船只',
+                    l10n.myShip,
                     widget.gameState.inventory,
                     true,
                     Icons.directions_boat,
+                    l10n,
                   ),
                 ),
                 const VerticalDivider(color: Color(0xFF8D6E63), width: 32),
                 // 岛屿仓库
                 Expanded(
                   child: _buildStorageColumn(
-                    '岛屿仓库',
+                    l10n.islandWarehouse,
                     widget.gameState.warehouseInventory,
                     false,
                     Icons.warehouse,
+                    l10n,
                   ),
                 ),
               ],
@@ -476,6 +480,7 @@ Widget _buildUpgradeTab() {
                   ? widget.gameState.getInventoryQuantity(_selectedGoodsId!)
                   : widget.gameState.getWarehouseQuantity(_selectedGoodsId!),
               _isSelectingFromShip,
+              l10n,
             ),
           ],
         ],
@@ -488,6 +493,7 @@ Widget _buildUpgradeTab() {
     List<ShipInventoryItem> items,
     bool isShipInventory,
     IconData icon,
+    AppLocalizations l10n,
   ) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -500,7 +506,7 @@ Widget _buildUpgradeTab() {
             if (isShipInventory) ...[
               const Spacer(),
               Text(
-                '载重: ${widget.gameState.usedCargoWeight.toStringAsFixed(1)}/${widget.gameState.ship.cargoCapacity}kg',
+                l10n.cargoWeight(widget.gameState.usedCargoWeight.toStringAsFixed(1), widget.gameState.ship.cargoCapacity),
                 style: const TextStyle(color: Color(0xFF5D4037), fontSize: 12),
               ),
             ],
@@ -509,7 +515,7 @@ Widget _buildUpgradeTab() {
         const SizedBox(height: 16),
         Expanded(
           child: items.isEmpty
-              ? const Center(child: Text('空空如也', style: TextStyle(color: Color(0xFF8D6E63))))
+              ? Center(child: Text(l10n.emptyStorage, style: const TextStyle(color: Color(0xFF8D6E63))))
               : ListView.builder(
                   itemCount: items.length,
                   itemBuilder: (context, index) {

@@ -1,5 +1,6 @@
-﻿import 'dart:math';
+import 'dart:math';
 import 'package:flutter/material.dart';
+import '../l10n/app_localizations.dart';
 import '../models/goods.dart';
 import '../models/port.dart';
 import '../game/game_state.dart';
@@ -427,15 +428,15 @@ class TradeSystem {
 
   /// 执行pending交易（基于交换机制）
   /// 返回执行结果消息，如果失败返回错误消息
-  String? executePendingTrade(PendingTrade pendingTrade, {String? portId}) {
+  String? executePendingTrade(PendingTrade pendingTrade, {String? portId, AppLocalizations? l10n}) {
     final effectivePortId = portId ?? gameState.currentPort?.id;
     if (effectivePortId == null) {
-      return '当前不在港口且未指定交易对象';
+      return l10n?.errorNotAtPort ?? '当前不在港口且未指定交易对象';
     }
 
     // 检查交易是否可接受
     if (!pendingTrade.isTradeAcceptable()) {
-      return '商人拒绝此交易（交易偏向玩家）';
+      return l10n?.errorMerchantRefuse ?? '商人拒绝此交易（交易偏向玩家）';
     }
 
     final port = gameState.ports.firstWhere((p) => p.id == effectivePortId);
@@ -444,12 +445,13 @@ class TradeSystem {
     for (final item in pendingTrade.itemsToGive) {
       if (item.goodsId == 'gold') {
         if (gameState.gold < item.quantity) {
-          return '金币不足';
+          return l10n?.errorGoldNotEnough ?? '金币不足';
         }
       } else {
         final inventoryQuantity = gameState.getInventoryQuantity(item.goodsId);
         if (inventoryQuantity < item.quantity) {
-          return '${_getGoods(item.goodsId).name} 库存不足';
+          final goodsName = _getGoods(item.goodsId).name;
+          return l10n?.errorGoodsNotEnough(goodsName) ?? '$goodsName 库存不足';
         }
       }
     }
@@ -476,19 +478,20 @@ class TradeSystem {
     final spaceAfterGive = gameState.ship.cargoCapacity.toDouble() - (currentUsedCargo - totalGiveWeight);
     // 检查剩余空间是否足够容纳换入的物品
     if (totalReceiveWeight > spaceAfterGive) {
-      return '载货空间不足';
+      return l10n?.errorCargoFull ?? '载货空间不足';
     }
 
     // 检查商人是否有足够的物品换出
     for (final item in pendingTrade.itemsToReceive) {
       if (item.goodsId == 'gold') {
         if (port.merchantMoney < item.quantity) {
-          return '商人金币不足';
+          return l10n?.errorMerchantGoldNotEnough ?? '商人金币不足';
         }
       } else {
         final portStock = port.getGoodsStock(item.goodsId);
         if (portStock < item.quantity) {
-          return '${_getGoods(item.goodsId).name} 港口库存不足';
+          final goodsName = _getGoods(item.goodsId).name;
+          return l10n?.errorPortStockNotEnough(goodsName) ?? '$goodsName 港口库存不足';
         }
       }
     }
@@ -620,10 +623,11 @@ class _TradeDialogState extends State<_TradeDialog> {
     final effectivePortId = widget.portId ?? gameState.currentPort?.id;
 
     if (effectivePortId == null) {
-      return const Dialog(
+      final l10n = AppLocalizations.of(context)!;
+      return Dialog(
         child: Padding(
           padding: EdgeInsets.all(16),
-          child: Text('当前不在港口且未指定交易对象'),
+          child: Text(l10n.errorNotAtPort),
         ),
       );
     }
@@ -634,6 +638,7 @@ class _TradeDialogState extends State<_TradeDialog> {
     );
     final favor = _pendingTrade.calculateTradeFavor();
     final isAcceptable = _pendingTrade.isTradeAcceptable();
+    final l10n = AppLocalizations.of(context)!;
 
     // 检查任务配置是否允许关闭弹窗（用于隐藏关闭按钮）
     final activeQuest = QuestSystem.instance.activeQuest;
@@ -652,7 +657,7 @@ class _TradeDialogState extends State<_TradeDialog> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                '市场 - ${port.name}',
+                l10n.marketTitle(port.name),
                 style: const TextStyle(
                   fontSize: 22,
                   fontWeight: FontWeight.bold,
@@ -681,9 +686,9 @@ class _TradeDialogState extends State<_TradeDialog> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text(
-                        '商人库存',
-                        style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Color(0xFF5D4037)),
+                      Text(
+                        l10n.merchantInventory,
+                        style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Color(0xFF5D4037)),
                       ),
                       const SizedBox(height: 8),
                       Expanded(
@@ -695,6 +700,7 @@ class _TradeDialogState extends State<_TradeDialog> {
                           _getMerchantStock(port, _selectedMerchantGoodsId!),
                           true,
                           effectivePortId,
+                          l10n,
                         ),
                     ],
                   ),
@@ -707,10 +713,10 @@ class _TradeDialogState extends State<_TradeDialog> {
                   flex: 2,
                   child: Column(
                     children: [
-                      _buildValueDisplay(),
+                      _buildValueDisplay(l10n),
                       const SizedBox(height: 16),
                       Expanded(
-                        child: _buildPendingArea(),
+                        child: _buildPendingArea(l10n),
                       ),
                     ],
                   ),
@@ -724,7 +730,7 @@ class _TradeDialogState extends State<_TradeDialog> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      _buildPlayerHeader(gameState),
+                      _buildPlayerHeader(gameState, l10n),
                       const SizedBox(height: 8),
                       Expanded(
                         child: _buildPlayerInventory(gameState, goodsList),
@@ -735,6 +741,7 @@ class _TradeDialogState extends State<_TradeDialog> {
                           _getPlayerStock(_selectedPlayerGoodsId!),
                           false,
                           effectivePortId,
+                          l10n,
                         ),
                     ],
                   ),
@@ -744,7 +751,7 @@ class _TradeDialogState extends State<_TradeDialog> {
           ),
 
           const SizedBox(height: 16),
-          TradeBalanceBar(favor: favor),
+          TradeBalanceBar(favor: favor, l10n: l10n),
           const SizedBox(height: 16),
 
           // 平衡报价按钮
@@ -753,7 +760,7 @@ class _TradeDialogState extends State<_TradeDialog> {
               id: 'ui.balanceButton',
               child: PaperButton(
                 onPressed: _canBalanceTrade(effectivePortId) ? () => _balanceTrade(effectivePortId) : null,
-                label: '平衡报价',
+                label: l10n.balanceOffer,
                 style: PaperButtonStyle.brown,
                 width: 100,
                 height: 40,
@@ -775,9 +782,9 @@ class _TradeDialogState extends State<_TradeDialog> {
                 onPressed: (_pendingTrade.itemsToReceive.isNotEmpty ||
                             _pendingTrade.itemsToGive.isNotEmpty) &&
                         isAcceptable
-                    ? () => _executeTrade(effectivePortId)
+                    ? () => _executeTrade(effectivePortId, l10n)
                     : null,
-                label: isAcceptable ? '确认交易' : '交易不公平',
+                label: isAcceptable ? l10n.confirmTrade : l10n.tradeUnfair,
                 style: isAcceptable ? PaperButtonStyle.green : PaperButtonStyle.brown,
                 width: 120,
                 height: 48,
@@ -897,7 +904,7 @@ class _TradeDialogState extends State<_TradeDialog> {
     );
   }
 
-  Widget _buildValueDisplay() {
+  Widget _buildValueDisplay(AppLocalizations l10n) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       decoration: BoxDecoration(
@@ -908,9 +915,9 @@ class _TradeDialogState extends State<_TradeDialog> {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          _buildValueRow('玩家获得', _pendingTrade.playerReceivedValue, Colors.green[800]!),
+          _buildValueRow(l10n.playerGet, _pendingTrade.playerReceivedValue, Colors.green[800]!),
           const Divider(height: 8, thickness: 1, color: Color(0xFF8D6E63)),
-          _buildValueRow('玩家支付', _pendingTrade.playerGivenValue, Colors.blue[800]!),
+          _buildValueRow(l10n.playerPay, _pendingTrade.playerGivenValue, Colors.blue[800]!),
         ],
       ),
     );
@@ -926,12 +933,12 @@ class _TradeDialogState extends State<_TradeDialog> {
     );
   }
 
-  Widget _buildPendingArea() {
+  Widget _buildPendingArea(AppLocalizations l10n) {
     return Row(
       children: [
-        Expanded(child: _buildPendingColumn('换入', _pendingTrade.itemsToReceive, true)),
+        Expanded(child: _buildPendingColumn(l10n.receive, _pendingTrade.itemsToReceive, true)),
         const VerticalDivider(width: 8, thickness: 1, color: Color(0xFF8D6E63)),
-        Expanded(child: _buildPendingColumn('换出', _pendingTrade.itemsToGive, false)),
+        Expanded(child: _buildPendingColumn(l10n.give, _pendingTrade.itemsToGive, false)),
       ],
     );
   }
@@ -983,7 +990,7 @@ class _TradeDialogState extends State<_TradeDialog> {
     );
   }
 
-  Widget _buildPlayerHeader(GameState gameState) {
+  Widget _buildPlayerHeader(GameState gameState, AppLocalizations l10n) {
     final currentWeight = gameState.usedCargoWeight;
     final previewWeight = currentWeight - _pendingTrade.getTotalGiveWeight() + _pendingTrade.getTotalReceiveWeight();
     final capacity = gameState.ship.cargoCapacity;
@@ -991,7 +998,7 @@ class _TradeDialogState extends State<_TradeDialog> {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        const Text('我的库存', style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Color(0xFF5D4037))),
+        Text(l10n.myInventory, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Color(0xFF5D4037))),
         Text(
           '${previewWeight.toStringAsFixed(1)}/$capacity kg',
           style: TextStyle(
@@ -1044,7 +1051,7 @@ class _TradeDialogState extends State<_TradeDialog> {
   }
 
   /// 构建滑块面板
-  Widget _buildSliderPanel(String goodsId, int maxQuantity, bool isBuying, String portId) {
+  Widget _buildSliderPanel(String goodsId, int maxQuantity, bool isBuying, String portId, AppLocalizations l10n) {
     if (maxQuantity <= 0) return const SizedBox.shrink();
     
     final goods = widget.tradeSystem.getGoodsList().firstWhere((g) => g.id == goodsId);
@@ -1090,7 +1097,7 @@ class _TradeDialogState extends State<_TradeDialog> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text('${isBuying ? "购买" : "出售"}: ${goods.name}', style: const TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF4E342E))),
+                Text('${isBuying ? l10n.buy : l10n.sell}: ${goods.name}', style: const TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF4E342E))),
                 Text('x $_selectedQuantity', style: const TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF5D4037))),
               ],
             ),
@@ -1100,7 +1107,7 @@ class _TradeDialogState extends State<_TradeDialog> {
                 child: Row(
                   children: [
                     Text(
-                      '持有均价: ${averagePurchasePrice.toStringAsFixed(1)}',
+                      l10n.holdAveragePrice(averagePurchasePrice.toStringAsFixed(1)),
                       style: TextStyle(fontSize: 12, color: Colors.brown[700], fontStyle: FontStyle.italic),
                     ),
                   ],
@@ -1111,7 +1118,7 @@ class _TradeDialogState extends State<_TradeDialog> {
               child: Row(
                 children: [
                   Text(
-                    '${isBuying ? "买入" : "售出"}均价: ${currentBatchAverage.toStringAsFixed(1)}',
+                    l10n.batchAveragePrice(isBuying ? l10n.buy : l10n.sell, currentBatchAverage.toStringAsFixed(1)),
                     style: TextStyle(
                       fontSize: 12, 
                       fontWeight: FontWeight.bold, 
@@ -1210,7 +1217,7 @@ class _TradeDialogState extends State<_TradeDialog> {
                         _selectedMerchantGoodsId = _selectedPlayerGoodsId = null;
                         widget.tradeSystem.gameState.setQuantitySliderOpened(false);
                       }),
-                      label: '取消',
+                      label: l10n.cancel,
                       style: PaperButtonStyle.brown,
                       width: 80,
                       height: 32,
@@ -1226,7 +1233,7 @@ class _TradeDialogState extends State<_TradeDialog> {
                             widget.tradeSystem.gameState.setQuantitySliderOpened(false);
                           });
                         },
-                        label: '确认',
+                        label: l10n.confirm,
                         style: PaperButtonStyle.brown,
                         width: 80,
                         height: 32,
@@ -1286,8 +1293,8 @@ class _TradeDialogState extends State<_TradeDialog> {
     _syncPendingQuantitiesToGameState();
   }
 
-  void _executeTrade(String portId) {
-    final result = widget.tradeSystem.executePendingTrade(_pendingTrade, portId: portId);
+  void _executeTrade(String portId, AppLocalizations l10n) {
+    final result = widget.tradeSystem.executePendingTrade(_pendingTrade, portId: portId, l10n: l10n);
     if (result == null) {
       setState(() {});
       // 交易成功后，标记为不再平衡（因为列表已空，直到下一次操作）
@@ -1295,7 +1302,7 @@ class _TradeDialogState extends State<_TradeDialog> {
       // 标记交易已确认（用于任务系统）
       widget.tradeSystem.gameState.setTradeConfirmed(true);
       widget.tradeSystem.gameState.clearPendingTradeQuantities();
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('交易成功！'), backgroundColor: Colors.green));
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(l10n.tradeSuccess), backgroundColor: Colors.green));
     } else {
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('交易失败: $result'), backgroundColor: Colors.red));
     }
@@ -1549,13 +1556,14 @@ class GoodsSlot extends StatelessWidget {
 /// 天平进度条组件
 class TradeBalanceBar extends StatelessWidget {
   final double favor;
+  final AppLocalizations l10n;
 
-  const TradeBalanceBar({super.key, required this.favor});
+  const TradeBalanceBar({super.key, required this.favor, required this.l10n});
 
   @override
   Widget build(BuildContext context) {
     Color color = favor < -0.1 ? Colors.red[800]! : (favor > 0.1 ? Colors.blue[800]! : Colors.green[800]!);
-    String text = favor < -0.1 ? '偏向商人' : (favor > 0.1 ? '偏向玩家' : '公平交易');
+    String text = favor < -0.1 ? l10n.favorMerchant : (favor > 0.1 ? l10n.favorPlayer : l10n.fairTrade);
 
     return Column(
       children: [
@@ -1584,9 +1592,9 @@ class TradeBalanceBar extends StatelessWidget {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            const Text('← 偏向商人', style: TextStyle(fontSize: 10, color: Color(0xFF5D4037))),
+            Text('← ${l10n.favorMerchant}', style: const TextStyle(fontSize: 10, color: Color(0xFF5D4037))),
             Text(text, style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: color)),
-            const Text('偏向玩家 →', style: TextStyle(fontSize: 10, color: Color(0xFF5D4037))),
+            Text('${l10n.favorPlayer} →', style: const TextStyle(fontSize: 10, color: Color(0xFF5D4037))),
           ],
         ),
       ],

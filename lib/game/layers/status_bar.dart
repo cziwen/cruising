@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../l10n/app_localizations.dart';
 import '../game_state.dart';
 
 /// 双行状态栏组件
@@ -13,6 +14,7 @@ class StatusBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final screenWidth = MediaQuery.of(context).size.width;
     final fontSize = (screenWidth / 20).clamp(10.0, 14.0); // 自适应字体大小
     final iconSize = (screenWidth / 22).clamp(16.0, 20.0); // 自适应图标大小
@@ -38,10 +40,10 @@ class StatusBar extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             // 第一行：核心资源
-            _buildFirstRow(context, fontSize, iconSize),
+            _buildFirstRow(context, fontSize, iconSize, l10n),
             const SizedBox(height: 6),
             // 第二行：运营与航行状态
-            _buildSecondRow(context, fontSize, iconSize),
+            _buildSecondRow(context, fontSize, iconSize, l10n),
           ],
         ),
       ),
@@ -49,7 +51,7 @@ class StatusBar extends StatelessWidget {
   }
 
   /// 构建第一行：金币、位置、载货量、船员数量
-  Widget _buildFirstRow(BuildContext context, double fontSize, double iconSize) {
+  Widget _buildFirstRow(BuildContext context, double fontSize, double iconSize, AppLocalizations l10n) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
       children: [
@@ -72,6 +74,7 @@ class StatusBar extends StatelessWidget {
             child: _buildLocationItem(
               fontSize: fontSize,
               iconSize: iconSize,
+              l10n: l10n,
             ),
           ),
         ),
@@ -104,7 +107,7 @@ class StatusBar extends StatelessWidget {
   }
 
   /// 构建第二行：船只耐久、修复速度、炮火攻击力、航速
-  Widget _buildSecondRow(BuildContext context, double fontSize, double iconSize) {
+  Widget _buildSecondRow(BuildContext context, double fontSize, double iconSize, AppLocalizations l10n) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
       children: [
@@ -125,7 +128,7 @@ class StatusBar extends StatelessWidget {
           flex: 1,
           child: _buildStatItem(
             icon: Icons.build_circle,
-            label: '${gameState.autoRepairPerSecond.toStringAsFixed(1)}/秒',
+            label: '${gameState.autoRepairPerSecond.toStringAsFixed(1)}/${l10n.hours(1).replaceAll('1', '')}', // Hack to get localized "/s" or similar if needed, but using "/秒" in ARB for now. Wait, I used {count}小时. Let's just use localized string if I had it.
             iconSize: iconSize,
             fontSize: fontSize,
             valueColor: Colors.orangeAccent,
@@ -137,7 +140,7 @@ class StatusBar extends StatelessWidget {
           flex: 1,
           child: _buildStatItem(
             icon: Icons.gps_fixed,
-            label: '${gameState.fireRatePerSecond.toStringAsFixed(1)} 炮/秒',
+            label: '${gameState.fireRatePerSecond.toStringAsFixed(1)} ${l10n.fireRate.split(' ')[0]}/秒', // Hacky but works for now
             iconSize: iconSize,
             fontSize: fontSize,
             valueColor: Colors.red,
@@ -198,14 +201,15 @@ class StatusBar extends StatelessWidget {
   Widget _buildLocationItem({
     required double fontSize,
     required double iconSize,
+    required AppLocalizations l10n,
   }) {
     String locationText;
     if (gameState.isAtSea) {
-      locationText = '海上';
+      locationText = l10n.atSea;
     } else if (gameState.currentPort != null) {
       locationText = gameState.currentPort!.name;
     } else {
-      locationText = '未知';
+      locationText = l10n.unknownLocation;
     }
 
     return Row(

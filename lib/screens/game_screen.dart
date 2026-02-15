@@ -1,9 +1,10 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'dart:io' show exit;
 import 'package:audioplayers/audioplayers.dart';
+import '../l10n/app_localizations.dart';
 import '../game/game_state.dart';
 import '../models/port.dart';
 import '../game/game_scene.dart';
@@ -294,9 +295,10 @@ class _GameScreenState extends State<GameScreen> {
       // 先清理，避免重复触发（listener 可能被多次调用）
       _gameState.clearDepartingCrewNames();
       
+      final l10n = AppLocalizations.of(context)!;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('船员 $names 因为得不到报酬，已经在港口悄悄离开了...'),
+          content: Text(l10n.crewDeparted(names)),
           backgroundColor: Colors.redAccent,
           duration: const Duration(seconds: 5),
           behavior: SnackBarBehavior.floating,
@@ -587,16 +589,17 @@ class _GameScreenState extends State<GameScreen> {
   }
 
   void _handleUpgradePressed() {
+    final l10n = AppLocalizations.of(context)!;
     // TODO: 实现升级界面
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('船只升级'),
-        content: const Text('升级功能开发中...'),
+        title: Text(l10n.shipUpgrade),
+        content: Text(l10n.featureInDevelopment),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(),
-            child: const Text('确定'),
+            child: Text(l10n.ok),
           ),
         ],
       ),

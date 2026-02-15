@@ -1,5 +1,7 @@
 import 'dart:math';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import '../providers/locale_provider.dart';
 import 'game_state.dart';
 import '../systems/save_system.dart';
 import '../systems/quest_system.dart';
@@ -318,6 +320,32 @@ class _DebugPanelState extends State<DebugPanel>
                       max: 1.5,
                       onChanged: (val) => widget.gameState!.setDebugIslandScale(val),
                       displayValue: widget.gameState!.islandScale.toStringAsFixed(2),
+                    ),
+                    const SizedBox(height: 8),
+                    // 语言切换
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        const Text(
+                          '语言 (Language)',
+                          style: TextStyle(color: Colors.white, fontSize: 12),
+                        ),
+                        Consumer<LocaleProvider>(
+                          builder: (context, localeProvider, child) {
+                            return TextButton(
+                              onPressed: () {
+                                localeProvider.toggleLocale();
+                                // 重新加载配置
+                                GameConfigLoader().loadConfig(locale: localeProvider.locale);
+                              },
+                              child: Text(
+                                localeProvider.locale.languageCode == 'zh' ? '中文' : 'English',
+                                style: const TextStyle(color: Colors.orange, fontSize: 12),
+                              ),
+                            );
+                          },
+                        ),
+                      ],
                     ),
                     const SizedBox(height: 8),
                     // 立即触发战斗按钮

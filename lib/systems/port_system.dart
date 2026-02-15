@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../l10n/app_localizations.dart';
 import '../models/port.dart';
 import '../game/game_state.dart';
 import '../game/paper_dialog.dart';
@@ -71,6 +72,7 @@ class _MapPortSelectDialogState extends State<_MapPortSelectDialog> {
   Widget build(BuildContext context) {
     final availablePorts = widget.portSystem.getAvailablePorts();
     final currentPort = widget.portSystem.gameState.currentPort;
+    final l10n = AppLocalizations.of(context)!;
 
     // 地图原始尺寸
     const double mapOriginalWidth = 1344.0;
@@ -243,7 +245,7 @@ class _MapPortSelectDialogState extends State<_MapPortSelectDialog> {
                             }
                           });
                         },
-                        label: '出发',
+                        label: l10n.depart,
                         style: PaperButtonStyle.brown,
                         width: 100,
                         height: 48,
@@ -325,6 +327,7 @@ class _PortSelectDialogState extends State<_PortSelectDialog> {
   Widget build(BuildContext context) {
     final availablePorts = widget.portSystem.getAvailablePorts();
     final currentPort = widget.portSystem.gameState.currentPort;
+    final l10n = AppLocalizations.of(context)!;
 
     return PaperDialog(
       assetPath: 'assets/paper_ui/Sprites/Book_Desk/4.png',
@@ -337,9 +340,9 @@ class _PortSelectDialogState extends State<_PortSelectDialog> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text(
-                '选择目的地',
-                style: TextStyle(
+              Text(
+                l10n.selectDestination,
+                style: const TextStyle(
                   fontSize: 20,
                   fontWeight: FontWeight.bold,
                   color: Color(0xFF4E342E),
@@ -408,9 +411,9 @@ class _PortSelectDialogState extends State<_PortSelectDialog> {
                       style: const TextStyle(color: Color(0xFF5D4037), fontSize: 12),
                     ),
                     trailing: isCurrentPort
-                        ? const Text(
-                            '当前港口',
-                            style: TextStyle(
+                        ? Text(
+                            l10n.currentPort,
+                            style: const TextStyle(
                               color: Color(0xFF5D4037),
                               fontWeight: FontWeight.bold,
                             ),
@@ -429,7 +432,7 @@ class _PortSelectDialogState extends State<_PortSelectDialog> {
                                   }
                                 });
                               },
-                              label: '出发',
+                              label: l10n.depart,
                               style: PaperButtonStyle.brown,
                               width: 80,
                               height: 32,

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../l10n/app_localizations.dart';
 import '../models/crew_member.dart';
 import 'game_state.dart';
 import 'paper_dialog.dart';
@@ -30,15 +31,15 @@ class _TavernDialogState extends State<TavernDialog> {
   }
 
   /// 获取角色描述
-  String _getCrewDescription(CrewMember member) {
+  String _getCrewDescription(CrewMember member, AppLocalizations l10n) {
     if (member.description != null) {
       return member.description!;
     }
-    return '一位渴望出海的冒险者。';
+    return l10n.tavernDefaultDescription;
   }
 
   /// 招募船员
-  void _recruitCrew(CrewMember member) {
+  void _recruitCrew(CrewMember member, AppLocalizations l10n) {
     final recruitmentCost = member.salary * 10;
     final currentCrewCount = widget.gameState.crewManager.crewMembers.length;
     final maxCrewCount = widget.gameState.maxCrewCount;
@@ -47,7 +48,7 @@ class _TavernDialogState extends State<TavernDialog> {
     if (currentCrewCount >= maxCrewCount) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('船员已满（$currentCrewCount / $maxCrewCount）'),
+          content: Text(l10n.crewFull(currentCrewCount, maxCrewCount)),
           backgroundColor: Colors.red,
         ),
       );
@@ -57,7 +58,7 @@ class _TavernDialogState extends State<TavernDialog> {
     if (widget.gameState.gold < recruitmentCost) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('金币不足！需要 $recruitmentCost 金币'),
+          content: Text(l10n.goldNotEnoughRecruit(recruitmentCost)),
           backgroundColor: Colors.red,
         ),
       );
@@ -74,16 +75,16 @@ class _TavernDialogState extends State<TavernDialog> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Text('招募该船员？', style: TextStyle(color: Color(0xFF4E342E), fontSize: 20, fontWeight: FontWeight.bold)),
+            Text(l10n.recruitConfirmTitle, style: const TextStyle(color: Color(0xFF4E342E), fontSize: 20, fontWeight: FontWeight.bold)),
             const SizedBox(height: 20),
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('工资：${member.salary} 金币 / 天', style: const TextStyle(color: Color(0xFF5D4037))),
+                Text(l10n.salaryPerDay(member.salary), style: const TextStyle(color: Color(0xFF5D4037))),
                 const SizedBox(height: 8),
-                Text('招募费用：$recruitmentCost 金币', style: const TextStyle(color: Color(0xFF5D4037))),
+                Text(l10n.recruitmentCost(recruitmentCost), style: const TextStyle(color: Color(0xFF5D4037))),
                 const SizedBox(height: 8),
-                Text('当前船员数：$currentCrewCount / $maxCrewCount', style: const TextStyle(color: Color(0xFF5D4037))),
+                Text(l10n.currentCrewCount(currentCrewCount, maxCrewCount), style: const TextStyle(color: Color(0xFF5D4037))),
               ],
             ),
             const Spacer(),
@@ -91,7 +92,7 @@ class _TavernDialogState extends State<TavernDialog> {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 PaperButton(
-                  label: '再看看',
+                  label: l10n.lookAround,
                   onPressed: () => Navigator.of(context).pop(),
                   style: PaperButtonStyle.brown,
                   width: 80,
@@ -99,7 +100,7 @@ class _TavernDialogState extends State<TavernDialog> {
                 ),
                 const SizedBox(width: 24),
                 PaperButton(
-                  label: '确认招募',
+                  label: l10n.confirmRecruit,
                   onPressed: () {
                     Navigator.of(context).pop(); // 关闭确认对话框
                     
@@ -121,7 +122,7 @@ class _TavernDialogState extends State<TavernDialog> {
                     // 显示成功提示
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
-                        content: Text('成功招募 ${member.name}！'),
+                        content: Text(l10n.recruitSuccess(member.name)),
                         backgroundColor: Colors.green,
                       ),
                     );
@@ -141,6 +142,7 @@ class _TavernDialogState extends State<TavernDialog> {
   @override
   Widget build(BuildContext context) {
     final availableCrew = widget.gameState.availableTavernCrew;
+    final l10n = AppLocalizations.of(context)!;
     return PaperDialog(
       assetPath: 'assets/paper_ui/Sprites/Book_Desk/6.png',
       width: 1000,
@@ -154,9 +156,9 @@ class _TavernDialogState extends State<TavernDialog> {
               children: [
                 const Icon(Icons.local_bar, color: Color(0xFF4E342E), size: 24),
                 const SizedBox(width: 10),
-                const Text(
-                  '酒馆',
-                  style: TextStyle(
+                Text(
+                  l10n.tavern,
+                  style: const TextStyle(
                     color: Color(0xFF4E342E),
                     fontSize: 22,
                     fontWeight: FontWeight.bold,
@@ -193,10 +195,10 @@ class _TavernDialogState extends State<TavernDialog> {
                       ),
                     ),
                     child: availableCrew.isEmpty
-                        ? const Center(
+                        ? Center(
                             child: Text(
-                              '暂无可招募船员',
-                              style: TextStyle(
+                              l10n.noAvailableCrew,
+                              style: const TextStyle(
                                 color: Color(0xFF5D4037),
                                 fontSize: 16,
                               ),
@@ -227,7 +229,7 @@ class _TavernDialogState extends State<TavernDialog> {
                             ),
                           ),
                         )
-                      : _buildCrewDetail(_selectedCrew!),
+                      : _buildCrewDetail(_selectedCrew!, l10n),
                 ),
               ],
             ),
@@ -374,7 +376,7 @@ class _TavernDialogState extends State<TavernDialog> {
   }
 
   /// 构建船员详情
-  Widget _buildCrewDetail(CrewMember member) {
+  Widget _buildCrewDetail(CrewMember member, AppLocalizations l10n) {
     final recruitmentCost = member.salary * 10;
     final currentCrewCount = widget.gameState.crewManager.crewMembers.length;
     final maxCrewCount = widget.gameState.maxCrewCount;
@@ -402,7 +404,7 @@ class _TavernDialogState extends State<TavernDialog> {
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  '工资：${member.salary} 金币 / 天',
+                  l10n.salaryPerDay(member.salary),
                   style: const TextStyle(
                     color: Color(0xFF795548),
                     fontSize: 16,
@@ -415,34 +417,34 @@ class _TavernDialogState extends State<TavernDialog> {
           const Divider(color: Color(0xFF8D6E63), height: 32),
           
           // 技能详情
-          const Text(
-            '技能：',
-            style: TextStyle(
+          Text(
+            '${l10n.sailorSkill}：',
+            style: const TextStyle(
               color: Color(0xFF4E342E),
               fontSize: 18,
               fontWeight: FontWeight.bold,
             ),
           ),
           const SizedBox(height: 12),
-          _buildSkillDetailRow('⛵', '水手技能', member.sailorSkill, Colors.blue[700]!),
+          _buildSkillDetailRow('⛵', l10n.sailorSkill, member.sailorSkill, Colors.blue[700]!),
           const SizedBox(height: 8),
-          _buildSkillDetailRow('🔧', '船工技能', member.shipwrightSkill, Colors.orange[800]!),
+          _buildSkillDetailRow('🔧', l10n.shipwrightSkill, member.shipwrightSkill, Colors.orange[800]!),
           const SizedBox(height: 8),
-          _buildSkillDetailRow('🔫', '炮手技能', member.gunnerSkill, Colors.red[800]!),
+          _buildSkillDetailRow('🔫', l10n.gunnerSkill, member.gunnerSkill, Colors.red[800]!),
           
           const Divider(color: Color(0xFF8D6E63), height: 32),
           
           // 描述
-          const Text(
-            '招募后可分配职业以提供加成（在船员管理界面）',
-            style: TextStyle(
+          Text(
+            l10n.recruitHint,
+            style: const TextStyle(
               color: Color(0xFF5D4037),
               fontSize: 13,
             ),
           ),
           const SizedBox(height: 8),
           Text(
-            _getCrewDescription(member),
+            _getCrewDescription(member, l10n),
             style: const TextStyle(
               color: Color(0xFF5D4037),
               fontSize: 14,
@@ -462,7 +464,7 @@ class _TavernDialogState extends State<TavernDialog> {
                     _selectedCrew = null; // 取消选择，而不是关闭对话框
                   });
                 },
-                label: '取消',
+                label: l10n.cancel,
                 style: PaperButtonStyle.brown,
                 width: 80,
                 height: 32,
@@ -470,9 +472,9 @@ class _TavernDialogState extends State<TavernDialog> {
               const SizedBox(width: 24),
               PaperButton(
                 onPressed: canRecruit
-                    ? () => _recruitCrew(member)
+                    ? () => _recruitCrew(member, l10n)
                     : null,
-                label: '招募船员',
+                label: l10n.recruitCrew,
                 style: PaperButtonStyle.green,
                 width: 80,
                 height: 32,
