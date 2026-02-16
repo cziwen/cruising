@@ -428,4 +428,78 @@ class AppLocalizationsZh extends AppLocalizations {
   String hours(Object count) {
     return '$count小时';
   }
+
+  @override
+  String get knots => '节';
+
+  @override
+  String get perSecond => '/秒';
+
+  @override
+  String get shotsPerSecond => '炮/秒';
+
+  @override
+  String peopleCount(Object count) {
+    return '$count 人';
+  }
+
+  @override
+  String get tapAnywhereToContinueHint => '-- 点击任意处继续 --';
+
+  @override
+  String notificationSalaryPaid(Object amount) {
+    return '已支付今日船员工资 (共 $amount 💰)';
+  }
+
+  @override
+  String notificationSalaryUnpaid(Object names) {
+    return '金币不足！$names 等船员未收到工资，士气下降';
+  }
+
+  @override
+  String get notificationEnteredSea => '已进入海上';
+
+  @override
+  String notificationArrivedAtPort(Object portName) {
+    return '已到达 $portName';
+  }
+
+  @override
+  String get notificationEncounterEnemyShip => '遭遇敌船！准备战斗';
+
+  @override
+  String notificationShipDamaged(Object amount) {
+    return '船只受损：耐久度下降了 $amount';
+  }
+
+  @override
+  String notificationShipRepaired(Object amount) {
+    return '船只修复：耐久度恢复了 $amount';
+  }
+
+  @override
+  String notificationGoldGained(Object amount) {
+    return '获得金币：$amount 💰';
+  }
+
+  @override
+  String notificationGoldLost(Object amount) {
+    return '损失金币：$amount 💰';
+  }
+
+  @override
+  String get notificationMerchantTradeStart => '正在与商船进行物资交换...';
+
+  @override
+  String notificationGoodsGained(Object count, Object goodsName) {
+    return '获得物资：$goodsName x$count';
+  }
+
+  @override
+  String get notificationCargoFullCannotGetGoods => '货舱已满，无法获取物资';
+
+  @override
+  String notificationCourseChangedToNearestPort(Object portName) {
+    return '航道改变，正转向最近的港口：$portName';
+  }
 }

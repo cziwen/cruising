@@ -70,58 +70,61 @@ class _MapPortSelectDialogState extends State<_MapPortSelectDialog> {
 
   @override
   Widget build(BuildContext context) {
-    final availablePorts = widget.portSystem.getAvailablePorts();
-    final currentPort = widget.portSystem.gameState.currentPort;
-    final l10n = AppLocalizations.of(context)!;
+    return AnimatedBuilder(
+      animation: widget.portSystem.gameState,
+      builder: (context, _) {
+        final availablePorts = widget.portSystem.getAvailablePorts();
+        final currentPort = widget.portSystem.gameState.currentPort;
+        final l10n = AppLocalizations.of(context)!;
 
-    // 地图原始尺寸
-    const double mapOriginalWidth = 1344.0;
-    const double mapOriginalHeight = 768.0;
+        // 地图原始尺寸
+        const double mapOriginalWidth = 1344.0;
+        const double mapOriginalHeight = 768.0;
 
-    return Dialog(
-      backgroundColor: Colors.transparent,
-      insetPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
-      child: LayoutBuilder(
-        builder: (context, constraints) {
-          // 计算缩放比例，保持长宽比
-          double scale = (constraints.maxWidth / mapOriginalWidth);
-          if (mapOriginalHeight * scale > constraints.maxHeight) {
-            scale = constraints.maxHeight / mapOriginalHeight;
-          }
+        return Dialog(
+          backgroundColor: Colors.transparent,
+          insetPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
+          child: LayoutBuilder(
+            builder: (context, constraints) {
+              // 计算缩放比例，保持长宽比
+              double scale = (constraints.maxWidth / mapOriginalWidth);
+              if (mapOriginalHeight * scale > constraints.maxHeight) {
+                scale = constraints.maxHeight / mapOriginalHeight;
+              }
 
-          final double displayWidth = mapOriginalWidth * scale;
-          final double displayHeight = mapOriginalHeight * scale;
+              final double displayWidth = mapOriginalWidth * scale;
+              final double displayHeight = mapOriginalHeight * scale;
 
-          return Container(
-            width: displayWidth,
-            height: displayHeight,
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(12),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.5),
-                  blurRadius: 15,
-                  spreadRadius: 2,
+              return Container(
+                width: displayWidth,
+                height: displayHeight,
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(12),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.5),
+                      blurRadius: 15,
+                      spreadRadius: 2,
+                    ),
+                  ],
                 ),
-              ],
-            ),
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(12),
-              child: MouseRegion(
-                onHover: (event) {
-                  if (widget.portSystem.gameState.showMapCoordinates) {
-                    setState(() {
-                      mousePosition = event.localPosition;
-                    });
-                  }
-                },
-                onExit: (_) {
-                  setState(() {
-                    mousePosition = null;
-                  });
-                },
-                child: Stack(
-                  children: [
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(12),
+                  child: MouseRegion(
+                    onHover: (event) {
+                      if (widget.portSystem.gameState.showMapCoordinates) {
+                        setState(() {
+                          mousePosition = event.localPosition;
+                        });
+                      }
+                    },
+                    onExit: (_) {
+                      setState(() {
+                        mousePosition = null;
+                      });
+                    },
+                    child: Stack(
+                      children: [
                     // 地图背景
                   Image.asset(
                     'assets/images/world_map/world_map.png',
@@ -287,10 +290,12 @@ class _MapPortSelectDialogState extends State<_MapPortSelectDialog> {
               ),
             ),
           ),
-        );
+          );
+        },
+      ),
+    );
       },
-    ),
-  );
+    );
 }
 }
 
@@ -325,17 +330,20 @@ class _PortSelectDialogState extends State<_PortSelectDialog> {
 
   @override
   Widget build(BuildContext context) {
-    final availablePorts = widget.portSystem.getAvailablePorts();
-    final currentPort = widget.portSystem.gameState.currentPort;
-    final l10n = AppLocalizations.of(context)!;
+    return AnimatedBuilder(
+      animation: widget.portSystem.gameState,
+      builder: (context, _) {
+        final availablePorts = widget.portSystem.getAvailablePorts();
+        final currentPort = widget.portSystem.gameState.currentPort;
+        final l10n = AppLocalizations.of(context)!;
 
-    return PaperDialog(
-      assetPath: 'assets/paper_ui/Sprites/Book_Desk/4.png',
-      width: 500,
-      height: 500,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
+        return PaperDialog(
+          assetPath: 'assets/paper_ui/Sprites/Book_Desk/4.png',
+          width: 500,
+          height: 500,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
           // 标题栏
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -464,6 +472,8 @@ class _PortSelectDialogState extends State<_PortSelectDialog> {
           ),
         ],
       ),
+    );
+      },
     );
   }
 }

@@ -13,15 +13,26 @@ class NotificationSystem extends ChangeNotifier {
   /// 当前活跃的提示列表
   List<NotificationHint> get activeHints => List.unmodifiable(_activeHints);
 
-  /// 显示一个新的提示
+  /// 显示一个新的提示（旧接口，保留用于兼容或调试）
   void showNotification(String message) {
-    final newHint = NotificationHint(message: message);
-    
+    _addHint(NotificationHint.text(message));
+  }
+
+  /// 显示一个本地化提示
+  void showNotificationL10n(NotificationTextBuilder builder) {
+    _addHint(NotificationHint(textBuilder: builder));
+  }
+
+  void _addHint(NotificationHint newHint) {
     // 堆栈逻辑：如果已经有3个提示，将最旧的一个标记为退出
     if (_activeHints.where((h) => !h.isExiting).length >= 3) {
       // 找到第一个不在退出状态的提示
-      final oldestActive = _activeHints.firstWhere((h) => !h.isExiting);
-      oldestActive.isExiting = true;
+      try {
+        final oldestActive = _activeHints.firstWhere((h) => !h.isExiting);
+        oldestActive.isExiting = true;
+      } catch (_) {
+        // 如果都正在退出，则不操作
+      }
     }
     
     _activeHints.add(newHint);

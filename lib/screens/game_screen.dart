@@ -4,6 +4,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'dart:io' show exit;
 import 'package:audioplayers/audioplayers.dart';
+import 'package:provider/provider.dart';
 import '../l10n/app_localizations.dart';
 import '../game/game_state.dart';
 import '../models/port.dart';
@@ -22,6 +23,7 @@ import '../game/settings_dialog.dart';
 import '../game/sea_event_dialog.dart';
 import '../utils/game_config_loader.dart';
 import '../systems/quest_system.dart';
+import '../providers/locale_provider.dart';
 import 'save_load_screen.dart';
 
 class GameScreen extends StatefulWidget {
@@ -149,6 +151,10 @@ class _GameScreenState extends State<GameScreen> {
   Ticker? _gameLoopTicker;
   DateTime? _lastFrameTime;
   
+  LocaleProvider? _localeProvider;
+  bool _isReloadingLocaleConfig = false;
+  Locale? _lastReloadedLocale;
+
   bool _isShowingMainMenu = false;
   bool _canContinue = false;
   
@@ -235,6 +241,43 @@ class _GameScreenState extends State<GameScreen> {
     
     // 启动游戏循环 Ticker
     _gameLoopTicker!.start();
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final provider = context.read<LocaleProvider>();
+    if (!identical(_localeProvider, provider)) {
+      _localeProvider?.removeListener(_handleLocaleChanged);
+      _localeProvider = provider;
+      _localeProvider?.addListener(_handleLocaleChanged);
+    }
+
+    // 首次进入时也触发一次（对齐当前 locale）
+    _handleLocaleChanged();
+  }
+
+  void _handleLocaleChanged() {
+    final locale = _localeProvider?.locale;
+    if (locale == null) return;
+    if (_lastReloadedLocale == locale) return;
+    if (_isReloadingLocaleConfig) return;
+
+    _isReloadingLocaleConfig = true;
+    Future.microtask(() async {
+      try {
+        await GameConfigLoader().loadConfig(locale: locale);
+        _lastReloadedLocale = locale;
+
+        // 让地图/港口 UI 使用新的 ports_{lang}.json 内容
+        _gameState.updatePortLocalizations(GameConfigLoader().portsList);
+
+        // 让任务文案使用新的 quests_{lang}.json 内容
+        QuestSystem.instance.updateLocalizations();
+      } finally {
+        _isReloadingLocaleConfig = false;
+      }
+    });
   }
 
   void _handleQuestAction() {
@@ -643,6 +686,7 @@ class _GameScreenState extends State<GameScreen> {
 
   @override
   void dispose() {
+    _localeProvider?.removeListener(_handleLocaleChanged);
     QuestSystem.instance.removeListener(_handleQuestAction);
     _gameLoopTicker?.stop();
     _gameLoopTicker = null;

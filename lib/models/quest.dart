@@ -69,4 +69,38 @@ class Quest {
       isMandatory: json['is_mandatory'] as bool? ?? false,
     );
   }
+
+  Quest copyWith({
+    String? id,
+    String? trigger,
+    String? highlight,
+    double? highlightPadding,
+    double? paddingTop,
+    double? paddingBottom,
+    double? paddingLeft,
+    double? paddingRight,
+    bool? barrierDismissible,
+    String? text,
+    String? completeWhen,
+    String? onFailHint,
+    String? action,
+    bool? isMandatory,
+  }) {
+    return Quest(
+      id: id ?? this.id,
+      trigger: trigger ?? this.trigger,
+      highlight: highlight ?? this.highlight,
+      highlightPadding: highlightPadding ?? this.highlightPadding,
+      paddingTop: paddingTop ?? this.paddingTop,
+      paddingBottom: paddingBottom ?? this.paddingBottom,
+      paddingLeft: paddingLeft ?? this.paddingLeft,
+      paddingRight: paddingRight ?? this.paddingRight,
+      barrierDismissible: barrierDismissible ?? this.barrierDismissible,
+      text: text ?? this.text,
+      completeWhen: completeWhen ?? this.completeWhen,
+      onFailHint: onFailHint ?? this.onFailHint,
+      action: action ?? this.action,
+      isMandatory: isMandatory ?? this.isMandatory,
+    );
+  }
 }

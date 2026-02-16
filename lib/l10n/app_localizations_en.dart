@@ -431,4 +431,81 @@ class AppLocalizationsEn extends AppLocalizations {
   String hours(Object count) {
     return '${count}h';
   }
+
+  @override
+  String get knots => 'knots';
+
+  @override
+  String get perSecond => '/s';
+
+  @override
+  String get shotsPerSecond => 'shots/s';
+
+  @override
+  String peopleCount(Object count) {
+    return '$count';
+  }
+
+  @override
+  String get tapAnywhereToContinueHint => '-- Tap anywhere to continue --';
+
+  @override
+  String notificationSalaryPaid(Object amount) {
+    return 'Paid today\'s crew salary (Total $amount 💰)';
+  }
+
+  @override
+  String notificationSalaryUnpaid(Object names) {
+    return 'Insufficient gold! $names and others did not receive salary, morale decreased';
+  }
+
+  @override
+  String get notificationEnteredSea => 'Entered the sea';
+
+  @override
+  String notificationArrivedAtPort(Object portName) {
+    return 'Arrived at $portName';
+  }
+
+  @override
+  String get notificationEncounterEnemyShip =>
+      'Encountered an enemy ship! Prepare for battle';
+
+  @override
+  String notificationShipDamaged(Object amount) {
+    return 'Ship damaged: Durability decreased by $amount';
+  }
+
+  @override
+  String notificationShipRepaired(Object amount) {
+    return 'Ship repaired: Durability restored by $amount';
+  }
+
+  @override
+  String notificationGoldGained(Object amount) {
+    return 'Gained gold: $amount 💰';
+  }
+
+  @override
+  String notificationGoldLost(Object amount) {
+    return 'Lost gold: $amount 💰';
+  }
+
+  @override
+  String get notificationMerchantTradeStart =>
+      'Trading goods with a merchant ship...';
+
+  @override
+  String notificationGoodsGained(Object count, Object goodsName) {
+    return 'Gained materials: $goodsName x$count';
+  }
+
+  @override
+  String get notificationCargoFullCannotGetGoods =>
+      'Cargo full, cannot obtain materials';
+
+  @override
+  String notificationCourseChangedToNearestPort(Object portName) {
+    return 'Course changed, turning to the nearest port: $portName';
+  }
 }

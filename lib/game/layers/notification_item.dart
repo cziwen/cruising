@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import '../../models/notification_hint.dart';
 import '../frame_animation_widget.dart';
+import '../../l10n/app_localizations.dart';
 
 /// 单个提示项组件
 class NotificationItem extends StatefulWidget {
@@ -126,17 +127,20 @@ class _NotificationItemState extends State<NotificationItem> {
                   child: Padding(
                     padding: const EdgeInsets.fromLTRB(25, 15, 25, 15),
                     child: Center(
-                      child: Text(
-                        widget.hint.message,
-                        textAlign: TextAlign.center,
-                        style: const TextStyle(
-                          color: Color(0xFF4E342E),
-                          fontSize: 14,
-                          fontWeight: FontWeight.bold,
-                        ),
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                      ),
+                      child: Builder(builder: (context) {
+                        final l10n = AppLocalizations.of(context)!;
+                        return Text(
+                          widget.hint.message(l10n),
+                          textAlign: TextAlign.center,
+                          style: const TextStyle(
+                            color: Color(0xFF4E342E),
+                            fontSize: 14,
+                            fontWeight: FontWeight.bold,
+                          ),
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                        );
+                      }),
                     ),
                   ),
                 ),

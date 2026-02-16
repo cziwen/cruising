@@ -2,6 +2,7 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/locale_provider.dart';
+import '../l10n/app_localizations.dart';
 import 'game_state.dart';
 import '../systems/save_system.dart';
 import '../systems/quest_system.dart';
@@ -66,7 +67,10 @@ class _DebugPanelState extends State<DebugPanel>
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text(label, style: const TextStyle(color: Colors.white, fontSize: 10)),
+            Expanded(
+              child: Text(label, style: const TextStyle(color: Colors.white, fontSize: 10), overflow: TextOverflow.ellipsis),
+            ),
+            const SizedBox(width: 8),
             Text(
               displayValue,
               style: const TextStyle(color: Colors.orange, fontSize: 10, fontWeight: FontWeight.bold),
@@ -94,6 +98,7 @@ class _DebugPanelState extends State<DebugPanel>
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final screenSize = MediaQuery.of(context).size;
     final scale = min(screenSize.width / 1920, screenSize.height / 1080);
 
@@ -139,9 +144,11 @@ class _DebugPanelState extends State<DebugPanel>
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        const Text(
-                          '跳过航行动画',
-                          style: TextStyle(color: Colors.white, fontSize: 12),
+                        const Expanded(
+                          child: Text(
+                            '跳过航行动画',
+                            style: TextStyle(color: Colors.white, fontSize: 12),
+                          ),
                         ),
                         Switch(
                           value: widget.gameState!.skipTravelAnimation,
@@ -157,9 +164,11 @@ class _DebugPanelState extends State<DebugPanel>
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        const Text(
-                          '时间流逝',
-                          style: TextStyle(color: Colors.white, fontSize: 12),
+                        const Expanded(
+                          child: Text(
+                            '时间流逝',
+                            style: TextStyle(color: Colors.white, fontSize: 12),
+                          ),
                         ),
                         Switch(
                           value: !widget.gameState!.isTimePaused,
@@ -178,9 +187,11 @@ class _DebugPanelState extends State<DebugPanel>
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            const Text(
-                              '时间倍数',
-                              style: TextStyle(color: Colors.white, fontSize: 12),
+                            const Expanded(
+                              child: Text(
+                                '时间倍数',
+                                style: TextStyle(color: Colors.white, fontSize: 12),
+                              ),
                             ),
                             Text(
                               '${widget.gameState!.timeMultiplier.toStringAsFixed(1)}x',
@@ -229,9 +240,11 @@ class _DebugPanelState extends State<DebugPanel>
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        const Text(
-                          '战斗系统解锁',
-                          style: TextStyle(color: Colors.white, fontSize: 12),
+                        const Expanded(
+                          child: Text(
+                            '战斗系统解锁',
+                            style: TextStyle(color: Colors.white, fontSize: 12),
+                          ),
                         ),
                         Switch(
                           value: widget.gameState!.isCombatUnlocked,
@@ -247,9 +260,11 @@ class _DebugPanelState extends State<DebugPanel>
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        const Text(
-                          '所有岛屿解锁',
-                          style: TextStyle(color: Colors.white, fontSize: 12),
+                        const Expanded(
+                          child: Text(
+                            '所有岛屿解锁',
+                            style: TextStyle(color: Colors.white, fontSize: 12),
+                          ),
                         ),
                         Switch(
                           value: widget.gameState!.ports.every((p) => p.unlocked),
@@ -265,9 +280,11 @@ class _DebugPanelState extends State<DebugPanel>
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        const Text(
-                          '地图坐标调试',
-                          style: TextStyle(color: Colors.white, fontSize: 12),
+                        const Expanded(
+                          child: Text(
+                            '地图坐标调试',
+                            style: TextStyle(color: Colors.white, fontSize: 12),
+                          ),
                         ),
                         Switch(
                           value: widget.gameState!.showMapCoordinates,
@@ -292,7 +309,7 @@ class _DebugPanelState extends State<DebugPanel>
                       min: 0,
                       max: 50,
                       onChanged: (val) => widget.gameState!.setDebugRepairBonus(val),
-                      displayValue: '${widget.gameState!.autoRepairPerSecond.toStringAsFixed(1)}/s',
+                      displayValue: '${widget.gameState!.autoRepairPerSecond.toStringAsFixed(1)}${l10n.perSecond}',
                     ),
                     // 攻击力（调节开火频率）
                     _buildSlider(
@@ -301,7 +318,7 @@ class _DebugPanelState extends State<DebugPanel>
                       min: 0,
                       max: 20,
                       onChanged: (val) => widget.gameState!.setDebugFireRateBonus(val),
-                      displayValue: '${widget.gameState!.fireRatePerSecond.toStringAsFixed(1)}炮/s',
+                      displayValue: '${widget.gameState!.fireRatePerSecond.toStringAsFixed(1)}${l10n.shotsPerSecond}',
                     ),
                     // 航速调节
                     _buildSlider(
@@ -310,7 +327,7 @@ class _DebugPanelState extends State<DebugPanel>
                       min: 0,
                       max: 50,
                       onChanged: (val) => widget.gameState!.setDebugSpeedBonus(val),
-                      displayValue: '${widget.gameState!.currentSpeed.toStringAsFixed(1)}节',
+                      displayValue: '${widget.gameState!.currentSpeed.toStringAsFixed(1)}${l10n.knots}',
                     ),
                     // 岛屿缩放调节
                     _buildSlider(
@@ -326,9 +343,11 @@ class _DebugPanelState extends State<DebugPanel>
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        const Text(
-                          '语言 (Language)',
-                          style: TextStyle(color: Colors.white, fontSize: 12),
+                        const Expanded(
+                          child: Text(
+                            '语言 (Language)',
+                            style: TextStyle(color: Colors.white, fontSize: 12),
+                          ),
                         ),
                         Consumer<LocaleProvider>(
                           builder: (context, localeProvider, child) {
@@ -485,9 +504,11 @@ class _DebugPanelState extends State<DebugPanel>
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        const Text(
-                          '跳过新手教程',
-                          style: TextStyle(color: Colors.white, fontSize: 12),
+                        const Expanded(
+                          child: Text(
+                            '跳过新手教程',
+                            style: TextStyle(color: Colors.white, fontSize: 12),
+                          ),
                         ),
                         Switch(
                           value: QuestSystem.shouldSkipTutorial,

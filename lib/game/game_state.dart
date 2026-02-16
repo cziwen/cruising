@@ -183,6 +183,31 @@ class GameState extends ChangeNotifier {
     }
   }
 
+  /// 更新港口本地化信息（名称和描述）
+  void updatePortLocalizations(List<Port> localizedPorts) {
+    for (var i = 0; i < _ports.length; i++) {
+      final oldPort = _ports[i];
+      final newPort = localizedPorts.firstWhere((p) => p.id == oldPort.id, orElse: () => oldPort);
+      _ports[i] = oldPort.copyWith(
+        name: newPort.name,
+        description: newPort.description,
+      );
+    }
+    
+    // 同时更新当前港口、目的地港口和上一个港口的引用，以确保 UI 显示正确
+    if (_currentPort != null) {
+      _currentPort = _ports.firstWhere((p) => p.id == _currentPort!.id, orElse: () => _currentPort!);
+    }
+    if (_destinationPort != null) {
+      _destinationPort = _ports.firstWhere((p) => p.id == _destinationPort!.id, orElse: () => _destinationPort!);
+    }
+    if (_previousPort != null) {
+      _previousPort = _ports.firstWhere((p) => p.id == _previousPort!.id, orElse: () => _previousPort!);
+    }
+    
+    notifyListeners();
+  }
+
   // 战斗事件计数器（用于触发视觉反馈）
   int _playerFireCount = 0;
   int _enemyFireCount = 0;
@@ -701,9 +726,9 @@ class GameState extends ChangeNotifier {
     }
 
     if (unpaidNames.isEmpty) {
-      NotificationSystem.instance.showNotification('已支付今日船员工资 (共 $totalPaid 💰)');
+      NotificationSystem.instance.showNotificationL10n((l) => l.notificationSalaryPaid(totalPaid));
     } else {
-      NotificationSystem.instance.showNotification('金币不足！${unpaidNames.join("、")} 等船员未收到工资，士气下降');
+      NotificationSystem.instance.showNotificationL10n((l) => l.notificationSalaryUnpaid(unpaidNames.join("、")));
     }
 
     notifyListeners();
@@ -1249,7 +1274,7 @@ class GameState extends ChangeNotifier {
       MusicSystem().playState('cruising');
       
       // 显示通知
-      NotificationSystem.instance.showNotification('已进入海上');
+      NotificationSystem.instance.showNotificationL10n((l) => l.notificationEnteredSea);
       
       notifyListeners();
       
@@ -1530,7 +1555,7 @@ class GameState extends ChangeNotifier {
     MusicSystem().playState('port');
 
     // 显示到港提示
-    NotificationSystem.instance.showNotification('已到达 ${port.name}');
+    NotificationSystem.instance.showNotificationL10n((l) => l.notificationArrivedAtPort(port.name));
 
     // 重置海上事件航程统计
     SeaEventSystem.instance.resetVoyageStats();
@@ -2142,7 +2167,7 @@ class GameState extends ChangeNotifier {
     MusicSystem().playState('combat');
 
     // 显示战斗提示
-    NotificationSystem.instance.showNotification('遭遇敌船！准备战斗');
+    NotificationSystem.instance.showNotificationL10n((l) => l.notificationEncounterEnemyShip);
 
     notifyListeners();
   }

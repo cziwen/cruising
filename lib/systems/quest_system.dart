@@ -59,6 +59,27 @@ class QuestSystem extends ChangeNotifier {
     _registeredKeys.clear();
   }
 
+  /// 更新本地化信息（重新从 config 加载任务文本）
+  void updateLocalizations() {
+    final localizedQuests = GameConfigLoader().questsList;
+    if (localizedQuests.isEmpty) return;
+
+    for (var i = 0; i < _allQuests.length; i++) {
+      final oldQuest = _allQuests[i];
+      final newQuest = localizedQuests.firstWhere((q) => q.id == oldQuest.id, orElse: () => oldQuest);
+      _allQuests[i] = oldQuest.copyWith(
+        text: newQuest.text,
+      );
+    }
+
+    // 更新当前活跃任务的引用
+    if (_activeQuest != null) {
+      _activeQuest = _allQuests.firstWhere((q) => q.id == _activeQuest!.id, orElse: () => _activeQuest!);
+    }
+
+    notifyListeners();
+  }
+
   /// 初始化系统
   void initialize(GameState gameState, {bool isNewGame = false, bool skipTutorial = false}) {
     _gameState = gameState;

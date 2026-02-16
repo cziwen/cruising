@@ -118,19 +118,19 @@ class _CrewManagementDialogState extends State<CrewManagementDialog> {
                     children: [
                       _buildBonusRow(
                         l10n.sailingBonus,
-                        '+${sailingBonusKnots.toStringAsFixed(1)}节',
+                        '+${sailingBonusKnots.toStringAsFixed(1)}${l10n.knots}',
                         Colors.blue[800]!,
                       ),
                       const SizedBox(height: 6),
                       _buildBonusRow(
                         l10n.autoRepair,
-                        '${autoRepair.toStringAsFixed(1)} / 秒',
+                        '${autoRepair.toStringAsFixed(1)}${l10n.perSecond}',
                         Colors.orange[900]!,
                       ),
                       const SizedBox(height: 6),
                       _buildBonusRow(
                         l10n.fireRate,
-                        '${fireRateBonus.toStringAsFixed(1)} 炮/秒',
+                        '${fireRateBonus.toStringAsFixed(1)}${l10n.shotsPerSecond}',
                         Colors.red[900]!,
                       ),
                     ],
@@ -195,6 +195,7 @@ class _CrewManagementDialogState extends State<CrewManagementDialog> {
 
   /// 构建职业统计项
   Widget _buildRoleStat(CrewRole role, int count, Color color) {
+    final l10n = AppLocalizations.of(context)!;
     return Column(
       children: [
         Text(
@@ -211,7 +212,7 @@ class _CrewManagementDialogState extends State<CrewManagementDialog> {
           ),
         ),
         Text(
-          '$count 人',
+          l10n.peopleCount(count),
           style: TextStyle(
             color: color,
             fontSize: 16,

@@ -128,7 +128,7 @@ class StatusBar extends StatelessWidget {
           flex: 1,
           child: _buildStatItem(
             icon: Icons.build_circle,
-            label: '${gameState.autoRepairPerSecond.toStringAsFixed(1)}/${l10n.hours(1).replaceAll('1', '')}', // Hack to get localized "/s" or similar if needed, but using "/秒" in ARB for now. Wait, I used {count}小时. Let's just use localized string if I had it.
+            label: '${gameState.autoRepairPerSecond.toStringAsFixed(1)}${l10n.perSecond}',
             iconSize: iconSize,
             fontSize: fontSize,
             valueColor: Colors.orangeAccent,
@@ -140,7 +140,7 @@ class StatusBar extends StatelessWidget {
           flex: 1,
           child: _buildStatItem(
             icon: Icons.gps_fixed,
-            label: '${gameState.fireRatePerSecond.toStringAsFixed(1)} ${l10n.fireRate.split(' ')[0]}/秒', // Hacky but works for now
+            label: '${gameState.fireRatePerSecond.toStringAsFixed(1)}${l10n.shotsPerSecond}',
             iconSize: iconSize,
             fontSize: fontSize,
             valueColor: Colors.red,
@@ -152,7 +152,7 @@ class StatusBar extends StatelessWidget {
           flex: 1,
           child: _buildStatItem(
             icon: Icons.sailing,
-            label: '${gameState.currentSpeed.toStringAsFixed(1)}节',
+            label: '${gameState.currentSpeed.toStringAsFixed(1)}${l10n.knots}',
             iconSize: iconSize,
             fontSize: fontSize,
             valueColor: Colors.cyan,

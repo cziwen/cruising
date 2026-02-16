@@ -859,6 +859,114 @@ abstract class AppLocalizations {
   /// In zh, this message translates to:
   /// **'{count}小时'**
   String hours(Object count);
+
+  /// No description provided for @knots.
+  ///
+  /// In zh, this message translates to:
+  /// **'节'**
+  String get knots;
+
+  /// No description provided for @perSecond.
+  ///
+  /// In zh, this message translates to:
+  /// **'/秒'**
+  String get perSecond;
+
+  /// No description provided for @shotsPerSecond.
+  ///
+  /// In zh, this message translates to:
+  /// **'炮/秒'**
+  String get shotsPerSecond;
+
+  /// No description provided for @peopleCount.
+  ///
+  /// In zh, this message translates to:
+  /// **'{count} 人'**
+  String peopleCount(Object count);
+
+  /// No description provided for @tapAnywhereToContinueHint.
+  ///
+  /// In zh, this message translates to:
+  /// **'-- 点击任意处继续 --'**
+  String get tapAnywhereToContinueHint;
+
+  /// No description provided for @notificationSalaryPaid.
+  ///
+  /// In zh, this message translates to:
+  /// **'已支付今日船员工资 (共 {amount} 💰)'**
+  String notificationSalaryPaid(Object amount);
+
+  /// No description provided for @notificationSalaryUnpaid.
+  ///
+  /// In zh, this message translates to:
+  /// **'金币不足！{names} 等船员未收到工资，士气下降'**
+  String notificationSalaryUnpaid(Object names);
+
+  /// No description provided for @notificationEnteredSea.
+  ///
+  /// In zh, this message translates to:
+  /// **'已进入海上'**
+  String get notificationEnteredSea;
+
+  /// No description provided for @notificationArrivedAtPort.
+  ///
+  /// In zh, this message translates to:
+  /// **'已到达 {portName}'**
+  String notificationArrivedAtPort(Object portName);
+
+  /// No description provided for @notificationEncounterEnemyShip.
+  ///
+  /// In zh, this message translates to:
+  /// **'遭遇敌船！准备战斗'**
+  String get notificationEncounterEnemyShip;
+
+  /// No description provided for @notificationShipDamaged.
+  ///
+  /// In zh, this message translates to:
+  /// **'船只受损：耐久度下降了 {amount}'**
+  String notificationShipDamaged(Object amount);
+
+  /// No description provided for @notificationShipRepaired.
+  ///
+  /// In zh, this message translates to:
+  /// **'船只修复：耐久度恢复了 {amount}'**
+  String notificationShipRepaired(Object amount);
+
+  /// No description provided for @notificationGoldGained.
+  ///
+  /// In zh, this message translates to:
+  /// **'获得金币：{amount} 💰'**
+  String notificationGoldGained(Object amount);
+
+  /// No description provided for @notificationGoldLost.
+  ///
+  /// In zh, this message translates to:
+  /// **'损失金币：{amount} 💰'**
+  String notificationGoldLost(Object amount);
+
+  /// No description provided for @notificationMerchantTradeStart.
+  ///
+  /// In zh, this message translates to:
+  /// **'正在与商船进行物资交换...'**
+  String get notificationMerchantTradeStart;
+
+  /// No description provided for @notificationGoodsGained.
+  ///
+  /// In zh, this message translates to:
+  /// **'获得物资：{goodsName} x{count}'**
+  String notificationGoodsGained(Object count, Object goodsName);
+
+  /// No description provided for @notificationCargoFullCannotGetGoods.
+  ///
+  /// In zh, this message translates to:
+  /// **'货舱已满，无法获取物资'**
+  String get notificationCargoFullCannotGetGoods;
+
+  /// No description provided for @notificationCourseChangedToNearestPort.
+  ///
+  /// In zh, this message translates to:
+  /// **'航道改变，正转向最近的港口：{portName}'**
+  String notificationCourseChangedToNearestPort(Object portName);
 }
 
 class _AppLocalizationsDelegate

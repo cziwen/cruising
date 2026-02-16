@@ -133,9 +133,9 @@ class SeaEventSystem extends ChangeNotifier {
           }
           _gameState!.ship.durability = (_gameState!.ship.durability + delta).clamp(0, _gameState!.ship.maxDurability);
           if (delta < 0) {
-            NotificationSystem.instance.showNotification('船只受损：耐久度下降了 ${delta.abs()}');
+            NotificationSystem.instance.showNotificationL10n((l) => l.notificationShipDamaged(delta.abs()));
           } else if (delta > 0) {
-            NotificationSystem.instance.showNotification('船只修复：耐久度恢复了 $delta');
+            NotificationSystem.instance.showNotificationL10n((l) => l.notificationShipRepaired(delta));
           }
           break;
           
@@ -150,10 +150,10 @@ class SeaEventSystem extends ChangeNotifier {
           }
           if (delta > 0) {
             _gameState!.addGold(delta);
-            NotificationSystem.instance.showNotification('获得金币：$delta 💰');
+            NotificationSystem.instance.showNotificationL10n((l) => l.notificationGoldGained(delta));
           } else if (delta < 0) {
             _gameState!.spendGold(delta.abs());
-            NotificationSystem.instance.showNotification('损失金币：${delta.abs()} 💰');
+            NotificationSystem.instance.showNotificationL10n((l) => l.notificationGoldLost(delta.abs()));
           }
           break;
           
@@ -197,7 +197,7 @@ class SeaEventSystem extends ChangeNotifier {
 
   Port _handleMerchantTrade() {
     // 触发海上商船交易界面
-    NotificationSystem.instance.showNotification('正在与商船进行物资交换...');
+    NotificationSystem.instance.showNotificationL10n((l) => l.notificationMerchantTradeStart);
     
     final merchantPort = _generateMerchantPort();
     _gameState?.addPort(merchantPort);
@@ -259,9 +259,9 @@ class SeaEventSystem extends ChangeNotifier {
 
     bool success = _gameState!.addToInventory(goods.id, count);
     if (success) {
-      NotificationSystem.instance.showNotification('获得物资：${goods.name} x$count');
+      NotificationSystem.instance.showNotificationL10n((l) => l.notificationGoodsGained(goods.name, count));
     } else {
-      NotificationSystem.instance.showNotification('货舱已满，无法获取物资');
+      NotificationSystem.instance.showNotificationL10n((l) => l.notificationCargoFullCannotGetGoods);
     }
   }
 
@@ -273,7 +273,7 @@ class SeaEventSystem extends ChangeNotifier {
 
     final targetPort = _gameState!.ports.firstWhere((p) => p.id == targetPortId);
     
-    NotificationSystem.instance.showNotification('航道改变，正转向最近的港口：${targetPort.name}');
+    NotificationSystem.instance.showNotificationL10n((l) => l.notificationCourseChangedToNearestPort(targetPort.name));
     _gameState!.startTravelToPort(targetPortId, minDistance: 480);
   }
 
