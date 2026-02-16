@@ -8,7 +8,7 @@
 
 | 参数 | 默认值 | 说明 |
 | :--- | :--- | :--- |
-| `seaEventCooldownHours` | 4 游戏小时 | 两个事件之间的最小间隔。 |
+| `seaEventCooldownHours` | 各事件独立冷却（8h-72h） | 无全局冷却，各事件按自身 `cooldownHours` 独立计时。 |
 | `maxEventsPerVoyage` | 3 次 | 单次航行（从港口 A 到港口 B）的最大事件触发次数。 |
 | `minProgress` | 10% | 航行进度低于此值时不触发事件（刚出港）。 |
 | `maxProgress` | 90% | 航行进度高于此值时不触发事件（快到港）。 |

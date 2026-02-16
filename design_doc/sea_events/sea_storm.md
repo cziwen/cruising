@@ -16,14 +16,13 @@
 
 ## Effects
 - **选项 1 (全速)**：
-  - `durability -= random(20, 50)`
-  - `travelProgress += 0.05` (获得额外进度)
+  - `durabilityChange: [-30, -60]`
+  - `progressChange: 0.1`（获得 10% 额外进度）
 - **选项 2 (减速)**：
-  - `durability -= random(5, 10)`
-  - `currentSpeedMultiplier = 0.5` (持续 6 游戏小时)
+  - `durabilityChange: [-5, -10]`
+  - `speedMultiplier: 0.5`（持续 12 游戏小时）
 - **选项 3 (转向)**：
-  - `destinationPort = nearestPort`
-  - `travelProgress = 0.5` (重置进度到一半)
+  - `changeDestination: "nearest"`（转向最近的已知港口）
 
 ## UI
 - **呈现方式**：全屏半透明灰色滤镜 + 强降雨动画效果。
