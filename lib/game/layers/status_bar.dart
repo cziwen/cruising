@@ -16,36 +16,28 @@ class StatusBar extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final screenWidth = MediaQuery.of(context).size.width;
-    final fontSize = (screenWidth / 20).clamp(10.0, 14.0); // 自适应字体大小
-    final iconSize = (screenWidth / 22).clamp(16.0, 20.0); // 自适应图标大小
+    final fontSize = (screenWidth / 20).clamp(10.0, 16.0); // 自适应字体大小
+    final iconSize = (screenWidth / 22).clamp(16.0, 22.0); // 自适应图标大小
 
-    return SafeArea(
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-        decoration: BoxDecoration(
-          color: Colors.black.withValues(alpha: 0.2),
-          borderRadius: const BorderRadius.only(
-            topLeft: Radius.circular(12),
-            topRight: Radius.circular(12),
-          ),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.3),
-              blurRadius: 8,
-              offset: const Offset(0, -2),
-            ),
-          ],
+    return Container(
+      height: 65,
+      padding: const EdgeInsets.symmetric(horizontal: 20),
+      decoration: const BoxDecoration(
+        image: DecorationImage(
+          image: AssetImage('assets/images/ui/HUD_bot_bg.png'),
+          fit: BoxFit.fill,
         ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            // 第一行：核心资源
-            _buildFirstRow(context, fontSize, iconSize, l10n),
-            const SizedBox(height: 6),
-            // 第二行：运营与航行状态
-            _buildSecondRow(context, fontSize, iconSize, l10n),
-          ],
-        ),
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          // 第一行：核心资源
+          _buildFirstRow(context, fontSize, iconSize, l10n),
+          const SizedBox(height: 2),
+          // 第二行：运营与航行状态
+          _buildSecondRow(context, fontSize, iconSize, l10n),
+        ],
       ),
     );
   }
@@ -170,30 +162,38 @@ class StatusBar extends StatelessWidget {
     required double fontSize,
     required Color valueColor,
   }) {
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        Icon(
-          icon,
-          size: iconSize,
-          color: Colors.white.withValues(alpha: 0.9),
-        ),
-        const SizedBox(width: 3),
-        Flexible(
-          child: Text(
-            label,
-            style: TextStyle(
-              color: valueColor,
-              fontSize: fontSize,
-              fontWeight: FontWeight.bold,
-            ),
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            textAlign: TextAlign.center,
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 1),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 1),
+      decoration: BoxDecoration(
+        color: Colors.black.withValues(alpha: 0.3),
+        borderRadius: BorderRadius.circular(4),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(
+            icon,
+            size: iconSize,
+            color: Colors.white.withValues(alpha: 0.9),
           ),
-        ),
-      ],
+          const SizedBox(width: 3),
+          Flexible(
+            child: Text(
+              label,
+              style: TextStyle(
+                color: valueColor,
+                fontSize: fontSize,
+                fontWeight: FontWeight.bold,
+              ),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              textAlign: TextAlign.center,
+            ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -212,28 +212,36 @@ class StatusBar extends StatelessWidget {
       locationText = l10n.unknownLocation;
     }
 
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Icon(
-          Icons.location_on,
-          size: iconSize,
-          color: Colors.white.withValues(alpha: 0.9),
-        ),
-        const SizedBox(width: 4),
-        Flexible(
-          child: Text(
-            locationText,
-            style: TextStyle(
-              color: Colors.white,
-              fontSize: fontSize,
-              fontWeight: FontWeight.bold,
-            ),
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 2),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 1),
+      decoration: BoxDecoration(
+        color: Colors.black.withValues(alpha: 0.3),
+        borderRadius: BorderRadius.circular(4),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(
+            Icons.location_on,
+            size: iconSize,
+            color: Colors.white.withValues(alpha: 0.9),
           ),
-        ),
-      ],
+          const SizedBox(width: 4),
+          Flexible(
+            child: Text(
+              locationText,
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: fontSize,
+                fontWeight: FontWeight.bold,
+              ),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+        ],
+      ),
     );
   }
 
