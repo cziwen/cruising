@@ -77,6 +77,10 @@ flutter:
     - assets/paper_ui/Sprites/Paper_UI_Pack/Plain/6_Player_HUD/
     - assets/paper_ui/Sprites/Paper_UI_Pack/Plain/3_Item_Holder/
     - assets/paper_ui/Sprites/Paper_UI_Pack/Plain/8_Shop/
+    - assets/paper_ui/Sprites/Day_n_Night_Cycle/Full/1_Dawn/
+    - assets/paper_ui/Sprites/Day_n_Night_Cycle/Full/2_Day/
+    - assets/paper_ui/Sprites/Day_n_Night_Cycle/Full/3_Noon/
+    - assets/paper_ui/Sprites/Day_n_Night_Cycle/Full/4_Night/
     - assets/music/main_menu/
     - assets/music/combat/
     - assets/music/cruising/

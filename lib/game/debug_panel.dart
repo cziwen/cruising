@@ -137,6 +137,40 @@ class _DebugPanelState extends State<DebugPanel>
                     ),
                   ),
                   const SizedBox(height: 8),
+
+                  // 显示精准时间
+                  if (widget.gameState != null)
+                    AnimatedBuilder(
+                      animation: widget.gameState!,
+                      builder: (context, child) {
+                        return Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                          margin: const EdgeInsets.only(bottom: 8),
+                          decoration: BoxDecoration(
+                            color: Colors.white.withValues(alpha: 0.1),
+                            borderRadius: BorderRadius.circular(4),
+                          ),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              const Text(
+                                '精准时间',
+                                style: TextStyle(color: Colors.white70, fontSize: 12),
+                              ),
+                              Text(
+                                '${widget.gameState!.dayNightSystem.currentTime} (${widget.gameState!.dayNightSystem.seasonDateString})',
+                                style: const TextStyle(
+                                  color: Colors.orange,
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.bold,
+                                  fontFamily: 'monospace',
+                                ),
+                              ),
+                            ],
+                          ),
+                        );
+                      },
+                    ),
                   
                   // 游戏内调试功能
                   if (widget.gameState != null && !widget.gameState!.isMenuMode) ...[

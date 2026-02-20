@@ -9,6 +9,7 @@ import '../pixel_progress_bar.dart';
 import '../../systems/music_system.dart';
 import '../../systems/quest_system.dart';
 import 'status_bar.dart';
+import 'animated_clock.dart';
 
 /// UI层 - 界面元素（按钮、菜单、信息显示等）
 class UILayer extends StatefulWidget {
@@ -122,7 +123,17 @@ class _UILayerState extends State<UILayer> {
           bottom: 0,
           left: 0,
           right: 0,
-          child: StatusBar(gameState: widget.gameState),
+          child: Center(
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                AnimatedClock(gameState: widget.gameState),
+                const SizedBox(width: 8),
+                StatusBar(gameState: widget.gameState),
+              ],
+            ),
+          ),
         ),
         
         // 岛屿周围的交互按钮

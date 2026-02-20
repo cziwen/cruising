@@ -5,7 +5,6 @@ import 'layers/near_background_layer.dart';
 import 'layers/ship_layer.dart';
 import 'layers/foreground_wave_layer.dart';
 import 'layers/ui_layer.dart';
-import 'layers/time_display.dart';
 import 'layers/screen_effect_layer.dart';
 import 'layers/notification_overlay.dart';
 
@@ -73,8 +72,6 @@ class GameScene extends StatelessWidget {
                   onShipyardPressed: onShipyardPressed,
                   onSettingsPressed: onSettingsPressed,
                 ),
-                // Layer 3.5: 时间显示（左上角）
-                TimeDisplay(gameState: gameState),
               ],
             ),
           ),
