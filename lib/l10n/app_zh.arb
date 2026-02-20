@@ -154,5 +154,19 @@
   "notificationMerchantTradeStart": "正在与商船进行物资交换...",
   "notificationGoodsGained": "获得物资：{goodsName} x{count}",
   "notificationCargoFullCannotGetGoods": "货舱已满，无法获取物资",
-  "notificationCourseChangedToNearestPort": "航道改变，正转向最近的港口：{portName}"
+  "notificationCourseChangedToNearestPort": "航道改变，正转向最近的港口：{portName}",
+  "roleSailor": "水手",
+  "roleShipwright": "船工",
+  "roleGunner": "炮手",
+  "roleUnassigned": "未分配",
+  "weatherCalm": "平静",
+  "weatherLightWind": "小风",
+  "weatherStorm": "风暴",
+  "seasonSpring": "春",
+  "seasonSummer": "夏",
+  "seasonAutumn": "秋",
+  "seasonWinter": "冬",
+  "autoSave": "自动存档",
+  "saveSlot": "存档 {id}",
+  "emptySlot": "空槽位"
 }

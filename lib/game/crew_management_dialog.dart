@@ -204,7 +204,7 @@ class _CrewManagementDialogState extends State<CrewManagementDialog> {
         ),
         const SizedBox(height: 4),
         Text(
-          role.displayName,
+          role.getDisplayName(l10n),
           style: const TextStyle(
             color: Color(0xFF5D4037),
             fontSize: 12,
@@ -437,6 +437,7 @@ class _CrewManagementDialogState extends State<CrewManagementDialog> {
           color: _getRoleColor(member.assignedRole),
         ),
         selectedItemBuilder: (BuildContext context) {
+          final l10n = AppLocalizations.of(context)!;
           return CrewRole.values.map((role) {
             return Row(
               mainAxisSize: MainAxisSize.min,
@@ -444,7 +445,7 @@ class _CrewManagementDialogState extends State<CrewManagementDialog> {
                 Text(role.emoji, style: const TextStyle(fontSize: 18)),
                 const SizedBox(width: 6),
                 Text(
-                  role.displayName,
+                  role.getDisplayName(l10n),
                   style: const TextStyle(fontSize: 14),
                 ),
               ],
@@ -452,6 +453,7 @@ class _CrewManagementDialogState extends State<CrewManagementDialog> {
           }).toList();
         },
         items: CrewRole.values.map((role) {
+          final l10n = AppLocalizations.of(context)!;
           return DropdownMenuItem<CrewRole>(
             value: role,
             child: Row(
@@ -459,7 +461,7 @@ class _CrewManagementDialogState extends State<CrewManagementDialog> {
               children: [
                 Text(role.emoji, style: const TextStyle(fontSize: 18)),
                 const SizedBox(width: 8),
-                Text(role.displayName, style: TextStyle(color: _getRoleColor(role), fontWeight: FontWeight.bold)),
+                Text(role.getDisplayName(l10n), style: TextStyle(color: _getRoleColor(role), fontWeight: FontWeight.bold)),
               ],
             ),
           );

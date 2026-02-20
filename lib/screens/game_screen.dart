@@ -274,6 +274,9 @@ class _GameScreenState extends State<GameScreen> {
 
         // 让任务文案使用新的 quests_{lang}.json 内容
         QuestSystem.instance.updateLocalizations();
+
+        // 让海上事件使用新的 sea_events_{lang}.json 内容
+        SeaEventSystem.instance.updateLocalizations();
       } finally {
         _isReloadingLocaleConfig = false;
       }

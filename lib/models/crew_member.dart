@@ -1,14 +1,28 @@
+import '../l10n/app_localizations.dart';
+
 /// 船员职业枚举
 enum CrewRole {
-  sailor('水手', '⛵'),
-  shipwright('船工', '🔧'),
-  gunner('炮手', '🔫'),
-  unassigned('未分配', '❌');
+  sailor('⛵'),
+  shipwright('🔧'),
+  gunner('🔫'),
+  unassigned('❌');
 
-  final String displayName;
   final String emoji;
 
-  const CrewRole(this.displayName, this.emoji);
+  const CrewRole(this.emoji);
+
+  String getDisplayName(AppLocalizations l10n) {
+    switch (this) {
+      case CrewRole.sailor:
+        return l10n.roleSailor;
+      case CrewRole.shipwright:
+        return l10n.roleShipwright;
+      case CrewRole.gunner:
+        return l10n.roleGunner;
+      case CrewRole.unassigned:
+        return l10n.roleUnassigned;
+    }
+  }
 
   String toJson() => name;
 

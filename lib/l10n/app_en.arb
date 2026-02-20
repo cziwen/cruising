@@ -145,5 +145,19 @@
   "notificationMerchantTradeStart": "Trading goods with a merchant ship...",
   "notificationGoodsGained": "Gained materials: {goodsName} x{count}",
   "notificationCargoFullCannotGetGoods": "Cargo full, cannot obtain materials",
-  "notificationCourseChangedToNearestPort": "Course changed, turning to the nearest port: {portName}"
+  "notificationCourseChangedToNearestPort": "Course changed, turning to the nearest port: {portName}",
+  "roleSailor": "Sailor",
+  "roleShipwright": "Shipwright",
+  "roleGunner": "Gunner",
+  "roleUnassigned": "Unassigned",
+  "weatherCalm": "Calm",
+  "weatherLightWind": "Light Wind",
+  "weatherStorm": "Storm",
+  "seasonSpring": "Spring",
+  "seasonSummer": "Summer",
+  "seasonAutumn": "Autumn",
+  "seasonWinter": "Winter",
+  "autoSave": "Auto Save",
+  "saveSlot": "Save {id}",
+  "emptySlot": "Empty Slot"
 }

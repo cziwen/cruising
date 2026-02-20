@@ -67,6 +67,66 @@
     ]
   },
   {
+    "id": "sea_reef_grounding",
+    "title": "Reef Grounding",
+    "description": "With a dull thud, the ship's bottom vibrates violently. Oh no, we've hit an uncharted reef!",
+    "type": "decision",
+    "probability": 0.05,
+    "cooldownHours": 72,
+    "assetPath": "assets/images/events/reef_grounding.png",
+    "choices": [
+      {
+        "id": "reef_force_off",
+        "label": "Force off: Try to dash out of the reef area.",
+        "effects": [
+          { "type": "durabilityChange", "value": [-30, -60] },
+          { "type": "timeSkip", "value": 1 }
+        ]
+      },
+      {
+        "id": "reef_wait_tide",
+        "label": "Wait for tide: Wait in place for the water level to rise and escape safely.",
+        "effects": [
+          { "type": "timeSkip", "value": 6 },
+          { "type": "durabilityChange", "value": [-5, -10] }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "sea_merchant_ship",
+    "title": "Merchant Encounter",
+    "description": "On the mirror-like sea, a merchant ship flying a neutral flag is slowly approaching. They sent flag signals, seemingly wanting to exchange some supplies.",
+    "type": "decision",
+    "probability": 0.10,
+    "cooldownHours": 24,
+    "minProgress": 0.2,
+    "maxProgress": 0.8,
+    "assetPath": "assets/images/events/merchant_ship.png",
+    "choices": [
+      {
+        "id": "merchant_trade",
+        "label": "Stop for trade: Enter a temporary trading interface.",
+        "effects": [
+          { "type": "timeSkip", "value": 1 }
+        ]
+      },
+      {
+        "id": "merchant_ignore",
+        "label": "Polite refusal: Continue sailing without wasting time.",
+        "effects": []
+      },
+      {
+        "id": "merchant_raid",
+        "label": "Forceful raid: Enter combat and plunder supplies (Dangerous!).",
+        "condition": "combat_unlocked",
+        "effects": [
+          { "type": "triggerCombat", "value": "merchant" }
+        ]
+      }
+    ]
+  },
+  {
     "id": "sea_tailwind",
     "title": "Tailwind",
     "description": "A strong and steady trade wind blows from the stern, filling the sails. This is a great opportunity to speed up!",
@@ -80,6 +140,24 @@
         "label": "Great!",
         "effects": [
           { "type": "speedMultiplier", "value": 1.5, "durationHours": 12 }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "sea_headwind",
+    "title": "Headwind",
+    "description": "The wind direction suddenly shifts to a headwind, and it's quite strong. Sailing becomes difficult, and speed drops significantly.",
+    "type": "notification",
+    "probability": 0.12,
+    "cooldownHours": 8,
+    "assetPath": "assets/images/events/headwind.png",
+    "choices": [
+      {
+        "id": "headwind_ok",
+        "label": "Bad luck...",
+        "effects": [
+          { "type": "speedMultiplier", "value": 0.7, "durationHours": 12 }
         ]
       }
     ]

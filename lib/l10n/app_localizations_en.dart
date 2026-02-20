@@ -508,4 +508,48 @@ class AppLocalizationsEn extends AppLocalizations {
   String notificationCourseChangedToNearestPort(Object portName) {
     return 'Course changed, turning to the nearest port: $portName';
   }
+
+  @override
+  String get roleSailor => 'Sailor';
+
+  @override
+  String get roleShipwright => 'Shipwright';
+
+  @override
+  String get roleGunner => 'Gunner';
+
+  @override
+  String get roleUnassigned => 'Unassigned';
+
+  @override
+  String get weatherCalm => 'Calm';
+
+  @override
+  String get weatherLightWind => 'Light Wind';
+
+  @override
+  String get weatherStorm => 'Storm';
+
+  @override
+  String get seasonSpring => 'Spring';
+
+  @override
+  String get seasonSummer => 'Summer';
+
+  @override
+  String get seasonAutumn => 'Autumn';
+
+  @override
+  String get seasonWinter => 'Winter';
+
+  @override
+  String get autoSave => 'Auto Save';
+
+  @override
+  String saveSlot(Object id) {
+    return 'Save $id';
+  }
+
+  @override
+  String get emptySlot => 'Empty Slot';
 }

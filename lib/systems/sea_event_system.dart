@@ -36,6 +36,26 @@ class SeaEventSystem extends ChangeNotifier {
     _eventsThisVoyage = 0;
   }
 
+  /// 更新本地化信息（从 GameConfigLoader 重新加载事件列表）
+  void updateLocalizations() {
+    final localizedEvents = GameConfigLoader().seaEventsList;
+    if (localizedEvents.isEmpty) return;
+
+    _allEvents.clear();
+    _allEvents.addAll(localizedEvents);
+    
+    // 如果当前有正在进行的事件，也需要更新它的引用以显示正确语言
+    if (_activeEvent != null) {
+      try {
+        _activeEvent = _allEvents.firstWhere((e) => e.id == _activeEvent!.id);
+      } catch (_) {
+        // 如果没找到，保持原样
+      }
+    }
+
+    notifyListeners();
+  }
+
   /// 检查并尝试触发海上事件
   /// [currentProgress] 航行进度 (0.0 - 1.0)
   /// [gameHours] 当前游戏内累计小时数

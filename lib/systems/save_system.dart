@@ -4,6 +4,7 @@ import 'package:flutter/foundation.dart';
 import 'package:intl/intl.dart';
 import 'package:path_provider/path_provider.dart';
 import '../game/game_state.dart';
+import '../l10n/app_localizations.dart';
 
 /// 存档槽位元数据
 class SaveSlot {
@@ -33,7 +34,13 @@ class SaveSlot {
   }
 
   bool get isAutoSave => id == 0;
-  String get displayName => isAutoSave ? '自动存档' : '存档 $id';
+  String getDisplayName(AppLocalizations l10n) {
+    if (isAutoSave) {
+      return l10n.autoSave;
+    } else {
+      return l10n.saveSlot(id);
+    }
+  }
 
   Map<String, dynamic> toJson() {
     return {

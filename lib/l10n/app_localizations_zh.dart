@@ -502,4 +502,48 @@ class AppLocalizationsZh extends AppLocalizations {
   String notificationCourseChangedToNearestPort(Object portName) {
     return '航道改变，正转向最近的港口：$portName';
   }
+
+  @override
+  String get roleSailor => '水手';
+
+  @override
+  String get roleShipwright => '船工';
+
+  @override
+  String get roleGunner => '炮手';
+
+  @override
+  String get roleUnassigned => '未分配';
+
+  @override
+  String get weatherCalm => '平静';
+
+  @override
+  String get weatherLightWind => '小风';
+
+  @override
+  String get weatherStorm => '风暴';
+
+  @override
+  String get seasonSpring => '春';
+
+  @override
+  String get seasonSummer => '夏';
+
+  @override
+  String get seasonAutumn => '秋';
+
+  @override
+  String get seasonWinter => '冬';
+
+  @override
+  String get autoSave => '自动存档';
+
+  @override
+  String saveSlot(Object id) {
+    return '存档 $id';
+  }
+
+  @override
+  String get emptySlot => '空槽位';
 }

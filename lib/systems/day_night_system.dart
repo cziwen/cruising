@@ -1,15 +1,27 @@
 import 'dart:math';
 import 'package:flutter/material.dart';
 
+import '../l10n/app_localizations.dart';
+
 /// 季节枚举
 enum Season {
-  spring('春'),
-  summer('夏'),
-  autumn('秋'),
-  winter('冬');
+  spring,
+  summer,
+  autumn,
+  winter;
 
-  final String displayName;
-  const Season(this.displayName);
+  String getDisplayName(AppLocalizations l10n) {
+    switch (this) {
+      case Season.spring:
+        return l10n.seasonSpring;
+      case Season.summer:
+        return l10n.seasonSummer;
+      case Season.autumn:
+        return l10n.seasonAutumn;
+      case Season.winter:
+        return l10n.seasonWinter;
+    }
+  }
 }
 
 /// 昼夜系统管理器
@@ -128,8 +140,8 @@ class DayNightSystem {
   }
 
   /// 获取格式化的季节日期字符串（如"春 15日"）
-  String get seasonDateString {
-    return '${currentSeason.displayName} $currentDayOfSeason日';
+  String getSeasonDateString(AppLocalizations l10n) {
+    return '${currentSeason.getDisplayName(l10n)} $currentDayOfSeason日';
   }
   
   /// 获取当前昼夜周期进度（0.0-1.0）

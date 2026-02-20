@@ -157,13 +157,17 @@ class _DebugPanelState extends State<DebugPanel>
                                 '精准时间',
                                 style: TextStyle(color: Colors.white70, fontSize: 12),
                               ),
-                              Text(
-                                '${widget.gameState!.dayNightSystem.currentTime} (${widget.gameState!.dayNightSystem.seasonDateString})',
-                                style: const TextStyle(
-                                  color: Colors.orange,
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.bold,
-                                  fontFamily: 'monospace',
+                              const SizedBox(width: 8),
+                              Expanded(
+                                child: Text(
+                                  '${widget.gameState!.dayNightSystem.currentTime} (${widget.gameState!.dayNightSystem.getSeasonDateString(l10n)})',
+                                  textAlign: TextAlign.right,
+                                  style: const TextStyle(
+                                    color: Colors.orange,
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.bold,
+                                    fontFamily: 'monospace',
+                                  ),
                                 ),
                               ),
                             ],
@@ -386,10 +390,13 @@ class _DebugPanelState extends State<DebugPanel>
                         Consumer<LocaleProvider>(
                           builder: (context, localeProvider, child) {
                             return TextButton(
-                              onPressed: () {
+                              onPressed: () async {
                                 localeProvider.toggleLocale();
-                                // 重新加载配置
-                                GameConfigLoader().loadConfig(locale: localeProvider.locale);
+                                // 重新加载配置并显式等待，确保 UI 刷新时数据已加载
+                                await GameConfigLoader().loadConfig(locale: localeProvider.locale);
+                                if (context.mounted) {
+                                  setState(() {});
+                                }
                               },
                               child: Text(
                                 localeProvider.locale.languageCode == 'zh' ? '中文' : 'English',

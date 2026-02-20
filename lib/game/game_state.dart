@@ -18,16 +18,28 @@ import '../systems/quest_system.dart';
 import '../systems/sea_event_system.dart';
 import '../utils/game_config_loader.dart';
 
+import '../l10n/app_localizations.dart';
+
 /// 天气状况枚举
 enum WeatherCondition {
-  calm('平静', 0), // 无影响
-  lightWind('小风', 1), // 轻微加速
-  storm('风暴', -2); // 减速
+  calm(0), // 无影响
+  lightWind(1), // 轻微加速
+  storm(-2); // 减速
 
-  final String displayName;
   final int speedModifier;
 
-  const WeatherCondition(this.displayName, this.speedModifier);
+  const WeatherCondition(this.speedModifier);
+
+  String getDisplayName(AppLocalizations l10n) {
+    switch (this) {
+      case WeatherCondition.calm:
+        return l10n.weatherCalm;
+      case WeatherCondition.lightWind:
+        return l10n.weatherLightWind;
+      case WeatherCondition.storm:
+        return l10n.weatherStorm;
+    }
+  }
 }
 
 /// 游戏状态管理

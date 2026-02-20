@@ -1,0 +1,33 @@
+{
+  "firstNames": ["Jack", "Tom", "Johnny", "Edward", "William", "James", "Charles", "Robert", "Lee", "Zhang", "Liu", "Wang", "Chen", "Yang", "Zhao", "Huang"],
+  "lastNames": ["Sparrow", "Sawyer", "Morgan", "Teach", "Drake", "Kidd", "Flint", "Rayleigh", "Baker", "Smith", "Johnson"],
+  "personalities": ["Brave", "Cautious", "Optimistic", "Taciturn", "Enthusiastic", "Eccentric", "Loyal", "Greedy", "Witty", "Steady"],
+  "specialties": ["Sailing", "Repairing", "Cannoneering", "Cooking", "Medicine", "Fighting", "Observation", "Commanding"],
+  "likedItems": ["Rum", "Gold", "Tobacco", "Sea Map", "Lucky Coin", "Compass", "Salted Fish", "Old Pocket Watch"],
+  "descriptionFormats": [
+    "This is a [personality] person, he is good at [specialty], and likes [likedItem] most.",
+    "[personality] is his middle name. He is proficient in [specialty], and often carries [likedItem] with him.",
+    "In the port, everyone knows he is very [personality]. He has superb [specialty] skills, if you give him [likedItem], he will be very happy.",
+    "He looks very [personality], but when it comes to [specialty], he talks endlessly. He always dreams of getting [likedItem]."
+  ],
+  "avatars": [
+    "assets/images/avatar/1_1767148766855.png",
+    "assets/images/avatar/1_1767148770287.png",
+    "assets/images/avatar/1_1767148773566.png",
+    "assets/images/avatar/1_1767148777561.png",
+    "assets/images/avatar/1_1767148785196.png",
+    "assets/images/avatar/1_1767148788896.png",
+    "assets/images/avatar/1_1767148791598.png",
+    "assets/images/avatar/1_1767148795725.png",
+    "assets/images/avatar/1_1767148799338.png",
+    "assets/images/avatar/1_1767148802533.png",
+    "assets/images/avatar/1_1767148807937.png",
+    "assets/images/avatar/1_1767148810579.png",
+    "assets/images/avatar/1_1767148813780.png",
+    "assets/images/avatar/1_1767148817392.png",
+    "assets/images/avatar/1_1767148820299.png",
+    "assets/images/avatar/1_1767148822829.png",
+    "assets/images/avatar/1_1767148827537.png",
+    "assets/images/avatar/1_1767148899954.png"
+  ]
+}

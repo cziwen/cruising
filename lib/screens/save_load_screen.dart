@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../l10n/app_localizations.dart';
 import '../systems/save_system.dart';
 import '../game/game_state.dart';
 import '../game/paper_button.dart';
@@ -159,9 +160,10 @@ class _SaveLoadScreenState extends State<SaveLoadScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Scaffold(
       appBar: AppBar(
-        title: Text(widget.mode == SaveLoadMode.save ? '保存游戏' : '读取游戏'),
+        title: Text(widget.mode == SaveLoadMode.save ? l10n.saveGame : l10n.loadGame),
         backgroundColor: Colors.blue[900],
         foregroundColor: Colors.white,
       ),
@@ -210,7 +212,7 @@ class _SaveLoadScreenState extends State<SaveLoadScreen> {
                   orElse: () => SaveSlot(
                     id: slotId, 
                     timestamp: '', 
-                    portName: '空槽位', 
+                    portName: l10n.emptySlot, 
                     gold: 0,
                     day: 1,
                   ),
@@ -245,7 +247,7 @@ class _SaveLoadScreenState extends State<SaveLoadScreen> {
                       ),
                     ),
                     title: Text(
-                      isEmpty ? '空槽位' : slotData.displayName,
+                      isEmpty ? l10n.emptySlot : slotData.getDisplayName(l10n),
                       style: const TextStyle(fontWeight: FontWeight.bold),
                     ),
                     subtitle: isEmpty 
@@ -293,8 +295,8 @@ class _SaveLoadScreenState extends State<SaveLoadScreen> {
                             }
                           },
                           label: widget.mode == SaveLoadMode.save 
-                                ? (isEmpty ? '保存' : '覆盖') 
-                                : '读取',
+                                ? (isEmpty ? l10n.saveGame : l10n.confirm) 
+                                : l10n.loadGame,
                           style: widget.mode == SaveLoadMode.save 
                                 ? (isAutoSave ? PaperButtonStyle.brown : PaperButtonStyle.blue)
                                 : (isEmpty ? PaperButtonStyle.brown : PaperButtonStyle.green),

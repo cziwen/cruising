@@ -967,6 +967,90 @@ abstract class AppLocalizations {
   /// In zh, this message translates to:
   /// **'航道改变，正转向最近的港口：{portName}'**
   String notificationCourseChangedToNearestPort(Object portName);
+
+  /// No description provided for @roleSailor.
+  ///
+  /// In zh, this message translates to:
+  /// **'水手'**
+  String get roleSailor;
+
+  /// No description provided for @roleShipwright.
+  ///
+  /// In zh, this message translates to:
+  /// **'船工'**
+  String get roleShipwright;
+
+  /// No description provided for @roleGunner.
+  ///
+  /// In zh, this message translates to:
+  /// **'炮手'**
+  String get roleGunner;
+
+  /// No description provided for @roleUnassigned.
+  ///
+  /// In zh, this message translates to:
+  /// **'未分配'**
+  String get roleUnassigned;
+
+  /// No description provided for @weatherCalm.
+  ///
+  /// In zh, this message translates to:
+  /// **'平静'**
+  String get weatherCalm;
+
+  /// No description provided for @weatherLightWind.
+  ///
+  /// In zh, this message translates to:
+  /// **'小风'**
+  String get weatherLightWind;
+
+  /// No description provided for @weatherStorm.
+  ///
+  /// In zh, this message translates to:
+  /// **'风暴'**
+  String get weatherStorm;
+
+  /// No description provided for @seasonSpring.
+  ///
+  /// In zh, this message translates to:
+  /// **'春'**
+  String get seasonSpring;
+
+  /// No description provided for @seasonSummer.
+  ///
+  /// In zh, this message translates to:
+  /// **'夏'**
+  String get seasonSummer;
+
+  /// No description provided for @seasonAutumn.
+  ///
+  /// In zh, this message translates to:
+  /// **'秋'**
+  String get seasonAutumn;
+
+  /// No description provided for @seasonWinter.
+  ///
+  /// In zh, this message translates to:
+  /// **'冬'**
+  String get seasonWinter;
+
+  /// No description provided for @autoSave.
+  ///
+  /// In zh, this message translates to:
+  /// **'自动存档'**
+  String get autoSave;
+
+  /// No description provided for @saveSlot.
+  ///
+  /// In zh, this message translates to:
+  /// **'存档 {id}'**
+  String saveSlot(Object id);
+
+  /// No description provided for @emptySlot.
+  ///
+  /// In zh, this message translates to:
+  /// **'空槽位'**
+  String get emptySlot;
 }
 
 class _AppLocalizationsDelegate
