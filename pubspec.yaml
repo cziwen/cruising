@@ -52,6 +52,17 @@ flutter:
   uses-material-design: true
   generate: true
   
+  fonts:
+    - family: ArkPixel
+      fonts:
+        - asset: assets/font/ark-pixel-font-10px-monospaced-ttf-v2026/ark-pixel-10px-monospaced-zh_cn.ttf
+        - asset: assets/font/ark-pixel-font-10px-monospaced-ttf-v2026/ark-pixel-10px-monospaced-latin.ttf
+        - asset: assets/font/ark-pixel-font-10px-monospaced-ttf-v2026/ark-pixel-10px-monospaced-ja.ttf
+        - asset: assets/font/ark-pixel-font-10px-monospaced-ttf-v2026/ark-pixel-10px-monospaced-ko.ttf
+        - asset: assets/font/ark-pixel-font-10px-monospaced-ttf-v2026/ark-pixel-10px-monospaced-zh_hk.ttf
+        - asset: assets/font/ark-pixel-font-10px-monospaced-ttf-v2026/ark-pixel-10px-monospaced-zh_tr.ttf
+        - asset: assets/font/ark-pixel-font-10px-monospaced-ttf-v2026/ark-pixel-10px-monospaced-zh_tw.ttf
+
   assets:
     - assets/paper_ui/Sprites/Paper_UI_Pack/Folding_Cutout/4_Notification/
     - assets/paper_ui/Sprites/Content_Appear_Animation/Folding_Cutout/4_Notification/1/

@@ -166,7 +166,7 @@ class _DebugPanelState extends State<DebugPanel>
                                     color: Colors.orange,
                                     fontSize: 12,
                                     fontWeight: FontWeight.bold,
-                                    fontFamily: 'monospace',
+                                    fontFamily: 'ArkPixel',
                                   ),
                                 ),
                               ),

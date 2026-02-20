@@ -49,7 +49,7 @@ class _PaperDialogState extends State<PaperDialog> {
         style: const TextStyle(
           color: Color(0xFF4E342E), // 深褐色，适合纸张背景
           fontSize: 16,
-          fontFamily: 'Roboto', // 或者游戏使用的像素字体
+          fontFamily: 'ArkPixel',
         ),
         child: widget.child,
       ),

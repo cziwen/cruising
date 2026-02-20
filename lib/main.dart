@@ -92,6 +92,7 @@ class MainApp extends StatelessWidget {
               theme: ThemeData(
                 colorScheme: ColorScheme.fromSeed(seedColor: Colors.blue),
                 useMaterial3: true,
+                fontFamily: 'ArkPixel',
               ),
               locale: localeProvider.locale,
               localizationsDelegates: const [
