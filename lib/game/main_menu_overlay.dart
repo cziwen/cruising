@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
+import 'language_dialog.dart';
 import '../l10n/app_localizations.dart';
 import '../utils/version_constants.dart';
 import 'paper_button.dart';
@@ -110,6 +111,29 @@ class MainMenuOverlay extends StatelessWidget {
                   offset: Offset(1.0, 1.0),
                 ),
               ],
+            ),
+          ),
+        ),
+
+        // 语言切换 - 右下角
+        Positioned(
+          right: 20,
+          bottom: 20,
+          child: GestureDetector(
+            onTap: () {
+              showDialog(
+                context: context,
+                builder: (context) => const LanguageDialog(),
+              );
+            },
+            child: MouseRegion(
+              cursor: SystemMouseCursors.click,
+              child: Image.asset(
+                'assets/images/icon/mult_language_icon.png',
+                width: 128,
+                height: 128,
+                fit: BoxFit.contain,
+              ),
             ),
           ),
         ),

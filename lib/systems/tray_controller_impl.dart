@@ -12,7 +12,7 @@ class TrayController extends TrayListener {
       // 在 Windows 上使用 .ico 文件更稳定，其他平台使用 .png
       String iconPath = Platform.isWindows 
         ? 'assets/images/icon/app_icon.ico' 
-        : 'assets/images/icon/gameicon.png';
+        : 'assets/images/icon/Icon.png';
 
       await trayManager.setIcon(iconPath);
       

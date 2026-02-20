@@ -25,12 +25,13 @@ class GameConfigLoader {
 
   bool get isLoaded => _isLoaded;
 
-  /// 加载指定语言的配置文件，如果 locale 为 null 则加载默认配置
+  /// 加载指定语言的配置文件，如果 locale 为 null 则加载默认配置 (默认为 English 'en')
   Future<void> _loadLocalizedConfig(Locale? locale) async {
-    final String langCode = locale?.languageCode ?? 'zh';
+    final String langCode = locale?.languageCode ?? 'en';
     
     // 如果是默认语言 zh，直接加载原文件即可，或者尝试加载 _zh 文件
     // 这里我们约定：原文件是中文，翻译文件是 _en.json 等
+    // 尽管原文件是中文，但系统启动默认会加载 _en.json 以提供英文体验。
     
     await Future.wait([
       _loadGoodsConfig(langCode),
