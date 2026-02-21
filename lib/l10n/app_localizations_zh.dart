@@ -148,10 +148,10 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
-  String get lookAround => '再看看';
+  String get lookAround => '暂不';
 
   @override
-  String get confirmRecruit => '确认招募';
+  String get confirmRecruit => '确认';
 
   @override
   String recruitSuccess(Object name) {
@@ -166,6 +166,9 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get selectCrewDetail => '请选择一名船员查看详情';
+
+  @override
+  String get skills => '技能详情：';
 
   @override
   String get sailorSkill => '水手技能';

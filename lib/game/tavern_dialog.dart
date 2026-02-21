@@ -220,10 +220,10 @@ class _TavernDialogState extends State<TavernDialog> {
                 Expanded(
                   flex: 3,
                   child: _selectedCrew == null
-                      ? const Center(
+                      ? Center(
                           child: Text(
-                            '请选择一名船员查看详情',
-                            style: TextStyle(
+                            l10n.selectCrewDetail,
+                            style: const TextStyle(
                               color: Color(0xFF5D4037),
                               fontSize: 16,
                             ),
@@ -418,7 +418,7 @@ class _TavernDialogState extends State<TavernDialog> {
           
           // 技能详情
           Text(
-            '${l10n.sailorSkill}：',
+            l10n.skills,
             style: const TextStyle(
               color: Color(0xFF4E342E),
               fontSize: 18,

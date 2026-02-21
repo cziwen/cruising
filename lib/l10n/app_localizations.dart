@@ -335,13 +335,13 @@ abstract class AppLocalizations {
   /// No description provided for @lookAround.
   ///
   /// In zh, this message translates to:
-  /// **'再看看'**
+  /// **'暂不'**
   String get lookAround;
 
   /// No description provided for @confirmRecruit.
   ///
   /// In zh, this message translates to:
-  /// **'确认招募'**
+  /// **'确认'**
   String get confirmRecruit;
 
   /// No description provided for @recruitSuccess.
@@ -367,6 +367,12 @@ abstract class AppLocalizations {
   /// In zh, this message translates to:
   /// **'请选择一名船员查看详情'**
   String get selectCrewDetail;
+
+  /// No description provided for @skills.
+  ///
+  /// In zh, this message translates to:
+  /// **'技能详情：'**
+  String get skills;
 
   /// No description provided for @sailorSkill.
   ///

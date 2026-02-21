@@ -148,10 +148,10 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get lookAround => 'Look Around';
+  String get lookAround => 'Not yet';
 
   @override
-  String get confirmRecruit => 'Confirm Recruit';
+  String get confirmRecruit => 'Recruit';
 
   @override
   String recruitSuccess(Object name) {
@@ -166,6 +166,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get selectCrewDetail => 'Please select a crew member to view details';
+
+  @override
+  String get skills => 'Skills:';
 
   @override
   String get sailorSkill => 'Sailor Skill';
