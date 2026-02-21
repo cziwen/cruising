@@ -1727,9 +1727,9 @@ class GameState extends ChangeNotifier {
         );
       }
 
-      // 字段级回退：如果背景图未配置（或为默认占位符），则使用养成等级外观
+      // 修复主岛背景图升级 bug：如果背景图未配置，或者当前是自动生成的村庄图片，则根据当前等级更新
       if (homePort.backgroundImage.isEmpty ||
-          homePort.backgroundImage == 'assets/images/buildings/village_0.png') {
+          homePort.backgroundImage.contains('assets/images/buildings/village_')) {
         homePort = homePort.copyWith(backgroundImage: _homeIsland.appearance);
       }
     } else {

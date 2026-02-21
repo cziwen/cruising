@@ -219,13 +219,17 @@ class SeaEventSystem extends ChangeNotifier {
     // 触发海上商船交易界面
     NotificationSystem.instance.showNotificationL10n((l) => l.notificationMerchantTradeStart);
     
-    final merchantPort = _generateMerchantPort();
+    // 使用当前事件的标题和描述作为港口信息（支持本地化）
+    final name = _activeEvent?.title ?? '遭遇的商船';
+    final description = _activeEvent?.description ?? '一艘在公海上航行的商船，愿意交换各种物资。';
+    
+    final merchantPort = _generateMerchantPort(name: name, description: description);
     _gameState?.addPort(merchantPort);
     
     return merchantPort;
   }
 
-  Port _generateMerchantPort() {
+  Port _generateMerchantPort({String name = '遭遇的商船', String description = '一艘在公海上航行的商船，愿意交换各种物资。'}) {
     final random = Random();
     final allGoods = GameConfigLoader().goodsList.where((g) => g.id != 'gold').toList();
     
@@ -250,9 +254,9 @@ class SeaEventSystem extends ChangeNotifier {
     
     return Port(
       id: 'sea_merchant_ship',
-      name: '遭遇的商船',
+      name: name,
       backgroundImage: 'assets/images/events/merchant_ship.png',
-      description: '一艘在公海上航行的商船，愿意交换各种物资。',
+      description: description,
       goodsStock: selectedGoods,
       goodsConfig: selectedConfigs,
       merchantMoney: 2000 + random.nextInt(3001), // 2000-5000 金币
