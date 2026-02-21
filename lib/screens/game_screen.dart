@@ -13,6 +13,7 @@ import '../game/debug_panel.dart';
 import '../game/tavern_dialog.dart';
 import '../game/pixel_progress_bar.dart';
 import '../game/main_menu_overlay.dart';
+import '../game/new_game_setup_screen.dart';
 import '../systems/trade_system.dart';
 import '../systems/port_system.dart';
 import '../systems/music_system.dart';
@@ -161,6 +162,7 @@ class _GameScreenState extends State<GameScreen> {
   // 过渡动画相关状态
   bool _isTransitioningToGame = false;
   bool _showCoverOverlay = false;
+  bool _showNewGameSetup = false;
   bool _isShowingSeaEventDialog = false;
   int? _currentBackgroundSaveId; // 当前背景对应的存档 ID，-1 表示新游戏场景
 
@@ -432,7 +434,15 @@ class _GameScreenState extends State<GameScreen> {
   }
 
   Future<void> _handleNewGame() async {
+    if (_showNewGameSetup || _isTransitioningToGame) return;
     setState(() {
+      _showNewGameSetup = true;
+    });
+  }
+
+  Future<void> _handleNewGameSetupConfirm(NewGameSetupData data) async {
+    setState(() {
+      _showNewGameSetup = false;
       _isTransitioningToGame = true;
       // 如果当前背景不是新游戏场景 (-1)，则显示遮罩
       if (_currentBackgroundSaveId != -1) {
@@ -447,6 +457,11 @@ class _GameScreenState extends State<GameScreen> {
       _gameState.isMenuMode = false;
       // 重新初始化游戏状态
       _initializeGame();
+      _gameState.applyPlayerProfile(
+        playerName: data.playerName,
+        shipName: data.shipName,
+        favoriteThing: data.favoriteThing,
+      );
     });
     
     QuestSystem.instance.initialize(
@@ -747,6 +762,13 @@ class _GameScreenState extends State<GameScreen> {
               ),
             ),
           
+          if (_showNewGameSetup)
+            Positioned.fill(
+              child: NewGameSetupScreen(
+                onConfirm: _handleNewGameSetupConfirm,
+              ),
+            ),
+
           // 调试面板 - 始终位于最顶层，支持在菜单模式下操作
           DebugPanel(gameState: _gameState),
         ],

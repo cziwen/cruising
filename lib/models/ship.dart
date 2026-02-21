@@ -3,7 +3,7 @@ import 'goods.dart';
 /// 船只数据模型
 class Ship {
   final String id;
-  final String name;
+  String name;
   int cargoCapacity; // 最大载货容量（kg）
   int durability;
   int maxDurability;

@@ -542,6 +542,30 @@ abstract class AppLocalizations {
   /// **'新游戏'**
   String get newGame;
 
+  /// No description provided for @newGameSetupTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'启航登记'**
+  String get newGameSetupTitle;
+
+  /// No description provided for @newGamePlayerNameHint.
+  ///
+  /// In zh, this message translates to:
+  /// **'输入你的名字'**
+  String get newGamePlayerNameHint;
+
+  /// No description provided for @newGameShipNameHint.
+  ///
+  /// In zh, this message translates to:
+  /// **'输入船的名字'**
+  String get newGameShipNameHint;
+
+  /// No description provided for @newGameFavoriteThingHint.
+  ///
+  /// In zh, this message translates to:
+  /// **'输入你最喜欢的东西'**
+  String get newGameFavoriteThingHint;
+
   /// No description provided for @continueGame.
   ///
   /// In zh, this message translates to:

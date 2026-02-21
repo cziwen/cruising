@@ -262,6 +262,18 @@ class AppLocalizationsEn extends AppLocalizations {
   String get newGame => 'New Game';
 
   @override
+  String get newGameSetupTitle => 'Voyage Registration';
+
+  @override
+  String get newGamePlayerNameHint => 'Enter your name';
+
+  @override
+  String get newGameShipNameHint => 'Enter your ship name';
+
+  @override
+  String get newGameFavoriteThingHint => 'Enter your favorite thing';
+
+  @override
   String get continueGame => 'Continue';
 
   @override

@@ -81,6 +81,7 @@ flutter:
     - assets/images/ui/
     - assets/paper_ui/Sprites/Book_Desk/
     - assets/paper_ui/Sprites/Content/4_Buttons/
+    - assets/paper_ui/Sprites/Content/4_Buttons/Sliced/
     - assets/paper_ui/Sprites/Content/5_Holders/
     - assets/paper_ui/Sprites/Content/3_Progress_Bars/
     - assets/paper_ui/Sprites/Paper_UI_Pack/Plain/1_Paper/

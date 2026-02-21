@@ -261,6 +261,18 @@ class AppLocalizationsZh extends AppLocalizations {
   String get newGame => '新游戏';
 
   @override
+  String get newGameSetupTitle => '启航登记';
+
+  @override
+  String get newGamePlayerNameHint => '输入你的名字';
+
+  @override
+  String get newGameShipNameHint => '输入船的名字';
+
+  @override
+  String get newGameFavoriteThingHint => '输入你最喜欢的东西';
+
+  @override
   String get continueGame => '继续游戏';
 
   @override

@@ -61,6 +61,9 @@ class GameState extends ChangeNotifier {
     damagePerShot: 10,
     appearance: 'assets/images/ships/Player_ship_0.png',
   );
+
+  String _playerName = '船长';
+  String _favoriteThing = '';
   
   // 用于获取商品信息的函数（由TradeSystem设置）
   Goods Function(String goodsId)? _getGoodsById;
@@ -322,6 +325,8 @@ class GameState extends ChangeNotifier {
   Port? get currentPort => _currentPort;
   Port? get previousPort => _previousPort;
   Ship get ship => _ship;
+  String get playerName => _playerName;
+  String get favoriteThing => _favoriteThing;
   int get gold => _gold;
   List<ShipInventoryItem> get inventory => List.unmodifiable(_inventory);
   bool get isTransitioning => _isTransitioning;
@@ -434,6 +439,17 @@ class GameState extends ChangeNotifier {
   /// 船员加成 + 调试加成
   double get fireRatePerSecond => _crewManager.calculateFireRateBonus() + _debugFireRateBonus;
 
+  void applyPlayerProfile({
+    required String playerName,
+    required String shipName,
+    required String favoriteThing,
+  }) {
+    _playerName = playerName;
+    _ship.name = shipName;
+    _favoriteThing = favoriteThing;
+    notifyListeners();
+  }
+
   /// 获取开炮速度加成百分比 - 已废弃，保留用于兼容
   @Deprecated('使用 fireRatePerSecond')
   double get fireRateBonusPercent => fireRatePerSecond;
@@ -452,9 +468,12 @@ class GameState extends ChangeNotifier {
     
     // 3. 重置船只状态
     _ship.cargoCapacity = 100;
+    _ship.name = '初航号';
     _ship.maxDurability = 200;
     _ship.damagePerShot = 10;
     _ship.durability = 200; // 确保耐久度为满
+    _playerName = '船长';
+    _favoriteThing = '';
     
     // 4. 重置航行状态
     _isTransitioning = false;
@@ -2566,6 +2585,8 @@ class GameState extends ChangeNotifier {
     return {
       'currentPortId': _currentPort?.id,
       'ship': _ship.toJson(),
+      'playerName': _playerName,
+      'favoriteThing': _favoriteThing,
       'gold': _gold,
       'inventory': _inventory.map((item) => item.toJson()).toList(),
       'isTransitioning': _isTransitioning,
@@ -2593,6 +2614,8 @@ class GameState extends ChangeNotifier {
 
   void loadFromJson(Map<String, dynamic> json) {
     // 1. 恢复基础状态
+    _playerName = json['playerName'] as String? ?? '船长';
+    _favoriteThing = json['favoriteThing'] as String? ?? '';
     _gold = json['gold'] as int;
     _isTransitioning = json['isTransitioning'] as bool;
     _isAtSea = json['isAtSea'] as bool;
@@ -2641,6 +2664,7 @@ class GameState extends ChangeNotifier {
     // 4. 恢复船只状态
     final shipJson = json['ship'] as Map<String, dynamic>;
     // 由于 _ship 是 final，我们需要手动更新它的属性
+    _ship.name = shipJson['name'] as String;
     _ship.cargoCapacity = shipJson['cargoCapacity'] as int;
     _ship.durability = shipJson['durability'] as int;
     _ship.maxDurability = shipJson['maxDurability'] as int;
