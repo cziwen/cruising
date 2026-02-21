@@ -35,11 +35,8 @@ class _LoadingScreenState extends State<LoadingScreen> {
   }
 
   Future<void> _startLoading() async {
-    // 基础等待时间
-    final minWait = Future.delayed(widget.duration);
-    
     // 收集所有等待任务
-    final tasks = <Future<dynamic>>[minWait];
+    final tasks = <Future<dynamic>>[];
     
     // 外部等待任务列表
     if (widget.waitFor != null) {
@@ -51,8 +48,13 @@ class _LoadingScreenState extends State<LoadingScreen> {
       tasks.add(widget.onLoad!(context));
     }
     
-    // 等待所有任务完成（至少等待 duration 时间）
-    await Future.wait(tasks);
+    // 等待所有真实加载任务完成
+    if (tasks.isNotEmpty) {
+      await Future.wait(tasks);
+    }
+
+    // 在所有任务完成后，额外等待 duration 时间（默认为 1s）
+    await Future.delayed(widget.duration);
 
     if (mounted) {
       Navigator.of(context).pushReplacement(
@@ -74,26 +76,7 @@ class _LoadingScreenState extends State<LoadingScreen> {
         children: [
           // 背景层
           Positioned.fill(
-            child: Image.asset(
-              'assets/images/painting/Cover_0.png', // 使用有效的封面图片作为加载背景
-              fit: BoxFit.cover,
-              errorBuilder: (context, error, stackTrace) {
-                // 如果备用图片也失败，使用渐变背景
-                return Container(
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      begin: Alignment.topCenter,
-                      end: Alignment.bottomCenter,
-                      colors: [
-                        const Color(0xFF87CEEB),
-                        const Color(0xFF4682B4),
-                        const Color(0xFF1E90FF),
-                      ],
-                    ),
-                  ),
-                );
-              },
-            ),
+            child: Container(color: Colors.black),
           ),
           
           // 内容层

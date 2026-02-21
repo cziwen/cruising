@@ -736,11 +736,8 @@ class _GameScreenState extends State<GameScreen> {
             child: AnimatedOpacity(
               opacity: _showCoverOverlay ? 1.0 : 0.0,
               duration: const Duration(milliseconds: 500),
-              child: Image.asset(
-                'assets/images/painting/Cover_0.png',
-                fit: BoxFit.cover,
-                width: double.infinity,
-                height: double.infinity,
+              child: Container(
+                color: Colors.black,
               ),
             ),
           ),
