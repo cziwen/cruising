@@ -762,7 +762,7 @@ class _TradeDialogState extends State<_TradeDialog> {
                 onPressed: _canBalanceTrade(effectivePortId) ? () => _balanceTrade(effectivePortId) : null,
                 label: l10n.balanceOffer,
                 style: PaperButtonStyle.brown,
-                width: 100,
+                width: 120,
                 height: 40,
                 textStyle: TextStyle(
                   fontSize: 14,
@@ -786,7 +786,7 @@ class _TradeDialogState extends State<_TradeDialog> {
                     : null,
                 label: isAcceptable ? l10n.confirmTrade : l10n.tradeUnfair,
                 style: isAcceptable ? PaperButtonStyle.green : PaperButtonStyle.brown,
-                width: 120,
+                width: 140,
                 height: 48,
                 textStyle: const TextStyle(
                   fontSize: 18,

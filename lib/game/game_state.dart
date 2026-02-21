@@ -889,6 +889,7 @@ class GameState extends ChangeNotifier {
 
     final firstNames = List<String>.from(config['firstNames']);
     final lastNames = List<String>.from(config['lastNames']);
+    final nameSeparator = config['nameSeparator'] ?? '';
     final personalities = List<String>.from(config['personalities']);
     final specialties = List<String>.from(config['specialties']);
     final likedItems = List<String>.from(config['likedItems']);
@@ -898,7 +899,7 @@ class GameState extends ChangeNotifier {
     for (int i = 0; i < count; i++) {
       final firstName = firstNames[random.nextInt(firstNames.length)];
       final lastName = lastNames[random.nextInt(lastNames.length)];
-      final name = '$firstName$lastName';
+      final name = '$firstName$nameSeparator$lastName';
       
       final personality = personalities[random.nextInt(personalities.length)];
       final specialty = specialties[random.nextInt(specialties.length)];

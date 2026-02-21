@@ -113,7 +113,7 @@ abstract class AppLocalizations {
   /// No description provided for @confirmTrade.
   ///
   /// In zh, this message translates to:
-  /// **'确认交易'**
+  /// **'交易'**
   String get confirmTrade;
 
   /// No description provided for @tradeSuccess.
@@ -167,7 +167,7 @@ abstract class AppLocalizations {
   /// No description provided for @balanceOffer.
   ///
   /// In zh, this message translates to:
-  /// **'平衡报价'**
+  /// **'平衡'**
   String get balanceOffer;
 
   /// No description provided for @buy.
@@ -410,6 +410,66 @@ abstract class AppLocalizations {
   /// **'升级选项'**
   String get upgradeOptions;
 
+  /// No description provided for @upgradeCargoName.
+  ///
+  /// In zh, this message translates to:
+  /// **'扩建货仓'**
+  String get upgradeCargoName;
+
+  /// No description provided for @upgradeCargoDesc.
+  ///
+  /// In zh, this message translates to:
+  /// **'增加最大载货重量'**
+  String get upgradeCargoDesc;
+
+  /// No description provided for @upgradeHullName.
+  ///
+  /// In zh, this message translates to:
+  /// **'加固船体'**
+  String get upgradeHullName;
+
+  /// No description provided for @upgradeHullDesc.
+  ///
+  /// In zh, this message translates to:
+  /// **'增加耐久度上限'**
+  String get upgradeHullDesc;
+
+  /// No description provided for @upgradeCrewName.
+  ///
+  /// In zh, this message translates to:
+  /// **'扩建船员舱'**
+  String get upgradeCrewName;
+
+  /// No description provided for @upgradeCrewDesc.
+  ///
+  /// In zh, this message translates to:
+  /// **'增加最大船员容纳数量'**
+  String get upgradeCrewDesc;
+
+  /// No description provided for @upgradeErrorNeedsOther.
+  ///
+  /// In zh, this message translates to:
+  /// **'需要先升级其他部位（其他部位需达到等级 {level}）'**
+  String upgradeErrorNeedsOther(Object level);
+
+  /// No description provided for @upgradeErrorMaxLevel.
+  ///
+  /// In zh, this message translates to:
+  /// **'已达最高等级'**
+  String get upgradeErrorMaxLevel;
+
+  /// No description provided for @upgradeErrorNoGold.
+  ///
+  /// In zh, this message translates to:
+  /// **'金币不足，需要 {cost} 金币'**
+  String upgradeErrorNoGold(Object cost);
+
+  /// No description provided for @upgradeErrorFail.
+  ///
+  /// In zh, this message translates to:
+  /// **'交易失败'**
+  String get upgradeErrorFail;
+
   /// No description provided for @shipyard.
   ///
   /// In zh, this message translates to:
@@ -461,7 +521,7 @@ abstract class AppLocalizations {
   /// No description provided for @upgradeCost.
   ///
   /// In zh, this message translates to:
-  /// **'💰{cost} 升级'**
+  /// **'💰{cost}'**
   String upgradeCost(Object cost);
 
   /// No description provided for @maxLevel.

@@ -21,6 +21,8 @@ class PaperButton extends StatefulWidget {
   final EdgeInsets? padding;
   final TextStyle? textStyle;
   final Alignment alignment;
+  final double? minFontSize;
+  final double? maxFontSize;
 
   const PaperButton({
     super.key,
@@ -34,6 +36,8 @@ class PaperButton extends StatefulWidget {
     this.padding,
     this.textStyle,
     this.alignment = Alignment.center,
+    this.minFontSize,
+    this.maxFontSize,
   });
 
   @override
@@ -76,7 +80,55 @@ class _PaperButtonState extends State<PaperButton> {
     // 如果只有图标没有文字，且宽度较小，则减小内边距
     final defaultPadding = (isSquare || (widget.label == null && widget.width != null && widget.width! <= 60))
         ? const EdgeInsets.all(2)
-        : const EdgeInsets.symmetric(horizontal: 12, vertical: 4);
+        : const EdgeInsets.symmetric(horizontal: 19, vertical: 8); // 为 43x15 区域调整
+
+    final textStyle = widget.textStyle ?? const TextStyle(
+      color: Color(0xFF4E342E),
+      fontSize: 14, // 从 16 减小
+      fontWeight: FontWeight.bold,
+    );
+
+    final minFontSize = widget.minFontSize ?? 8.0;
+    final maxFontSize = widget.maxFontSize ?? textStyle.fontSize ?? 14.0;
+
+    String processedLabel = widget.label ?? '';
+    bool isMultiLine = false;
+    double effectiveMaxFontSize = maxFontSize;
+
+    // Rule: length > 8, reduce font size
+    if (processedLabel.length > 8) {
+      effectiveMaxFontSize = maxFontSize * 0.9; // 16 -> 14.4
+    }
+
+    // Rule: length > 9 and has spaces, wrap to 2 lines
+    if (processedLabel.length > 9 && processedLabel.contains(' ')) {
+      final words = processedLabel.split(' ');
+      if (words.length >= 2) {
+        // Find the best split point to balance line lengths
+        int mid = (processedLabel.length / 2).floor();
+        int bestSpaceIndex = -1;
+        int minDiff = processedLabel.length;
+
+        for (int i = 0; i < processedLabel.length; i++) {
+          if (processedLabel[i] == ' ') {
+            int diff = (i - mid).abs();
+            if (diff < minDiff) {
+              minDiff = diff;
+              bestSpaceIndex = i;
+            }
+          }
+        }
+
+        if (bestSpaceIndex != -1) {
+          processedLabel = processedLabel.substring(0, bestSpaceIndex) +
+              '\n' +
+              processedLabel.substring(bestSpaceIndex + 1);
+          isMultiLine = true;
+          // Rule: 2 lines, dramatically reduce font size
+          effectiveMaxFontSize = maxFontSize * 0.75; // 16 -> 12
+        }
+      }
+    }
 
     return Opacity(
       opacity: enabled ? 1.0 : 0.6,
@@ -110,27 +162,33 @@ class _PaperButtonState extends State<PaperButton> {
                 ),
           child: Align(
             alignment: widget.alignment,
-            child: FittedBox(
-              fit: BoxFit.scaleDown,
-              child: widget.child ?? Row(
-                mainAxisSize: MainAxisSize.min,
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  if (widget.icon != null) ...[
-                    widget.icon!,
-                    if (widget.label != null) const SizedBox(width: 8),
-                  ],
-                  if (widget.label != null)
-                    Text(
-                      widget.label!,
-                      style: widget.textStyle ?? const TextStyle(
-                        color: Color(0xFF4E342E),
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
+            child: widget.child ?? Row(
+              mainAxisSize: MainAxisSize.min,
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                if (widget.icon != null) ...[
+                  widget.icon!,
+                  if (widget.label != null) const SizedBox(width: 4),
+                ],
+                if (widget.label != null)
+                  Flexible(
+                    child: FittedBox(
+                      fit: BoxFit.scaleDown,
+                      alignment: Alignment.center,
+                      child: Text(
+                        processedLabel,
+                        textAlign: TextAlign.center,
+                        style: textStyle.copyWith(
+                          fontSize: effectiveMaxFontSize,
+                          height: isMultiLine ? 1.0 : null,
+                        ).copyWith(fontSize: effectiveMaxFontSize.clamp(minFontSize, effectiveMaxFontSize)),
+                        maxLines: 2,
+                        overflow: TextOverflow.visible,
                       ),
                     ),
-                ],
-              ),
+                  ),
+              ],
             ),
           ),
         ),

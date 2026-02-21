@@ -62,7 +62,7 @@ class _ShipyardDialogState extends State<ShipyardDialog>
   }
 
   void _handleUpgrade(UpgradeType type, AppLocalizations l10n) {
-    final result = _shipSystem.performUpgrade(widget.gameState, type);
+    final result = _shipSystem.performUpgrade(widget.gameState, type, l10n);
     
     if (result != null) {
       // 失败提示
@@ -76,10 +76,10 @@ class _ShipyardDialogState extends State<ShipyardDialog>
     } else {
       // 成功提示
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('升级成功！'),
+        SnackBar(
+          content: Text(l10n.upgradeSuccess),
           backgroundColor: Colors.green,
-          duration: Duration(milliseconds: 500),
+          duration: const Duration(milliseconds: 500),
         ),
       );
       setState(() {}); // 刷新 UI
@@ -138,9 +138,9 @@ class _ShipyardDialogState extends State<ShipyardDialog>
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text(
-                  '升级选项',
-                  style: TextStyle(
+                Text(
+                  l10n.upgradeOptions,
+                  style: const TextStyle(
                     color: Color(0xFF4E342E),
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
@@ -338,8 +338,8 @@ class _ShipyardDialogState extends State<ShipyardDialog>
   }
 
   Widget _buildUpgradeCard(Ship ship, UpgradeType type, AppLocalizations l10n) {
-    final name = _shipSystem.getUpgradeName(type);
-    final description = _shipSystem.getUpgradeDescription(type);
+    final name = _shipSystem.getUpgradeName(type, l10n);
+    final description = _shipSystem.getUpgradeDescription(type, l10n);
     final cost = _shipSystem.getUpgradeCost(ship, type);
     final amount = _shipSystem.getUpgradeAmount(type);
     final isAllowedByLevel = _shipSystem.canPerformUpgrade(ship, type);
@@ -355,7 +355,7 @@ class _ShipyardDialogState extends State<ShipyardDialog>
         valueChange = '${ship.maxDurability} → ${ship.maxDurability + amount}';
         break;
       case UpgradeType.crew:
-        valueChange = '${ship.maxCrewMemberCount} → ${ship.maxCrewMemberCount + amount} 人';
+        valueChange = '${ship.maxCrewMemberCount} → ${ship.maxCrewMemberCount + amount} ${l10n.peopleCount('')}';
         break;
     }
 
@@ -410,7 +410,7 @@ class _ShipyardDialogState extends State<ShipyardDialog>
             Padding(
               padding: const EdgeInsets.only(bottom: 2),
               child: Text(
-                _shipSystem.getLevelConstraintMessage(ship, type),
+                _shipSystem.getLevelConstraintMessage(ship, type, l10n),
                 style: TextStyle(
                   color: Colors.red[800],
                   fontSize: 10,
@@ -430,7 +430,7 @@ class _ShipyardDialogState extends State<ShipyardDialog>
             onPressed: canUpgrade ? () => _handleUpgrade(type, l10n) : null,
             label: level < _shipSystem.getMaxLevel() ? l10n.upgradeCost(cost) : l10n.maxLevel,
             style: PaperButtonStyle.brown,
-            width: 100,
+            width: 110,
             height: 40,
             textStyle: TextStyle(
               fontWeight: FontWeight.bold,

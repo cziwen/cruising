@@ -1,6 +1,7 @@
 {
   "firstNames": ["Jack", "Tom", "Johnny", "Edward", "William", "James", "Charles", "Robert", "Lee", "Zhang", "Liu", "Wang", "Chen", "Yang", "Zhao", "Huang"],
   "lastNames": ["Sparrow", "Sawyer", "Morgan", "Teach", "Drake", "Kidd", "Flint", "Rayleigh", "Baker", "Smith", "Johnson"],
+  "nameSeparator": " ",
   "personalities": ["Brave", "Cautious", "Optimistic", "Taciturn", "Enthusiastic", "Eccentric", "Loyal", "Greedy", "Witty", "Steady"],
   "specialties": ["Sailing", "Repairing", "Cannoneering", "Cooking", "Medicine", "Fighting", "Observation", "Commanding"],
   "likedItems": ["Rum", "Gold", "Tobacco", "Sea Map", "Lucky Coin", "Compass", "Salted Fish", "Old Pocket Watch"],

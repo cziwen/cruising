@@ -17,7 +17,7 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get confirmTrade => 'Confirm Trade';
+  String get confirmTrade => 'Trade';
 
   @override
   String get tradeSuccess => 'Trade Successful!';
@@ -44,7 +44,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get give => 'Give';
 
   @override
-  String get balanceOffer => 'Balance Offer';
+  String get balanceOffer => 'Balance';
 
   @override
   String get buy => 'Buy';
@@ -190,6 +190,40 @@ class AppLocalizationsEn extends AppLocalizations {
   String get upgradeOptions => 'Upgrade Options';
 
   @override
+  String get upgradeCargoName => 'Expand Cargo';
+
+  @override
+  String get upgradeCargoDesc => 'Increase max cargo weight';
+
+  @override
+  String get upgradeHullName => 'Reinforce Hull';
+
+  @override
+  String get upgradeHullDesc => 'Increase max durability';
+
+  @override
+  String get upgradeCrewName => 'Expand Crew Cabin';
+
+  @override
+  String get upgradeCrewDesc => 'Increase max crew capacity';
+
+  @override
+  String upgradeErrorNeedsOther(Object level) {
+    return 'Need other parts at level $level first';
+  }
+
+  @override
+  String get upgradeErrorMaxLevel => 'Max level reached';
+
+  @override
+  String upgradeErrorNoGold(Object cost) {
+    return 'Insufficient gold, need $cost gold';
+  }
+
+  @override
+  String get upgradeErrorFail => 'Transaction failed';
+
+  @override
   String get shipyard => 'Shipyard';
 
   @override
@@ -215,7 +249,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String upgradeCost(Object cost) {
-    return '💰$cost Upgrade';
+    return '💰$cost';
   }
 
   @override

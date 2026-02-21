@@ -1,6 +1,7 @@
 import 'dart:math';
 import '../game/game_state.dart';
 import '../models/ship.dart';
+import '../l10n/app_localizations.dart';
 
 /// 升级类型
 enum UpgradeType {
@@ -71,14 +72,14 @@ class ShipSystem {
   }
 
   /// 获取升级效果描述
-  String getUpgradeDescription(UpgradeType type) {
+  String getUpgradeDescription(UpgradeType type, AppLocalizations l10n) {
     switch (type) {
       case UpgradeType.cargo:
-        return '增加最大载货重量';
+        return l10n.upgradeCargoDesc;
       case UpgradeType.hull:
-        return '增加耐久度上限';
+        return l10n.upgradeHullDesc;
       case UpgradeType.crew:
-        return '增加最大船员容纳数量';
+        return l10n.upgradeCrewDesc;
     }
   }
 
@@ -95,14 +96,14 @@ class ShipSystem {
   }
 
   /// 获取升级名称
-  String getUpgradeName(UpgradeType type) {
+  String getUpgradeName(UpgradeType type, AppLocalizations l10n) {
     switch (type) {
       case UpgradeType.cargo:
-        return '扩建货仓';
+        return l10n.upgradeCargoName;
       case UpgradeType.hull:
-        return '加固船体';
+        return l10n.upgradeHullName;
       case UpgradeType.crew:
-        return '扩建船员舱';
+        return l10n.upgradeCrewName;
     }
   }
 
@@ -138,15 +139,15 @@ class ShipSystem {
   int getMaxLevel() => 6;
 
   /// 获取升级类型等级限制描述
-  String getLevelConstraintMessage(Ship ship, UpgradeType type) {
+  String getLevelConstraintMessage(Ship ship, UpgradeType type, AppLocalizations l10n) {
     final currentLevel = getUpgradeLevel(ship, type);
-    if (currentLevel >= getMaxLevel()) return '已达最高等级';
-    return '需要其他部位达到等级 $currentLevel';
+    if (currentLevel >= getMaxLevel()) return l10n.upgradeErrorMaxLevel;
+    return l10n.upgradeErrorNeedsOther(currentLevel);
   }
 
   /// 执行升级
   /// 返回 null 表示成功，否则返回错误信息
-  String? performUpgrade(GameState gameState, UpgradeType type) {
+  String? performUpgrade(GameState gameState, UpgradeType type, AppLocalizations l10n) {
     final ship = gameState.ship;
     final currentLevel = getUpgradeLevel(ship, type);
 
@@ -169,19 +170,19 @@ class ShipSystem {
     }
 
     if (currentLevel > minOtherLevel) {
-      return '需要先升级其他部位（其他部位需达到等级 $currentLevel）';
+      return l10n.upgradeErrorNeedsOther(currentLevel);
     }
 
     final cost = getUpgradeCost(ship, type);
     
     // 检查金币
     if (gameState.gold < cost) {
-      return '金币不足，需要 $cost 金币';
+      return l10n.upgradeErrorNoGold(cost);
     }
 
     // 扣除金币
     if (!gameState.spendGold(cost)) {
-       return '交易失败';
+       return l10n.upgradeErrorFail;
     }
 
     // 应用升级

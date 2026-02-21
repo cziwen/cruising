@@ -17,7 +17,7 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
-  String get confirmTrade => '确认交易';
+  String get confirmTrade => '交易';
 
   @override
   String get tradeSuccess => '交易成功！';
@@ -44,7 +44,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get give => '换出';
 
   @override
-  String get balanceOffer => '平衡报价';
+  String get balanceOffer => '平衡';
 
   @override
   String get buy => '购买';
@@ -189,6 +189,40 @@ class AppLocalizationsZh extends AppLocalizations {
   String get upgradeOptions => '升级选项';
 
   @override
+  String get upgradeCargoName => '扩建货仓';
+
+  @override
+  String get upgradeCargoDesc => '增加最大载货重量';
+
+  @override
+  String get upgradeHullName => '加固船体';
+
+  @override
+  String get upgradeHullDesc => '增加耐久度上限';
+
+  @override
+  String get upgradeCrewName => '扩建船员舱';
+
+  @override
+  String get upgradeCrewDesc => '增加最大船员容纳数量';
+
+  @override
+  String upgradeErrorNeedsOther(Object level) {
+    return '需要先升级其他部位（其他部位需达到等级 $level）';
+  }
+
+  @override
+  String get upgradeErrorMaxLevel => '已达最高等级';
+
+  @override
+  String upgradeErrorNoGold(Object cost) {
+    return '金币不足，需要 $cost 金币';
+  }
+
+  @override
+  String get upgradeErrorFail => '交易失败';
+
+  @override
   String get shipyard => '船厂';
 
   @override
@@ -214,7 +248,7 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String upgradeCost(Object cost) {
-    return '💰$cost 升级';
+    return '💰$cost';
   }
 
   @override
